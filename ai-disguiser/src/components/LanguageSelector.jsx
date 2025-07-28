@@ -33,13 +33,13 @@ function LanguageSelector({
 
   return (
     <div className={`language-selector ${className}`}>
-      <h3>输出语言:</h3>
+      <h3>Output Language:</h3>
       <select 
         value={selectedLanguage}
         onChange={handleLanguageChange}
         disabled={disabled}
         className="language-select"
-        title="选择转换结果的语言"
+        title="Select the language for conversion results"
       >
         {Object.entries(LANGUAGE_CONFIG).map(([key, language]) => (
           <option key={key} value={key}>
@@ -57,7 +57,7 @@ function LanguageSelector({
       
       {selectedLanguage === 'auto' && (
         <p className="language-description">
-          将根据输入文本自动检测语言并保持一致的输出语言
+          Will automatically detect language based on input text and maintain consistent output language
         </p>
       )}
     </div>

@@ -25,23 +25,23 @@ export const TEXT_LIMITS = {
 export const STYLE_CONFIG = {
   chat: {
     name: 'chat',
-    displayName: '聊天风格',
-    description: '轻松随意的聊天语调'
+    displayName: 'Chat Style',
+    description: 'Casual and relaxed conversational tone'
   },
   poem: {
     name: 'poem',
-    displayName: '诗歌风格',
-    description: '富有诗意的文学表达'
+    displayName: 'Poetic Style',
+    description: 'Literary expression with poetic flair'
   },
   social: {
     name: 'social',
-    displayName: '社交风格',
-    description: '适合社交媒体的表达方式'
+    displayName: 'Social Style',
+    description: 'Expression suitable for social media'
   },
   story: {
     name: 'story',
-    displayName: '故事风格',
-    description: '叙事性的故事表达'
+    displayName: 'Story Style',
+    description: 'Narrative storytelling expression'
   }
 }
 
@@ -57,39 +57,39 @@ export const LANGUAGE_FEATURE = {
 export const LANGUAGE_CONFIG = {
   auto: {
     code: 'auto',
-    name: '自动检测',
-    displayName: '🌐 自动检测',
-    description: '根据输入文本自动选择输出语言'
+    name: 'Auto Detect',
+    displayName: '🌐 Auto Detect',
+    description: 'Automatically select output language based on input text'
   },
   zh: {
     code: 'zh',
     name: 'Chinese',
-    displayName: '🇨🇳 中文',
-    description: '中文输出'
+    displayName: '🇨🇳 Chinese',
+    description: 'Chinese output'
   },
   en: {
     code: 'en',
     name: 'English',
     displayName: '🇺🇸 English',
-    description: '英文输出'
+    description: 'English output'
   },
   ja: {
     code: 'ja',
     name: 'Japanese',
     displayName: '🇯🇵 日本語',
-    description: '日语输出'
+    description: 'Japanese output'
   },
   de: {
     code: 'de',
     name: 'German',
     displayName: '🇩🇪 Deutsch',
-    description: '德语输出'
+    description: 'German output'
   },
   es: {
     code: 'es',
     name: 'Spanish',
     displayName: '🇪🇸 Español',
-    description: '西班牙语输出'
+    description: 'Spanish output'
   }
 }
 
@@ -103,53 +103,53 @@ export const CONVERSION_MODE = {
 export const PURPOSE_CONFIG = {
   explain: {
     name: 'explain',
-    displayName: '解释 / 说明',
-    description: '把复杂概念讲清楚，对方能理解'
+    displayName: 'Explain / Clarify',
+    description: 'Make complex concepts clear and understandable'
   },
   ask: {
     name: 'ask', 
-    displayName: '提问 / 引导',
-    description: '抛出问题、引导讨论或发起对话'
+    displayName: 'Ask / Guide',
+    description: 'Pose questions, guide discussion or initiate conversation'
   },
   persuade: {
     name: 'persuade',
-    displayName: '劝说 / 说服', 
-    description: '试图让对方接受观点或建议'
+    displayName: 'Persuade / Convince', 
+    description: 'Try to get others to accept viewpoints or suggestions'
   },
   comfort: {
     name: 'comfort',
-    displayName: '安慰 / 支持',
-    description: '提供情感支持，缓解情绪'
+    displayName: 'Comfort / Support',
+    description: 'Provide emotional support and ease emotions'
   },
   soften: {
     name: 'soften',
-    displayName: '委婉表达',
-    description: '想表达但不想太直接'
+    displayName: 'Soften Expression',
+    description: 'Want to express something but not too directly'
   },
   frustration: {
     name: 'frustration', 
-    displayName: '表达愤怒 / 不满',
-    description: '有情绪但不想恶意攻击'
+    displayName: 'Express Anger / Dissatisfaction',
+    description: 'Have emotions but don\'t want to attack maliciously'
   },
   compliment: {
     name: 'compliment',
-    displayName: '赞美 / 表扬',
-    description: '给人正向反馈'
+    displayName: 'Praise / Compliment',
+    description: 'Give positive feedback to others'
   },
   apologize: {
     name: 'apologize',
-    displayName: '道歉 / 认错',
-    description: '主动表达歉意'
+    displayName: 'Apologize / Admit Fault',
+    description: 'Actively express regret or apology'
   },
   announce: {
     name: 'announce',
-    displayName: '宣布 / 表态',
-    description: '发表个人或官方立场'
+    displayName: 'Announce / State Position',
+    description: 'Express personal or official stance'
   },
   probe: {
     name: 'probe',
-    displayName: '试探 / 隐晦表达',
-    description: '说话留有余地，观察对方反应'
+    displayName: 'Probe / Subtle Expression',
+    description: 'Leave room for interpretation, observe reactions'
   }
 }
 
@@ -157,53 +157,53 @@ export const PURPOSE_CONFIG = {
 export const RECIPIENT_CONFIG = {
   child: {
     name: 'child',
-    displayName: '小孩',
-    description: '语言要具象、生动、避免抽象'
+    displayName: 'Child',
+    description: 'Language should be concrete, vivid, avoid abstraction'
   },
   parents: {
     name: 'parents',
-    displayName: '父母',
-    description: '语气尊重、有耐心'
+    displayName: 'Parents',
+    description: 'Respectful tone with patience'
   },
   boss: {
     name: 'boss', 
-    displayName: '老板',
-    description: '委婉、简洁、逻辑清晰'
+    displayName: 'Boss',
+    description: 'Tactful, concise, logically clear'
   },
   colleague: {
     name: 'colleague',
-    displayName: '同事',
-    description: '合作感、专业语气'
+    displayName: 'Colleague',
+    description: 'Collaborative, professional tone'
   },
   friend: {
     name: 'friend',
-    displayName: '朋友',
-    description: '自然、放松、非正式'
+    displayName: 'Friend',
+    description: 'Natural, relaxed, informal'
   },
   stranger: {
     name: 'stranger',
-    displayName: '陌生人', 
-    description: '礼貌中立'
+    displayName: 'Stranger', 
+    description: 'Politely neutral'
   },
   ex: {
     name: 'ex',
-    displayName: '前任',
-    description: '复杂情绪，需拿捏分寸'
+    displayName: 'Ex-partner',
+    description: 'Complex emotions, need careful balance'
   },
   partner: {
     name: 'partner',
-    displayName: '爱人 / 伴侣',
-    description: '情绪感强、理解感、亲密语气'
+    displayName: 'Partner / Lover',
+    description: 'Emotional, understanding, intimate tone'
   },
   public: {
     name: 'public',
-    displayName: '公众',
-    description: '普通口语 or 公共话语'
+    displayName: 'Public',
+    description: 'General conversational or public discourse'
   },
   ai: {
     name: 'ai',
-    displayName: 'AI助手',
-    description: '明确结构 + 指令型表达'
+    displayName: 'AI Assistant',
+    description: 'Clear structure with instructional expression'
   }
 }
 
