@@ -58,37 +58,37 @@ export const LANGUAGE_CONFIG = {
   auto: {
     code: 'auto',
     name: 'Auto Detect',
-    displayName: '🌐 Auto Detect',
+    displayName: 'Auto Detect',
     description: 'Automatically select output language based on input text'
   },
   zh: {
     code: 'zh',
     name: 'Chinese',
-    displayName: '🇨🇳 Chinese',
+    displayName: 'Chinese',
     description: 'Chinese output'
   },
   en: {
     code: 'en',
     name: 'English',
-    displayName: '🇺🇸 English',
+    displayName: 'English',
     description: 'English output'
   },
   ja: {
     code: 'ja',
     name: 'Japanese',
-    displayName: '🇯🇵 日本語',
+    displayName: '日本語',
     description: 'Japanese output'
   },
   de: {
     code: 'de',
     name: 'German',
-    displayName: '🇩🇪 Deutsch',
+    displayName: 'Deutsch',
     description: 'German output'
   },
   es: {
     code: 'es',
     name: 'Spanish',
-    displayName: '🇪🇸 Español',
+    displayName: 'Español',
     description: 'Spanish output'
   }
 }
