@@ -41,7 +41,7 @@ export function useDisguise() {
     
     // 输入验证
     if (!inputText.trim()) {
-      setError('请输入要转换的文本')
+      setError('Please enter text to transform')
       return
     }
 
@@ -97,25 +97,6 @@ export function useDisguise() {
     }
   }, [inputText, selectedStyle, outputLanguage, conversionMode, selectedPurpose, selectedRecipient])
 
-  /**
-   * 重新生成 - 使用相同的输入和风格重新转换
-   */
-  const handleRegenerate = useCallback(async () => {
-    if (!originalText) {
-      setError('没有可重新生成的内容')
-      return
-    }
-    
-    // 临时保存当前输入，用原文重新生成
-    const currentInput = inputText
-    setInputText(originalText)
-    
-    // 执行转换
-    await handleDisguise()
-    
-    // 恢复输入框内容
-    setInputText(currentInput)
-  }, [originalText, handleDisguise, inputText])
 
   /**
    * 清空所有内容
@@ -220,7 +201,6 @@ export function useDisguise() {
     updateInputText,
     updateSelectedStyle,
     handleDisguise,
-    handleRegenerate,
     handleClear,
     copyToClipboard,
     
@@ -235,7 +215,6 @@ export function useDisguise() {
     // 计算属性
     hasOutput: Boolean(output),
     hasOriginal: Boolean(originalText),
-    canRegenerate: Boolean(originalText) && !isLoading,
     isLanguageFeatureEnabled: LANGUAGE_FEATURE.ENABLED,
     
     // 配置常量（供组件使用）

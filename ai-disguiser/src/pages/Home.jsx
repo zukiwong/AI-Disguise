@@ -24,12 +24,10 @@ function Home() {
     updateSelectedPurpose,
     updateSelectedRecipient,
     handleDisguise,
-    handleRegenerate,
     handleClear,
     copyToClipboard,
     hasOutput,
     hasOriginal,
-    canRegenerate,
     isLanguageFeatureEnabled,
     CONVERSION_MODE,
     PURPOSE_CONFIG,
@@ -43,10 +41,10 @@ function Home() {
   const handleCopy = async (text, type) => {
     const success = await copyToClipboard(text)
     if (success) {
-      setCopyStatus(`${type}已复制`)
+      setCopyStatus(`${type} copied`)
       setTimeout(() => setCopyStatus(''), 2000)
     } else {
-      setCopyStatus('复制失败')
+      setCopyStatus('Copy failed')
       setTimeout(() => setCopyStatus(''), 2000)
     }
   }
@@ -54,16 +52,16 @@ function Home() {
   return (
     <div className="home-container">
       <h1>AI Disguiser</h1>
-      <p>使用 AI 将你的文本转换为不同风格</p>
+      <p>Transform your text into different styles using AI</p>
       
       {/* 输入区域 */}
       <div className="input-section">
-        <h3>输入文本:</h3>
+        <h3>Input Text:</h3>
         <div className="input-wrapper">
           <textarea 
             value={inputText}
             onChange={(e) => updateInputText(e.target.value)}
-            placeholder="请输入要转换的文本..."
+            placeholder="Enter text to transform..."
             maxLength={TEXT_LIMITS.MAX_INPUT_LENGTH}
             disabled={isLoading}
             className={error ? 'error' : ''}
@@ -74,7 +72,7 @@ function Home() {
             </span>
             {inputText.length > TEXT_LIMITS.MAX_INPUT_LENGTH - 50 && (
               <span className="char-warning">
-                还可输入 {TEXT_LIMITS.MAX_INPUT_LENGTH - inputText.length} 个字符
+                {TEXT_LIMITS.MAX_INPUT_LENGTH - inputText.length} characters remaining
               </span>
             )}
           </div>
@@ -85,21 +83,21 @@ function Home() {
       <div className="control-section">
         {/* 模式切换 */}
         <div className="mode-selector">
-          <h3>转换模式:</h3>
+          <h3>Conversion Mode:</h3>
           <div className="mode-tabs">
             <button 
               className={`mode-tab ${conversionMode === CONVERSION_MODE.STYLE ? 'active' : ''}`}
               onClick={() => updateConversionMode(CONVERSION_MODE.STYLE)}
               disabled={isLoading}
             >
-              风格模式
+              Style Mode
             </button>
             <button 
               className={`mode-tab ${conversionMode === CONVERSION_MODE.PURPOSE ? 'active' : ''}`}
               onClick={() => updateConversionMode(CONVERSION_MODE.PURPOSE)}
               disabled={isLoading}
             >
-              目的+对象模式
+              Purpose + Recipient Mode
             </button>
           </div>
         </div>
@@ -107,7 +105,7 @@ function Home() {
         {/* 根据模式显示不同的选择器 */}
         {conversionMode === CONVERSION_MODE.STYLE ? (
           <div className="style-selector">
-            <h3>选择风格:</h3>
+            <h3>Select Style:</h3>
             <select 
               value={selectedStyle}
               onChange={(e) => updateSelectedStyle(e.target.value)}
@@ -123,7 +121,7 @@ function Home() {
         ) : (
           <div className="purpose-recipient-selector">
             <div className="purpose-selector">
-              <h3>表达目的:</h3>
+              <h3>Expression Purpose:</h3>
               <select 
                 value={selectedPurpose}
                 onChange={(e) => updateSelectedPurpose(e.target.value)}
@@ -138,7 +136,7 @@ function Home() {
             </div>
             
             <div className="recipient-selector">
-              <h3>表达对象:</h3>
+              <h3>Target Recipient:</h3>
               <select 
                 value={selectedRecipient}
                 onChange={(e) => updateSelectedRecipient(e.target.value)}
@@ -165,28 +163,16 @@ function Home() {
           <button 
             onClick={handleDisguise}
             disabled={!inputText.trim() || isLoading}
-            className="primary-button"
           >
-            {isLoading ? '转换中...' : '开始伪装'}
+            {isLoading ? 'Converting...' : 'Start Transform'}
           </button>
           
           <button 
             onClick={handleClear}
             disabled={isLoading}
-            className="secondary-button"
           >
-            清空
+            Clear
           </button>
-          
-          {canRegenerate && (
-            <button 
-              onClick={handleRegenerate}
-              disabled={isLoading}
-              className="secondary-button"
-            >
-              重新生成
-            </button>
-          )}
         </div>
       </div>
 
@@ -208,12 +194,12 @@ function Home() {
       {hasOutput && (
         <div className="output-section">
           <div className="result-header">
-            <h3>转换结果:</h3>
+            <h3>Result:</h3>
             {/* 显示语言检测信息（仅在启用多语言功能时） */}
             {isLanguageFeatureEnabled && detectedLanguage && (
               <div className="language-info">
                 <span className="detected-language">
-                  检测到输入语言: {detectedLanguage.toUpperCase()}
+                  Detected input language: {detectedLanguage.toUpperCase()}
                 </span>
               </div>
             )}
@@ -224,10 +210,9 @@ function Home() {
               {output}
             </div>
             <button 
-              onClick={() => handleCopy(output, '转换结果')}
-              className="copy-button"
+              onClick={() => handleCopy(output, 'Result')}
             >
-              复制结果
+              Copy Result
             </button>
           </div>
         </div>
@@ -237,7 +222,7 @@ function Home() {
       {isLoading && (
         <div className="loading-indicator">
           <div className="spinner"></div>
-          <p>AI 正在为你转换文本，请稍候...</p>
+          <p>AI is transforming your text, please wait...</p>
         </div>
       )}
     </div>
