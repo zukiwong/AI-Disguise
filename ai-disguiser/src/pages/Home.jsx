@@ -14,9 +14,15 @@ function Home() {
     error,
     outputLanguage,
     detectedLanguage,
+    conversionMode,
+    selectedPurpose,
+    selectedRecipient,
     updateInputText,
     updateSelectedStyle,
     updateOutputLanguage,
+    updateConversionMode,
+    updateSelectedPurpose,
+    updateSelectedRecipient,
     handleDisguise,
     handleRegenerate,
     handleClear,
@@ -24,7 +30,10 @@ function Home() {
     hasOutput,
     hasOriginal,
     canRegenerate,
-    isLanguageFeatureEnabled
+    isLanguageFeatureEnabled,
+    CONVERSION_MODE,
+    PURPOSE_CONFIG,
+    RECIPIENT_CONFIG
   } = useDisguise()
 
   // 复制状态管理
@@ -74,20 +83,76 @@ function Home() {
 
       {/* 控制区域 */}
       <div className="control-section">
-        <div className="style-selector">
-          <h3>选择风格:</h3>
-          <select 
-            value={selectedStyle}
-            onChange={(e) => updateSelectedStyle(e.target.value)}
-            disabled={isLoading}
-          >
-            {Object.entries(STYLE_CONFIG).map(([key, style]) => (
-              <option key={key} value={key}>
-                {style.displayName} - {style.description}
-              </option>
-            ))}
-          </select>
+        {/* 模式切换 */}
+        <div className="mode-selector">
+          <h3>转换模式:</h3>
+          <div className="mode-tabs">
+            <button 
+              className={`mode-tab ${conversionMode === CONVERSION_MODE.STYLE ? 'active' : ''}`}
+              onClick={() => updateConversionMode(CONVERSION_MODE.STYLE)}
+              disabled={isLoading}
+            >
+              风格模式
+            </button>
+            <button 
+              className={`mode-tab ${conversionMode === CONVERSION_MODE.PURPOSE ? 'active' : ''}`}
+              onClick={() => updateConversionMode(CONVERSION_MODE.PURPOSE)}
+              disabled={isLoading}
+            >
+              目的+对象模式
+            </button>
+          </div>
         </div>
+
+        {/* 根据模式显示不同的选择器 */}
+        {conversionMode === CONVERSION_MODE.STYLE ? (
+          <div className="style-selector">
+            <h3>选择风格:</h3>
+            <select 
+              value={selectedStyle}
+              onChange={(e) => updateSelectedStyle(e.target.value)}
+              disabled={isLoading}
+            >
+              {Object.entries(STYLE_CONFIG).map(([key, style]) => (
+                <option key={key} value={key}>
+                  {style.displayName} - {style.description}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="purpose-recipient-selector">
+            <div className="purpose-selector">
+              <h3>表达目的:</h3>
+              <select 
+                value={selectedPurpose}
+                onChange={(e) => updateSelectedPurpose(e.target.value)}
+                disabled={isLoading}
+              >
+                {Object.entries(PURPOSE_CONFIG).map(([key, purpose]) => (
+                  <option key={key} value={key}>
+                    {purpose.displayName} - {purpose.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="recipient-selector">
+              <h3>表达对象:</h3>
+              <select 
+                value={selectedRecipient}
+                onChange={(e) => updateSelectedRecipient(e.target.value)}
+                disabled={isLoading}
+              >
+                {Object.entries(RECIPIENT_CONFIG).map(([key, recipient]) => (
+                  <option key={key} value={key}>
+                    {recipient.displayName} - {recipient.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
         
         {/* 语言选择器 - 只在启用时显示 */}
         <LanguageSelector

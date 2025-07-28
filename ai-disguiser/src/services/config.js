@@ -93,6 +93,120 @@ export const LANGUAGE_CONFIG = {
   }
 }
 
+// 转换模式配置
+export const CONVERSION_MODE = {
+  STYLE: 'style',        // 风格模式
+  PURPOSE: 'purpose'     // 目的+对象模式
+}
+
+// 表达目的配置
+export const PURPOSE_CONFIG = {
+  explain: {
+    name: 'explain',
+    displayName: '解释 / 说明',
+    description: '把复杂概念讲清楚，对方能理解'
+  },
+  ask: {
+    name: 'ask', 
+    displayName: '提问 / 引导',
+    description: '抛出问题、引导讨论或发起对话'
+  },
+  persuade: {
+    name: 'persuade',
+    displayName: '劝说 / 说服', 
+    description: '试图让对方接受观点或建议'
+  },
+  comfort: {
+    name: 'comfort',
+    displayName: '安慰 / 支持',
+    description: '提供情感支持，缓解情绪'
+  },
+  soften: {
+    name: 'soften',
+    displayName: '委婉表达',
+    description: '想表达但不想太直接'
+  },
+  frustration: {
+    name: 'frustration', 
+    displayName: '表达愤怒 / 不满',
+    description: '有情绪但不想恶意攻击'
+  },
+  compliment: {
+    name: 'compliment',
+    displayName: '赞美 / 表扬',
+    description: '给人正向反馈'
+  },
+  apologize: {
+    name: 'apologize',
+    displayName: '道歉 / 认错',
+    description: '主动表达歉意'
+  },
+  announce: {
+    name: 'announce',
+    displayName: '宣布 / 表态',
+    description: '发表个人或官方立场'
+  },
+  probe: {
+    name: 'probe',
+    displayName: '试探 / 隐晦表达',
+    description: '说话留有余地，观察对方反应'
+  }
+}
+
+// 表达对象配置
+export const RECIPIENT_CONFIG = {
+  child: {
+    name: 'child',
+    displayName: '小孩',
+    description: '语言要具象、生动、避免抽象'
+  },
+  parents: {
+    name: 'parents',
+    displayName: '父母',
+    description: '语气尊重、有耐心'
+  },
+  boss: {
+    name: 'boss', 
+    displayName: '老板',
+    description: '委婉、简洁、逻辑清晰'
+  },
+  colleague: {
+    name: 'colleague',
+    displayName: '同事',
+    description: '合作感、专业语气'
+  },
+  friend: {
+    name: 'friend',
+    displayName: '朋友',
+    description: '自然、放松、非正式'
+  },
+  stranger: {
+    name: 'stranger',
+    displayName: '陌生人', 
+    description: '礼貌中立'
+  },
+  ex: {
+    name: 'ex',
+    displayName: '前任',
+    description: '复杂情绪，需拿捏分寸'
+  },
+  partner: {
+    name: 'partner',
+    displayName: '爱人 / 伴侣',
+    description: '情绪感强、理解感、亲密语气'
+  },
+  public: {
+    name: 'public',
+    displayName: '公众',
+    description: '普通口语 or 公共话语'
+  },
+  ai: {
+    name: 'ai',
+    displayName: 'AI助手',
+    description: '明确结构 + 指令型表达'
+  }
+}
+
 // 语言检测正则表达式
 export const LANGUAGE_DETECTION = {
   // 中文检测 - 包含中日韩统一表意文字

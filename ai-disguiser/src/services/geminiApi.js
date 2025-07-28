@@ -23,11 +23,11 @@ function detectLanguage(text) {
 /**
  * 调用后端 API 进行文本转换
  * @param {string} text - 输入文本
- * @param {string} style - 风格类型
+ * @param {string|Object} styleOrPurposeRecipient - 风格类型（字符串）或目的+对象（对象）
  * @param {string} outputLanguage - 输出语言（可选，默认为 'auto'）
  * @returns {Promise<string>} - 转换后的文本
  */
-export async function disguiseText(text, style, outputLanguage = 'auto') {
+export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage = 'auto') {
   // 输入验证
   if (!text || typeof text !== 'string') {
     throw new Error('输入文本不能为空')
@@ -38,17 +38,36 @@ export async function disguiseText(text, style, outputLanguage = 'auto') {
   }
 
   try {
+    // 根据参数类型构建请求体
+    let requestBody
+    if (typeof styleOrPurposeRecipient === 'string') {
+      // 传统风格模式
+      requestBody = {
+        text: text,
+        mode: 'style',
+        style: styleOrPurposeRecipient,
+        outputLanguage: outputLanguage
+      }
+    } else if (typeof styleOrPurposeRecipient === 'object' && styleOrPurposeRecipient.purpose && styleOrPurposeRecipient.recipient) {
+      // 目的+对象模式
+      requestBody = {
+        text: text,
+        mode: 'purpose',
+        purpose: styleOrPurposeRecipient.purpose,
+        recipient: styleOrPurposeRecipient.recipient,
+        outputLanguage: outputLanguage
+      }
+    } else {
+      throw new Error('无效的风格或目的+对象参数')
+    }
+
     // 调用后端 API
     const response = await fetch('/api/disguise', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        text: text,
-        style: style,
-        outputLanguage: outputLanguage
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     // 解析响应

@@ -3,7 +3,7 @@
 
 import { useState, useCallback } from 'react'
 import { disguiseText, detectTextLanguage } from '../services/geminiApi.js'
-import { LANGUAGE_FEATURE } from '../services/config.js'
+import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } from '../services/config.js'
 
 /**
  * 伪装功能的自定义 Hook
@@ -15,6 +15,11 @@ export function useDisguise() {
   const [selectedStyle, setSelectedStyle] = useState('chat') // 选择的风格
   const [output, setOutput] = useState('')                 // 输出结果
   const [originalText, setOriginalText] = useState('')     // 保存原文用于对比
+  
+  // 转换模式相关状态管理
+  const [conversionMode, setConversionMode] = useState(CONVERSION_MODE.STYLE) // 转换模式：风格 or 目的+对象
+  const [selectedPurpose, setSelectedPurpose] = useState('explain')          // 选择的表达目的
+  const [selectedRecipient, setSelectedRecipient] = useState('friend')       // 选择的表达对象
   
   // 语言相关状态管理
   const [outputLanguage, setOutputLanguage] = useState(LANGUAGE_FEATURE.DEFAULT_OUTPUT_LANGUAGE) // 选择的输出语言
@@ -54,8 +59,15 @@ export function useDisguise() {
         setDetectedLanguage(inputLang)
       }
       
-      // 调用 API 进行转换（传入输出语言参数）
-      const result = await disguiseText(inputText, selectedStyle, outputLanguage)
+      // 调用 API 进行转换，根据转换模式传入不同参数
+      let result
+      if (conversionMode === CONVERSION_MODE.STYLE) {
+        // 风格模式：传入风格参数
+        result = await disguiseText(inputText, selectedStyle, outputLanguage)
+      } else {
+        // 目的+对象模式：传入目的和对象参数
+        result = await disguiseText(inputText, { purpose: selectedPurpose, recipient: selectedRecipient }, outputLanguage)
+      }
       
       // 设置输出结果
       setOutput(result)
@@ -65,7 +77,10 @@ export function useDisguise() {
         id: Date.now(),
         original: inputText,
         disguised: result,
-        style: selectedStyle,
+        conversionMode: conversionMode,
+        style: conversionMode === CONVERSION_MODE.STYLE ? selectedStyle : null,
+        purpose: conversionMode === CONVERSION_MODE.PURPOSE ? selectedPurpose : null,
+        recipient: conversionMode === CONVERSION_MODE.PURPOSE ? selectedRecipient : null,
         outputLanguage: outputLanguage,
         detectedLanguage: inputLang,
         timestamp: new Date().toISOString()
@@ -80,7 +95,7 @@ export function useDisguise() {
       // 取消加载状态
       setIsLoading(false)
     }
-  }, [inputText, selectedStyle, outputLanguage])
+  }, [inputText, selectedStyle, outputLanguage, conversionMode, selectedPurpose, selectedRecipient])
 
   /**
    * 重新生成 - 使用相同的输入和风格重新转换
@@ -160,6 +175,27 @@ export function useDisguise() {
     setOutputLanguage(language)
   }, [])
 
+  /**
+   * 更新转换模式
+   */
+  const updateConversionMode = useCallback((mode) => {
+    setConversionMode(mode)
+  }, [])
+
+  /**
+   * 更新选择的表达目的
+   */
+  const updateSelectedPurpose = useCallback((purpose) => {
+    setSelectedPurpose(purpose)
+  }, [])
+
+  /**
+   * 更新选择的表达对象
+   */
+  const updateSelectedRecipient = useCallback((recipient) => {
+    setSelectedRecipient(recipient)
+  }, [])
+
   // 返回所有状态和方法
   return {
     // 基础状态
@@ -170,6 +206,11 @@ export function useDisguise() {
     isLoading,
     error,
     history,
+    
+    // 转换模式相关状态
+    conversionMode,
+    selectedPurpose,
+    selectedRecipient,
     
     // 语言相关状态
     outputLanguage,
@@ -183,6 +224,11 @@ export function useDisguise() {
     handleClear,
     copyToClipboard,
     
+    // 转换模式相关方法
+    updateConversionMode,
+    updateSelectedPurpose,
+    updateSelectedRecipient,
+    
     // 语言相关方法
     updateOutputLanguage,
     
@@ -190,6 +236,11 @@ export function useDisguise() {
     hasOutput: Boolean(output),
     hasOriginal: Boolean(originalText),
     canRegenerate: Boolean(originalText) && !isLoading,
-    isLanguageFeatureEnabled: LANGUAGE_FEATURE.ENABLED
+    isLanguageFeatureEnabled: LANGUAGE_FEATURE.ENABLED,
+    
+    // 配置常量（供组件使用）
+    CONVERSION_MODE,
+    PURPOSE_CONFIG,
+    RECIPIENT_CONFIG
   }
 }
