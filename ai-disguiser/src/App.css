@@ -66,9 +66,9 @@ button {
 }
 
 .mode-tab.active {
-  background-color: #007bff;
+  background-color: #0d0d0d;
   color: white;
-  border-color: #007bff;
+  border-color: #0d0d0d;
 }
 
 .mode-tab:disabled {
@@ -111,3 +111,4 @@ button {
     text-align: center;
   }
 }
+
