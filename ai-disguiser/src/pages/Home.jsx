@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useDisguise } from '../hooks/useDisguise.js'
 import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
+import LanguageSelector from '../components/LanguageSelector.jsx'
 
 function Home() {
   // 使用自定义 Hook 管理伪装功能
@@ -11,15 +12,19 @@ function Home() {
     originalText,
     isLoading,
     error,
+    outputLanguage,
+    detectedLanguage,
     updateInputText,
     updateSelectedStyle,
+    updateOutputLanguage,
     handleDisguise,
     handleRegenerate,
     handleClear,
     copyToClipboard,
     hasOutput,
     hasOriginal,
-    canRegenerate
+    canRegenerate,
+    isLanguageFeatureEnabled
   } = useDisguise()
 
   // 复制状态管理
@@ -84,6 +89,13 @@ function Home() {
           </select>
         </div>
         
+        {/* 语言选择器 - 只在启用时显示 */}
+        <LanguageSelector
+          selectedLanguage={outputLanguage}
+          onLanguageChange={updateOutputLanguage}
+          disabled={isLoading}
+        />
+        
         <div className="action-buttons">
           <button 
             onClick={handleDisguise}
@@ -130,7 +142,17 @@ function Home() {
       {/* 输出区域 */}
       {hasOutput && (
         <div className="output-section">
-          <h3>转换结果:</h3>
+          <div className="result-header">
+            <h3>转换结果:</h3>
+            {/* 显示语言检测信息（仅在启用多语言功能时） */}
+            {isLanguageFeatureEnabled && detectedLanguage && (
+              <div className="language-info">
+                <span className="detected-language">
+                  检测到输入语言: {detectedLanguage.toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
           
           <div className="result-container">
             <div className="text-content">
