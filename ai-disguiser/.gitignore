@@ -54,3 +54,6 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# 个人文档文件夹（不推送到 GitHub）
+docs-private/
