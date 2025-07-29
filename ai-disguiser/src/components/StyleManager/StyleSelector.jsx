@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useStyles } from '../../hooks/useStyles.js'
+import { useAuth } from '../../hooks/useAuth.js'
 import StyleManager from './StyleManager.jsx'
 import '../../styles/StyleManager.css'
 
@@ -10,14 +11,15 @@ function StyleSelector({
   selectedStyle, 
   onStyleChange, 
   disabled = false,
-  userId = null,
   showManageButton = true
 }) {
+  const { userId } = useAuth()
   const { 
     styles, 
     isLoading, 
     error, 
-    hasStyles 
+    hasStyles,
+    loadStyles  // 添加刷新方法
   } = useStyles(userId)
   
   const [showStyleManager, setShowStyleManager] = useState(false)
@@ -33,9 +35,11 @@ function StyleSelector({
     setShowStyleManager(true)
   }
 
-  // 关闭风格管理器
+  // 关闭风格管理器并刷新数据
   const handleCloseManager = () => {
     setShowStyleManager(false)
+    // 关闭管理器时刷新风格列表
+    loadStyles()
   }
 
   if (isLoading) {
@@ -98,8 +102,8 @@ function StyleSelector({
       {/* 风格管理器模态框 */}
       {showStyleManager && (
         <StyleManager 
-          userId={userId}
           onClose={handleCloseManager}
+          onStylesUpdated={loadStyles}
         />
       )}
     </div>

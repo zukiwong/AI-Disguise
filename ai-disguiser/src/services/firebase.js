@@ -1,7 +1,8 @@
-// Firebase 配置和初始化
+// Firebase 配置和初始化  
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { getAnalytics } from 'firebase/analytics'
+import { getAuth } from 'firebase/auth'
 
 // Firebase 项目配置
 // 注意：这些配置信息是公开的，不包含敏感信息
@@ -29,9 +30,14 @@ if (typeof window !== 'undefined') {
 // 获取 Firestore 数据库实例
 export const db = getFirestore(app)
 
+// 获取 Authentication 实例
+export const auth = getAuth(app)
+
 // 集合名称常量
 export const COLLECTIONS = {
-  STYLES: 'styles'
+  STYLES: 'styles',
+  USERS: 'users',
+  POSTS: 'posts'
 }
 
 export default app

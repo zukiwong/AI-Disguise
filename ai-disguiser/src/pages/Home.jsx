@@ -107,7 +107,6 @@ function Home() {
             selectedStyle={selectedStyle}
             onStyleChange={updateSelectedStyle}
             disabled={isLoading}
-            userId={null} // 暂时不使用用户系统
             showManageButton={true}
           />
         ) : (

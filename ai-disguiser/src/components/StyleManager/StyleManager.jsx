@@ -3,11 +3,14 @@
 
 import { useState } from 'react'
 import { useStyles } from '../../hooks/useStyles.js'
+import { useAuth } from '../../hooks/useAuth.js'
+import { LoginPrompt } from '../Auth/index.js'
 import StyleEditor from './StyleEditor.jsx'
 import '../../styles/StyleManager.css'
 import '../../styles/Modal.css'
 
-function StyleManager({ userId = null, onClose }) {
+function StyleManager({ onClose, onStylesUpdated }) {
+  const { isAuthenticated, userId } = useAuth()
   const {
     styles,
     publicStyles,
@@ -64,6 +67,11 @@ function StyleManager({ userId = null, onClose }) {
       
       setShowEditor(false)
       setEditingStyle(null)
+      
+      // 通知父组件风格已更新
+      if (onStylesUpdated) {
+        onStylesUpdated()
+      }
     } catch (error) {
       console.error('保存风格失败:', error)
     }
@@ -83,6 +91,11 @@ function StyleManager({ userId = null, onClose }) {
     
     try {
       await handleDeleteStyle(styleId)
+      
+      // 通知父组件风格已更新
+      if (onStylesUpdated) {
+        onStylesUpdated()
+      }
     } catch (error) {
       console.error('删除风格失败:', error)
     }
@@ -142,13 +155,21 @@ function StyleManager({ userId = null, onClose }) {
 
               {/* 创建按钮 */}
               <div className="manager-actions" style={{ margin: '20px 0' }}>
-                <button 
-                  className="editor-button"
-                  onClick={handleCreateNew}
-                  disabled={isLoading}
-                >
-                  Create New Style
-                </button>
+                {isAuthenticated ? (
+                  <button 
+                    className="editor-button"
+                    onClick={handleCreateNew}
+                    disabled={isLoading}
+                  >
+                    Create New Style
+                  </button>
+                ) : (
+                  <LoginPrompt 
+                    title="Login to Create Styles"
+                    message="Sign in to create your own custom styles"
+                    buttonText="Sign In to Create"
+                  />
+                )}
               </div>
 
               {/* 风格列表 */}

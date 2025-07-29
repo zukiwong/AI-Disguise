@@ -38,8 +38,12 @@ export function useDisguise() {
 
   // 设置默认选中的风格
   useEffect(() => {
-    if (hasStyles && styles.length > 0 && !selectedStyle) {
-      setSelectedStyle(styles[0].id)
+    if (hasStyles && styles.length > 0) {
+      // 如果没有选中的风格，或者选中的风格不存在，选择第一个
+      const currentStyleExists = styles.some(style => style.id === selectedStyle)
+      if (!selectedStyle || !currentStyleExists) {
+        setSelectedStyle(styles[0].id)
+      }
     }
   }, [hasStyles, styles, selectedStyle])
 

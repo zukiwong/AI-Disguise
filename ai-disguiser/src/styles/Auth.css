@@ -1,0 +1,248 @@
+/* 认证相关组件样式 */
+
+/* 登录模态框 */
+.auth-modal-content {
+  max-width: 400px;
+  width: 90%;
+}
+
+.auth-modal-body {
+  padding: 30px;
+  text-align: center;
+}
+
+.auth-modal-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.auth-modal-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.auth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background-color: #000;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  min-height: 44px;
+}
+
+.auth-button:hover {
+  background-color: #333;
+}
+
+.auth-button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.auth-button.google {
+  background-color: #4285f4;
+}
+
+.auth-button.google:hover {
+  background-color: #3367d6;
+}
+
+.auth-button.github {
+  background-color: #333;
+}
+
+.auth-button.github:hover {
+  background-color: #24292e;
+}
+
+.auth-button-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.auth-error {
+  background-color: #fee;
+  color: #c33;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-top: 15px;
+  text-align: left;
+}
+
+.auth-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #666;
+  font-size: 14px;
+  margin-top: 15px;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ddd;
+  border-top: 2px solid #666;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 用户头像组件 */
+.user-avatar {
+  position: relative;
+  display: inline-block;
+}
+
+.user-avatar-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background-color 0.2s;
+}
+
+.user-avatar-button:hover {
+  background-color: #f5f5f5;
+}
+
+.user-avatar-image {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
+}
+
+.user-avatar-name {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.user-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #000;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 用户菜单下拉 */
+.user-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.user-menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.user-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.user-menu-item:first-child {
+  border-radius: 6px 6px 0 0;
+}
+
+.user-menu-item:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.user-menu-divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 5px 0;
+}
+
+/* 登录提示组件 */
+.login-prompt {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.login-prompt-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.login-prompt-message {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.login-prompt-button {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.login-prompt-button:hover {
+  background-color: #333;
+}

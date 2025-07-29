@@ -34,39 +34,46 @@ export function useStyles(userId = null) {
 
   // 加载所有可用风格
   const loadStyles = useCallback(async () => {
+    console.log('🔄 开始加载风格数据...')
     setIsLoading(true)
     setError('')
     
     try {
       // 尝试从 Firestore 加载
       const allStyles = await getAllAvailableStyles(userId)
+      console.log('✅ 成功加载风格:', allStyles.length, '个')
       setStyles(allStyles)
       
       // 分别加载公共和用户风格
       const publicStylesData = await getPublicStyles()
+      console.log('📋 公共风格:', publicStylesData.length, '个')
       setPublicStyles(publicStylesData)
       
       if (userId) {
         const userStylesData = await getUserStyles(userId)
+        console.log('👤 用户风格:', userStylesData.length, '个')
         setUserStyles(userStylesData)
       } else {
         setUserStyles([])
       }
       
     } catch (err) {
-      console.error('加载风格失败:', err)
+      console.error('❌ 加载风格失败:', err)
       setError('加载风格失败，使用本地缓存')
       
       // 降级到本地存储
       const localStyles = getStylesFromLocalStorage()
+      console.log('💾 使用本地缓存风格:', localStyles.length, '个')
       setStyles(localStyles)
     } finally {
       setIsLoading(false)
+      console.log('🏁 风格加载完成')
     }
   }, [userId])
 
   // 创建新风格
   const handleCreateStyle = useCallback(async (styleData) => {
+    console.log('🆕 开始创建风格:', styleData)
     setIsLoading(true)
     setError('')
     
@@ -79,7 +86,13 @@ export function useStyles(userId = null) {
       // 尝试保存到 Firestore
       try {
         const createdStyle = await createStyle(newStyle)
-        setStyles(prev => [...prev, createdStyle])
+        console.log('✅ Firestore 创建成功:', createdStyle)
+        
+        setStyles(prev => {
+          const updated = [...prev, createdStyle]
+          console.log('📝 更新风格列表:', updated.length, '个')
+          return updated
+        })
         
         if (newStyle.isPublic) {
           setPublicStyles(prev => [...prev, createdStyle])
@@ -88,7 +101,7 @@ export function useStyles(userId = null) {
         }
         
       } catch (firestoreError) {
-        console.error('Firestore 创建失败，使用本地存储:', firestoreError)
+        console.error('❌ Firestore 创建失败，使用本地存储:', firestoreError)
         
         // 降级到本地存储
         const styleWithId = {
@@ -99,11 +112,12 @@ export function useStyles(userId = null) {
         const updatedStyles = [...styles, styleWithId]
         setStyles(updatedStyles)
         saveStylesToLocalStorage(updatedStyles)
+        console.log('💾 本地存储创建成功')
       }
       
       return true
     } catch (err) {
-      console.error('创建风格失败:', err)
+      console.error('❌ 创建风格失败:', err)
       setError('创建风格失败')
       return false
     } finally {
