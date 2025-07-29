@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useDisguise } from '../hooks/useDisguise.js'
 import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
 import LanguageSelector from '../components/LanguageSelector.jsx'
+import { StyleSelector } from '../components/StyleManager/index.js'
 
 function Home() {
   // 使用自定义 Hook 管理伪装功能
@@ -9,7 +10,6 @@ function Home() {
     inputText,
     selectedStyle,
     output,
-    originalText,
     isLoading,
     error,
     outputLanguage,
@@ -27,7 +27,6 @@ function Home() {
     handleClear,
     copyToClipboard,
     hasOutput,
-    hasOriginal,
     isLanguageFeatureEnabled,
     CONVERSION_MODE,
     PURPOSE_CONFIG,
@@ -104,20 +103,13 @@ function Home() {
 
         {/* 根据模式显示不同的选择器 */}
         {conversionMode === CONVERSION_MODE.STYLE ? (
-          <div className="style-selector">
-            <h3>Select Style:</h3>
-            <select 
-              value={selectedStyle}
-              onChange={(e) => updateSelectedStyle(e.target.value)}
-              disabled={isLoading}
-            >
-              {Object.entries(STYLE_CONFIG).map(([key, style]) => (
-                <option key={key} value={key}>
-                  {style.displayName} - {style.description}
-                </option>
-              ))}
-            </select>
-          </div>
+          <StyleSelector
+            selectedStyle={selectedStyle}
+            onStyleChange={updateSelectedStyle}
+            disabled={isLoading}
+            userId={null} // 暂时不使用用户系统
+            showManageButton={true}
+          />
         ) : (
           <div className="purpose-recipient-selector">
             <div className="purpose-selector">

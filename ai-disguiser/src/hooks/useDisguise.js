@@ -1,18 +1,22 @@
 // 伪装功能自定义 Hook
 // 管理文本伪装的所有状态和逻辑
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { disguiseText, detectTextLanguage } from '../services/geminiApi.js'
 import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } from '../services/config.js'
+import { useStyles } from './useStyles.js'
 
 /**
  * 伪装功能的自定义 Hook
  * @returns {Object} 包含状态和方法的对象
  */
 export function useDisguise() {
+  // 使用风格管理 Hook
+  const { styles, hasStyles } = useStyles()
+  
   // 基础状态管理
   const [inputText, setInputText] = useState('')           // 输入文本
-  const [selectedStyle, setSelectedStyle] = useState('chat') // 选择的风格
+  const [selectedStyle, setSelectedStyle] = useState('')  // 选择的风格
   const [output, setOutput] = useState('')                 // 输出结果
   const [originalText, setOriginalText] = useState('')     // 保存原文用于对比
   
@@ -31,6 +35,13 @@ export function useDisguise() {
   
   // 历史记录管理 (为后续功能预留)
   const [history, setHistory] = useState([])               // 转换历史
+
+  // 设置默认选中的风格
+  useEffect(() => {
+    if (hasStyles && styles.length > 0 && !selectedStyle) {
+      setSelectedStyle(styles[0].id)
+    }
+  }, [hasStyles, styles, selectedStyle])
 
   /**
    * 执行文本伪装转换
@@ -62,8 +73,14 @@ export function useDisguise() {
       // 调用 API 进行转换，根据转换模式传入不同参数
       let result
       if (conversionMode === CONVERSION_MODE.STYLE) {
-        // 风格模式：传入风格参数
-        result = await disguiseText(inputText, selectedStyle, outputLanguage)
+        // 风格模式：从动态风格数据中获取风格配置
+        const currentStyle = styles.find(style => style.id === selectedStyle)
+        const styleConfig = currentStyle ? {
+          name: currentStyle.name,
+          promptTemplate: currentStyle.promptTemplate
+        } : selectedStyle
+        
+        result = await disguiseText(inputText, styleConfig, outputLanguage)
       } else {
         // 目的+对象模式：传入目的和对象参数
         result = await disguiseText(inputText, { purpose: selectedPurpose, recipient: selectedRecipient }, outputLanguage)
@@ -95,7 +112,7 @@ export function useDisguise() {
       // 取消加载状态
       setIsLoading(false)
     }
-  }, [inputText, selectedStyle, outputLanguage, conversionMode, selectedPurpose, selectedRecipient])
+  }, [inputText, selectedStyle, outputLanguage, conversionMode, selectedPurpose, selectedRecipient, styles])
 
 
   /**
