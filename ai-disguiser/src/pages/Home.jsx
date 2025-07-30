@@ -26,8 +26,11 @@ function Home() {
     handleDisguise,
     handleClear,
     copyToClipboard,
+    handleShare,
     hasOutput,
     isLanguageFeatureEnabled,
+    isSharing,
+    shareStatus,
     CONVERSION_MODE,
     PURPOSE_CONFIG,
     RECIPIENT_CONFIG
@@ -181,6 +184,13 @@ function Home() {
         </div>
       )}
 
+      {/* 分享状态提示 */}
+      {shareStatus && (
+        <div className="share-status">
+          🎉 {shareStatus}
+        </div>
+      )}
+
       {/* 输出区域 */}
       {hasOutput && (
         <div className="output-section">
@@ -200,11 +210,21 @@ function Home() {
             <div className="text-content">
               {output}
             </div>
-            <button 
-              onClick={() => handleCopy(output, 'Result')}
-            >
-              Copy Result
-            </button>
+            <div className="result-actions">
+              <button 
+                onClick={() => handleCopy(output, 'Result')}
+                disabled={isLoading}
+              >
+                Copy Result
+              </button>
+              <button 
+                onClick={handleShare}
+                disabled={isLoading || isSharing}
+                className="share-button"
+              >
+                {isSharing ? 'Sharing...' : 'Share to Explore'}
+              </button>
+            </div>
           </div>
         </div>
       )}

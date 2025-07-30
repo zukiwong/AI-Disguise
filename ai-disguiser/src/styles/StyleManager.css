@@ -17,6 +17,33 @@
   margin-bottom: 20px;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.refresh-button {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+  border-color: #ccc;
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .style-manager-title {
   font-size: 18px;
   font-weight: 600;
@@ -109,6 +136,15 @@
 
 .action-button.danger:hover {
   background-color: #c82333;
+}
+
+.action-button.copy {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.action-button.copy:hover {
+  background-color: #138496;
 }
 
 .empty-state {

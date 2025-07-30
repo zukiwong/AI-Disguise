@@ -5,14 +5,19 @@ import { useState, useCallback, useEffect } from 'react'
 import { disguiseText, detectTextLanguage } from '../services/geminiApi.js'
 import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } from '../services/config.js'
 import { useStyles } from './useStyles.js'
+import { useAuth } from './useAuth.js'
+import { createShare } from '../services/shareService.js'
 
 /**
  * 伪装功能的自定义 Hook
  * @returns {Object} 包含状态和方法的对象
  */
 export function useDisguise() {
-  // 使用风格管理 Hook
-  const { styles, hasStyles } = useStyles()
+  // 获取用户认证信息
+  const { userId, isAuthenticated, userName, userEmail } = useAuth()
+  
+  // 使用风格管理 Hook，传递 userId
+  const { styles, hasStyles } = useStyles(userId)
   
   // 基础状态管理
   const [inputText, setInputText] = useState('')           // 输入文本
@@ -35,12 +40,17 @@ export function useDisguise() {
   
   // 历史记录管理 (为后续功能预留)
   const [history, setHistory] = useState([])               // 转换历史
+  
+  // 分享相关状态
+  const [isSharing, setIsSharing] = useState(false)        // 是否正在分享
+  const [shareStatus, setShareStatus] = useState('')       // 分享状态信息
 
   // 设置默认选中的风格
   useEffect(() => {
     if (hasStyles && styles.length > 0) {
       // 如果没有选中的风格，或者选中的风格不存在，选择第一个
       const currentStyleExists = styles.some(style => style.id === selectedStyle)
+      
       if (!selectedStyle || !currentStyleExists) {
         setSelectedStyle(styles[0].id)
       }
@@ -77,14 +87,22 @@ export function useDisguise() {
       // 调用 API 进行转换，根据转换模式传入不同参数
       let result
       if (conversionMode === CONVERSION_MODE.STYLE) {
-        // 风格模式：从动态风格数据中获取风格配置
+        // 风格模式：查找选中的风格配置
         const currentStyle = styles.find(style => style.id === selectedStyle)
-        const styleConfig = currentStyle ? {
-          name: currentStyle.name,
-          promptTemplate: currentStyle.promptTemplate
-        } : selectedStyle
-        
-        result = await disguiseText(inputText, styleConfig, outputLanguage)
+        if (currentStyle) {
+          // 传递完整的风格配置对象
+          const styleConfig = {
+            id: currentStyle.id,
+            name: currentStyle.name,
+            displayName: currentStyle.displayName,
+            description: currentStyle.description,
+            promptTemplate: currentStyle.promptTemplate || ''
+          }
+          result = await disguiseText(inputText, styleConfig, outputLanguage)
+        } else {
+          // 如果找不到风格配置，使用风格ID（兼容旧的系统风格）
+          result = await disguiseText(inputText, selectedStyle, outputLanguage)
+        }
       } else {
         // 目的+对象模式：传入目的和对象参数
         result = await disguiseText(inputText, { purpose: selectedPurpose, recipient: selectedRecipient }, outputLanguage)
@@ -127,7 +145,77 @@ export function useDisguise() {
     setOutput('')
     setOriginalText('')
     setError('')
+    setShareStatus('')
   }, [])
+
+  /**
+   * 分享转换结果
+   */
+  const handleShare = useCallback(async () => {
+    if (!isAuthenticated) {
+      setError('请先登录才能分享内容')
+      return false
+    }
+
+    if (!output || !originalText) {
+      setError('没有可分享的内容')
+      return false
+    }
+
+    setIsSharing(true)
+    setShareStatus('')
+    setError('')
+
+    try {
+      // 准备分享数据
+      const shareData = {
+        originalText,
+        transformedText: output,
+        conversionMode,
+        authorId: userId,
+        authorName: userName || userEmail.split('@')[0],
+        outputLanguage,
+        detectedLanguage,
+        isPublic: true
+      }
+
+      // 根据转换模式添加具体信息
+      if (conversionMode === CONVERSION_MODE.STYLE) {
+        const currentStyle = styles.find(style => style.id === selectedStyle)
+        shareData.styleInfo = {
+          id: selectedStyle,
+          name: currentStyle?.name || selectedStyle,
+          displayName: currentStyle?.displayName || selectedStyle,
+          description: currentStyle?.description || ''
+        }
+      } else {
+        // 确保 PURPOSE_CONFIG 和 RECIPIENT_CONFIG 存在且不为 undefined
+        shareData.purposeInfo = PURPOSE_CONFIG[selectedPurpose] || null
+        shareData.recipientInfo = RECIPIENT_CONFIG[selectedRecipient] || null
+      }
+
+      // 创建分享
+      const result = await createShare(shareData)
+      
+      setShareStatus('分享成功！内容已发布到探索页面')
+      
+      // 3秒后清除状态提示
+      setTimeout(() => {
+        setShareStatus('')
+      }, 3000)
+
+      return true
+    } catch (err) {
+      console.error('分享失败:', err)
+      setError(err.message || '分享失败，请稍后重试')
+      return false
+    } finally {
+      setIsSharing(false)
+    }
+  }, [
+    isAuthenticated, output, originalText, conversionMode, userId, userName, userEmail,
+    outputLanguage, detectedLanguage, selectedStyle, styles, selectedPurpose, selectedRecipient
+  ])
 
   /**
    * 复制文本到剪贴板
@@ -208,6 +296,8 @@ export function useDisguise() {
     isLoading,
     error,
     history,
+    isSharing,
+    shareStatus,
     
     // 转换模式相关状态
     conversionMode,
@@ -224,6 +314,7 @@ export function useDisguise() {
     handleDisguise,
     handleClear,
     copyToClipboard,
+    handleShare,
     
     // 转换模式相关方法
     updateConversionMode,

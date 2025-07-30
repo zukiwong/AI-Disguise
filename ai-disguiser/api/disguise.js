@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   try {
     // 获取请求参数
-    const { text, mode, style, purpose, recipient, outputLanguage = 'auto' } = req.body
+    const { text, mode, style, styleConfig, purpose, recipient, outputLanguage = 'auto' } = req.body
 
     // 参数验证
     if (!text || typeof text !== 'string') {
@@ -28,10 +28,10 @@ export default async function handler(req, res) {
     }
 
     // 验证转换模式
-    if (!mode || (mode !== 'style' && mode !== 'purpose')) {
+    if (!mode || (mode !== 'style' && mode !== 'custom_style' && mode !== 'purpose')) {
       return res.status(400).json({
         error: 'Invalid mode',
-        message: '转换模式参数无效，必须是 style 或 purpose'
+        message: '转换模式参数无效，必须是 style、custom_style 或 purpose'
       })
     }
 
@@ -41,6 +41,13 @@ export default async function handler(req, res) {
         return res.status(400).json({
           error: 'Invalid style',
           message: '风格参数无效'
+        })
+      }
+    } else if (mode === 'custom_style') {
+      if (!styleConfig || typeof styleConfig !== 'object') {
+        return res.status(400).json({
+          error: 'Invalid styleConfig',
+          message: '自定义风格配置参数无效'
         })
       }
     } else if (mode === 'purpose') {
@@ -67,20 +74,49 @@ export default async function handler(req, res) {
       })
     }
 
+    // 检查是否使用模拟模式（用于开发测试）
+    const mockMode = process.env.MOCK_API === 'true' || import.meta.env?.VITE_MOCK_API === 'true'
+    
+    if (mockMode) {
+      // 模拟响应，用于开发测试
+      const mockResponse = `这是一个模拟的${mode === 'style' ? '风格转换' : mode === 'custom_style' ? '自定义风格转换' : '目的导向转换'}结果。原文："${text}"。`
+      
+      return res.status(200).json({
+        success: true,
+        result: mockResponse,
+        metadata: {
+          inputLength: text.length,
+          mode: mode,
+          style: mode === 'style' ? style : null,
+          styleConfig: mode === 'custom_style' ? styleConfig?.displayName : null,
+          purpose: mode === 'purpose' ? purpose : null,
+          recipient: mode === 'purpose' ? recipient : null,
+          outputLanguage: outputLanguage,
+          timestamp: new Date().toISOString(),
+          isMock: true
+        }
+      })
+    }
+
     // 从环境变量获取 API 密钥
-    const apiKey = process.env.GEMINI_API_KEY
+    const apiKey = process.env.GEMINI_API_KEY || import.meta.env?.VITE_GEMINI_API_KEY
     if (!apiKey) {
       console.error('GEMINI_API_KEY 环境变量未设置')
       return res.status(500).json({
         error: 'Configuration error',
-        message: '服务器配置错误'
+        message: 'API密钥未配置。请在.env文件中设置GEMINI_API_KEY=your_api_key，或者设置MOCK_API=true进行模拟测试。'
       })
     }
 
     // 构建 prompt
-    const prompt = mode === 'style' 
-      ? buildPrompt(text, { mode, style }, outputLanguage)
-      : buildPrompt(text, { mode, purpose, recipient }, outputLanguage)
+    let prompt
+    if (mode === 'style') {
+      prompt = buildPrompt(text, { mode, style }, outputLanguage)
+    } else if (mode === 'custom_style') {
+      prompt = buildPrompt(text, { mode, styleConfig }, outputLanguage)
+    } else {
+      prompt = buildPrompt(text, { mode, purpose, recipient }, outputLanguage)
+    }
 
     // 调用 GEMINI API
     const response = await callGeminiAPI(prompt, apiKey)
@@ -336,6 +372,18 @@ function buildPrompt(text, conversionParams, outputLanguage) {
       displayName: styleInfo.displayName,
       description: styleInfo.description
     }
+  } else if (conversionParams.mode === 'custom_style') {
+    // 处理自定义风格
+    const styleConfig = conversionParams.styleConfig
+    const styleDescription = styleConfig.description || '自定义风格'
+    const customInstruction = styleConfig.promptTemplate || styleDescription
+    
+    conversionInfo = {
+      type: 'custom_style',
+      displayName: styleConfig.displayName || styleConfig.name,
+      description: customInstruction,
+      promptTemplate: styleConfig.promptTemplate
+    }
   } else {
     const purposeInfo = PURPOSE_CONFIG[conversionParams.purpose] || PURPOSE_CONFIG.explain
     const recipientInfo = RECIPIENT_CONFIG[conversionParams.recipient] || RECIPIENT_CONFIG.friend
@@ -354,9 +402,41 @@ function buildPrompt(text, conversionParams, outputLanguage) {
   
   // 获取对应语言的 prompt 模板
   const template = getPromptTemplate(targetLanguage)
-  const instruction = conversionInfo.type === 'style' 
-    ? template.instruction(conversionInfo)
-    : template.purposeInstruction(conversionInfo)
+  
+  let instruction
+  if (conversionInfo.type === 'style') {
+    instruction = template.instruction(conversionInfo)
+  } else if (conversionInfo.type === 'custom_style') {
+    // 为自定义风格生成特殊的instruction
+    if (conversionInfo.promptTemplate) {
+      // 如果有自定义prompt模板，使用模板
+      instruction = `请按照以下要求转换文本：
+1. 保持原意不变
+2. 风格要求：${conversionInfo.displayName}
+3. 具体指令：${conversionInfo.promptTemplate}
+4. 语言自然流畅
+5. 字数控制在合理范围内`
+    } else {
+      // 使用默认的自定义风格instruction
+      instruction = `请将以下文本转换为${conversionInfo.displayName}，要求：
+1. 保持原意不变
+2. 采用${conversionInfo.description}
+3. 语言自然流畅
+4. 字数控制在合理范围内`
+    }
+    
+    // 根据目标语言调整输出要求
+    if (targetLanguage === 'zh') {
+      instruction += '\n5. 必须使用中文输出'
+    } else if (targetLanguage === 'en') {
+      instruction += '\n5. Must output in English'
+    } else if (targetLanguage === 'ja') {
+      instruction += '\n5. 必ず日本語で出力'
+    }
+  } else {
+    instruction = template.purposeInstruction(conversionInfo)
+  }
+  
   const example = template.example.replace('{text}', text)
   
   return `${instruction}\n\n${example}`

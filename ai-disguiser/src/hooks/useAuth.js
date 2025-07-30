@@ -25,11 +25,7 @@ export function useAuth() {
 
   // 初始化认证状态监听
   useEffect(() => {
-    console.log('🔄 初始化认证状态监听...')
-    
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
-      console.log('👤 认证状态变化:', firebaseUser ? firebaseUser.email : '未登录')
-      
       if (firebaseUser) {
         // 用户已登录
         setUser(firebaseUser)
@@ -39,10 +35,9 @@ export function useAuth() {
           const profileResult = await getUserProfile(firebaseUser.uid)
           if (profileResult.success) {
             setUserProfile(profileResult.data)
-            console.log('📋 用户资料加载成功')
           }
         } catch (err) {
-          console.error('❌ 获取用户资料失败:', err)
+          console.error('获取用户资料失败:', err)
         }
       } else {
         // 用户未登录
@@ -65,16 +60,15 @@ export function useAuth() {
       const result = await signInWithGoogle()
       
       if (result.success) {
-        console.log('✅ Google 登录成功')
         // onAuthStateChange 会自动处理状态更新
       } else {
         const friendlyMessage = getAuthErrorMessage(result.error)
         setError(friendlyMessage)
-        console.error('❌ Google 登录失败:', result.error)
+        console.error('Google 登录失败:', result.error)
       }
     } catch (err) {
       setError('登录失败，请稍后重试')
-      console.error('❌ Google 登录异常:', err)
+      console.error('Google 登录异常:', err)
     } finally {
       setIsLoggingIn(false)
     }
@@ -89,16 +83,15 @@ export function useAuth() {
       const result = await signInWithGithub()
       
       if (result.success) {
-        console.log('✅ GitHub 登录成功')
         // onAuthStateChange 会自动处理状态更新
       } else {
         const friendlyMessage = getAuthErrorMessage(result.error)
         setError(friendlyMessage)
-        console.error('❌ GitHub 登录失败:', result.error)
+        console.error('GitHub 登录失败:', result.error)
       }
     } catch (err) {
       setError('登录失败，请稍后重试')
-      console.error('❌ GitHub 登录异常:', err)
+      console.error('GitHub 登录异常:', err)
     } finally {
       setIsLoggingIn(false)
     }
@@ -110,15 +103,14 @@ export function useAuth() {
       const result = await logOut()
       
       if (result.success) {
-        console.log('👋 登出成功')
         // onAuthStateChange 会自动处理状态更新
       } else {
         setError('登出失败，请稍后重试')
-        console.error('❌ 登出失败:', result.error)
+        console.error('登出失败:', result.error)
       }
     } catch (err) {
       setError('登出失败，请稍后重试')
-      console.error('❌ 登出异常:', err)
+      console.error('登出异常:', err)
     }
   }, [])
 
@@ -135,10 +127,9 @@ export function useAuth() {
       const profileResult = await getUserProfile(user.uid)
       if (profileResult.success) {
         setUserProfile(profileResult.data)
-        console.log('🔄 用户资料已刷新')
       }
     } catch (err) {
-      console.error('❌ 刷新用户资料失败:', err)
+      console.error('刷新用户资料失败:', err)
     }
   }, [user])
 

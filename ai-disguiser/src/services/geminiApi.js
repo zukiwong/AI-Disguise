@@ -41,11 +41,19 @@ export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage
     // 根据参数类型构建请求体
     let requestBody
     if (typeof styleOrPurposeRecipient === 'string') {
-      // 传统风格模式
+      // 传统风格模式（系统默认风格）
       requestBody = {
         text: text,
         mode: 'style',
         style: styleOrPurposeRecipient,
+        outputLanguage: outputLanguage
+      }
+    } else if (typeof styleOrPurposeRecipient === 'object' && styleOrPurposeRecipient.id) {
+      // 自定义风格模式（包含完整配置）
+      requestBody = {
+        text: text,
+        mode: 'custom_style',
+        styleConfig: styleOrPurposeRecipient,
         outputLanguage: outputLanguage
       }
     } else if (typeof styleOrPurposeRecipient === 'object' && styleOrPurposeRecipient.purpose && styleOrPurposeRecipient.recipient) {
@@ -70,13 +78,27 @@ export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage
       body: JSON.stringify(requestBody),
     })
 
-    // 解析响应
-    const data = await response.json()
-
     // 检查响应状态
     if (!response.ok) {
-      throw new Error(data.message || `API 请求失败: ${response.status}`)
+      let errorMessage = `API 请求失败: ${response.status}`
+      
+      // 尝试解析错误响应
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+      } catch (jsonError) {
+        // 如果响应不是JSON格式，使用默认错误消息
+        console.error('响应不是有效的JSON:', jsonError)
+        if (response.status === 404) {
+          errorMessage = 'API 端点未找到，请检查服务器配置'
+        }
+      }
+      
+      throw new Error(errorMessage)
     }
+
+    // 解析成功响应
+    const data = await response.json()
 
     // 检查响应格式
     if (!data.success || !data.result) {

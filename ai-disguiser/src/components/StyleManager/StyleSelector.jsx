@@ -13,7 +13,7 @@ function StyleSelector({
   disabled = false,
   showManageButton = true
 }) {
-  const { userId } = useAuth()
+  const { userId, isAuthenticated } = useAuth()
   const { 
     styles, 
     isLoading, 
@@ -21,6 +21,7 @@ function StyleSelector({
     hasStyles,
     loadStyles  // 添加刷新方法
   } = useStyles(userId)
+
   
   const [showStyleManager, setShowStyleManager] = useState(false)
 
@@ -58,19 +59,34 @@ function StyleSelector({
     )
   }
 
+  // 处理手动刷新
+  const handleRefresh = () => {
+    loadStyles()
+  }
+
   return (
     <div className="style-selector">
       <div className="style-manager-header">
         <h3 className="style-manager-title">Select Style</h3>
-        {showManageButton && (
+        <div className="header-buttons">
           <button 
-            className="manage-styles-button"
-            onClick={handleManageStyles}
-            disabled={disabled}
+            className="refresh-button"
+            onClick={handleRefresh}
+            disabled={disabled || isLoading}
+            title="刷新风格列表"
           >
-            Manage Styles
+            🔄
           </button>
-        )}
+          {showManageButton && (
+            <button 
+              className="manage-styles-button"
+              onClick={handleManageStyles}
+              disabled={disabled}
+            >
+              Manage Styles
+            </button>
+          )}
+        </div>
       </div>
 
       {!hasStyles ? (
@@ -79,23 +95,30 @@ function StyleSelector({
         </div>
       ) : (
         <div className="style-list">
-          {styles.map((style) => (
-            <div 
-              key={style.id}
-              className={`style-item ${selectedStyle === style.id ? 'selected' : ''}`}
-              onClick={() => handleStyleSelect(style.id)}
-              style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
-            >
-              <div className="style-info">
-                <div className="style-name">{style.displayName}</div>
-                <div className="style-description">{style.description}</div>
+          {styles.map((style) => {
+            
+            return (
+              <div 
+                key={style.id}
+                className={`style-item ${selectedStyle === style.id ? 'selected' : ''}`}
+                onClick={() => handleStyleSelect(style.id)}
+                style={{ 
+                  cursor: disabled ? 'not-allowed' : 'pointer',
+                  pointerEvents: disabled ? 'none' : 'auto',
+                  userSelect: 'none'
+                }}
+              >
+                <div className="style-info">
+                  <div className="style-name">{style.displayName}</div>
+                  <div className="style-description">{style.description}</div>
+                </div>
+                
+                {selectedStyle === style.id && (
+                  <div className="selection-indicator">Selected</div>
+                )}
               </div>
-              
-              {selectedStyle === style.id && (
-                <div className="selection-indicator">Selected</div>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

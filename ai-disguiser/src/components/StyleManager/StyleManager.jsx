@@ -101,14 +101,44 @@ function StyleManager({ onClose, onStylesUpdated }) {
     }
   }
 
+  // 复制风格到私人
+  const handleCopyStyle = async (styleId) => {
+    const originalStyle = getStyleById(styleId)
+    if (!originalStyle) return
+    
+    try {
+      const copiedStyleData = {
+        name: `${originalStyle.name}_copy`,
+        displayName: `Copy of ${originalStyle.displayName}`,
+        description: originalStyle.description,
+        promptTemplate: originalStyle.promptTemplate,
+        isPublic: false  // 复制的风格默认为私人
+      }
+      
+      await handleCreateStyle(copiedStyleData)
+      
+      // 通知父组件风格已更新
+      if (onStylesUpdated) {
+        onStylesUpdated()
+      }
+    } catch (error) {
+      console.error('复制风格失败:', error)
+    }
+  }
+
   // 可删除的风格判断（只有用户创建的私有风格可以删除）
   const canDelete = (style) => {
     return style.createdBy === userId && !style.isPublic
   }
 
-  // 可编辑的风格判断（只有用户创建的风格可以编辑）
+  // 可编辑的风格判断（只有用户创建的私有风格可以编辑）
   const canEdit = (style) => {
-    return style.createdBy === userId
+    return style.createdBy === userId && !style.isPublic
+  }
+  
+  // 可复制的风格判断（公共风格和其他用户的风格可以复制）
+  const canCopy = (style) => {
+    return style.isPublic || style.createdBy !== userId
   }
 
   const currentStyles = getCurrentStyles()
@@ -205,6 +235,16 @@ function StyleManager({ onClose, onStylesUpdated }) {
                             disabled={isLoading}
                           >
                             Edit
+                          </button>
+                        )}
+                        {canCopy(style) && isAuthenticated && (
+                          <button 
+                            className="action-button copy"
+                            onClick={() => handleCopyStyle(style.id)}
+                            disabled={isLoading}
+                            title="Copy to My Styles"
+                          >
+                            Copy
                           </button>
                         )}
                         {canDelete(style) && (

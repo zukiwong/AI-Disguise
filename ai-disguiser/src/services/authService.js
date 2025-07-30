@@ -30,11 +30,8 @@ githubProvider.setCustomParameters({
  */
 export const signInWithGoogle = async () => {
   try {
-    console.log('🔐 开始 Google 登录...')
     const result = await signInWithPopup(auth, googleProvider)
     const user = result.user
-    
-    console.log('✅ Google 登录成功:', user.email)
     
     // 保存用户信息到 Firestore
     await saveUserToFirestore(user)
@@ -44,7 +41,7 @@ export const signInWithGoogle = async () => {
       user: user
     }
   } catch (error) {
-    console.error('❌ Google 登录失败:', error)
+    console.error('Google 登录失败:', error)
     return {
       success: false,
       error: error.message
@@ -57,11 +54,8 @@ export const signInWithGoogle = async () => {
  */
 export const signInWithGithub = async () => {
   try {
-    console.log('🔐 开始 GitHub 登录...')
     const result = await signInWithPopup(auth, githubProvider)
     const user = result.user
-    
-    console.log('✅ GitHub 登录成功:', user.email)
     
     // 保存用户信息到 Firestore
     await saveUserToFirestore(user)
@@ -71,7 +65,7 @@ export const signInWithGithub = async () => {
       user: user
     }
   } catch (error) {
-    console.error('❌ GitHub 登录失败:', error)
+    console.error('GitHub 登录失败:', error)
     return {
       success: false,
       error: error.message
@@ -84,12 +78,10 @@ export const signInWithGithub = async () => {
  */
 export const logOut = async () => {
   try {
-    console.log('👋 用户登出...')
     await signOut(auth)
-    console.log('✅ 登出成功')
     return { success: true }
   } catch (error) {
-    console.error('❌ 登出失败:', error)
+    console.error('登出失败:', error)
     return {
       success: false,
       error: error.message
@@ -144,16 +136,14 @@ const saveUserToFirestore = async (user) => {
       }
       
       await setDoc(userRef, userData)
-      console.log('👤 新用户信息已保存')
     } else {
       // 现有用户，更新最后登录时间
       await setDoc(userRef, {
         lastLoginAt: serverTimestamp()
       }, { merge: true })
-      console.log('👤 用户登录时间已更新')
     }
   } catch (error) {
-    console.error('❌ 保存用户信息失败:', error)
+    console.error('保存用户信息失败:', error)
   }
 }
 
@@ -177,7 +167,7 @@ export const getUserProfile = async (uid) => {
       }
     }
   } catch (error) {
-    console.error('❌ 获取用户信息失败:', error)
+    console.error('获取用户信息失败:', error)
     return {
       success: false,
       error: error.message
@@ -197,10 +187,9 @@ export const updateUserProfile = async (uid, updateData) => {
       updatedAt: serverTimestamp()
     }, { merge: true })
     
-    console.log('✅ 用户资料已更新')
     return { success: true }
   } catch (error) {
-    console.error('❌ 更新用户资料失败:', error)
+    console.error('更新用户资料失败:', error)
     return {
       success: false,
       error: error.message

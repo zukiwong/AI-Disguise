@@ -28,7 +28,7 @@ export const createStyleData = ({
   displayName,
   description,
   promptTemplate,
-  isPublic,
+  isPublic: Boolean(isPublic), // 确保是布尔值
   createdBy,
   createdAt: serverTimestamp()
 })
@@ -39,21 +39,32 @@ export const getPublicStyles = async () => {
     const stylesRef = collection(db, COLLECTIONS.STYLES)
     const q = query(
       stylesRef, 
-      where('isPublic', '==', true),
-      orderBy('createdAt', 'desc')
+      where('isPublic', '==', true)
     )
     const querySnapshot = await getDocs(q)
     
-    const styles = []
+    const firestoreStyles = []
     querySnapshot.forEach((doc) => {
-      styles.push({
+      firestoreStyles.push({
         id: doc.id,
         ...doc.data()
       })
     })
     
-    // 如果 Firestore 中没有数据，返回默认风格
-    return styles.length > 0 ? styles : getDefaultStyles()
+    // 始终包含默认风格，确保系统风格不会丢失
+    const defaultStyles = getDefaultStyles()
+    
+    // 合并 Firestore 风格和默认风格，避免重复
+    const allStyles = [...defaultStyles]
+    
+    firestoreStyles.forEach(style => {
+      // 如果不是系统默认风格，则添加
+      if (!defaultStyles.some(defaultStyle => defaultStyle.id === style.id)) {
+        allStyles.push(style)
+      }
+    })
+    
+    return allStyles
     
   } catch (error) {
     console.error('获取公共风格失败:', error)
@@ -72,12 +83,12 @@ export const getUserStyles = async (userId) => {
     const q = query(
       stylesRef,
       where('createdBy', '==', userId),
-      where('isPublic', '==', false),
-      orderBy('createdAt', 'desc')
+      where('isPublic', '==', false)
     )
-    const querySnapshot = await getDocs(q)
     
+    const querySnapshot = await getDocs(q)
     const styles = []
+    
     querySnapshot.forEach((doc) => {
       styles.push({
         id: doc.id,
@@ -110,12 +121,22 @@ export const getAllAvailableStyles = async (userId = null) => {
 export const createStyle = async (styleData) => {
   try {
     const stylesRef = collection(db, COLLECTIONS.STYLES)
-    const docRef = await addDoc(stylesRef, createStyleData(styleData))
+    const processedData = createStyleData(styleData)
+    const docRef = await addDoc(stylesRef, processedData)
     
-    return {
+    // 创建客户端安全的返回数据，避免 serverTimestamp 问题
+    const result = {
       id: docRef.id,
-      ...styleData
+      name: styleData.name,
+      displayName: styleData.displayName,
+      description: styleData.description,
+      promptTemplate: styleData.promptTemplate || '',
+      isPublic: Boolean(styleData.isPublic),
+      createdBy: styleData.createdBy || 'anonymous',
+      createdAt: new Date() // 使用当前时间而不是 serverTimestamp
     }
+    
+    return result
   } catch (error) {
     console.error('创建风格失败:', error)
     throw new Error('创建风格失败')

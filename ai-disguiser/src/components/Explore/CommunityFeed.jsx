@@ -3,66 +3,100 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth.js'
+import { getPublicShares, toggleLike } from '../../services/shareService.js'
 import '../../styles/Explore.css'
 
 function CommunityFeed() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, userId } = useAuth()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [sortBy, setSortBy] = useState('recent') // 'recent', 'popular'
 
-  // 模拟数据加载
+  // 从 Firestore 加载真实的分享内容
   useEffect(() => {
-    // TODO: 从 Firestore 加载真实的分享内容
-    const mockPosts = [
-      {
-        id: '1',
-        originalText: 'I need to finish this project by tomorrow.',
-        transformedText: 'Ah, the delicate dance of deadlines approaches! Tomorrow\'s dawn shall witness the completion of this creative endeavor, a testament to dedication and artistry.',
-        styleName: 'Poetic Style',
-        authorId: 'user1',
-        authorName: 'John Doe',
-        authorAvatar: '',
-        createdAt: new Date('2024-01-15T10:30:00'),
-        likes: 12,
-        isLiked: false
-      },
-      {
-        id: '2',
-        originalText: 'The weather is really nice today.',
-        transformedText: 'Yo, the weather is absolutely FIRE today! Perfect vibes all around!',
-        styleName: 'Social Style',
-        authorId: 'user2',
-        authorName: 'Jane Smith',
-        authorAvatar: '',
-        createdAt: new Date('2024-01-15T09:15:00'),
-        likes: 8,
-        isLiked: true
-      }
-    ]
-    
-    setTimeout(() => {
-      setPosts(mockPosts)
-      setIsLoading(false)
-    }, 1000)
-  }, [sortBy])
+    const loadPosts = async () => {
+      setIsLoading(true)
+      try {
+        const shares = await getPublicShares(20)
+        
+        // 转换数据格式以匹配组件期望的结构
+        const transformedPosts = shares.map(share => ({
+          id: share.id,
+          originalText: share.originalText,
+          transformedText: share.transformedText,
+          styleName: getStyleDisplayName(share),
+          authorId: share.authorId,
+          authorName: share.authorName,
+          authorAvatar: '',
+          createdAt: share.createdAt?.toDate ? share.createdAt.toDate() : new Date(share.createdAt),
+          likes: share.likes || 0,
+          isLiked: share.likedBy ? share.likedBy.includes(userId) : false,
+          conversionMode: share.conversionMode
+        }))
 
-  const handleLike = (postId) => {
+        // 根据排序方式排序
+        const sortedPosts = sortBy === 'popular' 
+          ? transformedPosts.sort((a, b) => b.likes - a.likes)
+          : transformedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+        setPosts(sortedPosts)
+      } catch (error) {
+        console.error('加载分享内容失败:', error)
+        setPosts([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadPosts()
+  }, [sortBy, userId])
+
+  // 获取风格显示名称的辅助函数
+  const getStyleDisplayName = (share) => {
+    if (share.conversionMode === 'style' || share.conversionMode === 'custom_style') {
+      return share.styleInfo?.displayName || share.styleInfo?.name || 'Unknown Style'
+    } else if (share.conversionMode === 'purpose') {
+      const purpose = share.purposeInfo?.displayName || 'Unknown Purpose'
+      const recipient = share.recipientInfo?.displayName || 'Unknown Recipient'
+      return `${purpose} → ${recipient}`
+    }
+    return 'Text Transformation'
+  }
+
+  const handleLike = async (postId) => {
     if (!isAuthenticated) {
-      // TODO: 显示登录提示
       console.log('需要登录才能点赞')
       return
     }
 
-    setPosts(prev => prev.map(post => 
-      post.id === postId 
-        ? { 
-            ...post, 
-            isLiked: !post.isLiked,
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1
-          }
-        : post
-    ))
+    try {
+      // 乐观更新 UI
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              isLiked: !post.isLiked,
+              likes: post.isLiked ? post.likes - 1 : post.likes + 1
+            }
+          : post
+      ))
+
+      // 调用 Firestore 更新
+      await toggleLike(postId, userId)
+    } catch (error) {
+      console.error('点赞操作失败:', error)
+      
+      // 如果操作失败，回滚 UI 更新
+      setPosts(prev => prev.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              isLiked: !post.isLiked,
+              likes: post.isLiked ? post.likes + 1 : post.likes - 1
+            }
+          : post
+      ))
+    }
   }
 
   const handleShare = (postId) => {
