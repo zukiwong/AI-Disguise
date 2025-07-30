@@ -6,6 +6,7 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDoc,
   addDoc, 
   updateDoc, 
   deleteDoc, 
@@ -33,9 +34,25 @@ export const createStyleData = ({
   createdAt: serverTimestamp()
 })
 
-// 获取所有公共风格
-export const getPublicStyles = async () => {
+// 获取所有公共风格（根据登录状态返回不同内容）
+export const getPublicStyles = async (isAuthenticated = false, userId = null) => {
+  // 先返回默认风格，确保未登录用户也能使用
+  const defaultStyles = getDefaultStyles()
+  
+  // 🔑 未登录用户只能看到默认的4个风格
+  if (!isAuthenticated) {
+    return defaultStyles
+  }
+  
+  // 🔓 登录用户可以看到所有公共风格（排除隐藏的）
   try {
+    // 获取用户隐藏的风格列表
+    let hiddenStyles = []
+    if (userId) {
+      const { getUserHiddenStyles } = await import('./authService.js')
+      hiddenStyles = await getUserHiddenStyles(userId)
+    }
+    
     const stylesRef = collection(db, COLLECTIONS.STYLES)
     const q = query(
       stylesRef, 
@@ -45,30 +62,41 @@ export const getPublicStyles = async () => {
     
     const firestoreStyles = []
     querySnapshot.forEach((doc) => {
-      firestoreStyles.push({
-        id: doc.id,
-        ...doc.data()
-      })
-    })
-    
-    // 始终包含默认风格，确保系统风格不会丢失
-    const defaultStyles = getDefaultStyles()
-    
-    // 合并 Firestore 风格和默认风格，避免重复
-    const allStyles = [...defaultStyles]
-    
-    firestoreStyles.forEach(style => {
-      // 如果不是系统默认风格，则添加
-      if (!defaultStyles.some(defaultStyle => defaultStyle.id === style.id)) {
-        allStyles.push(style)
+      // 排除用户隐藏的风格
+      if (!hiddenStyles.includes(doc.id)) {
+        firestoreStyles.push({
+          id: doc.id,
+          ...doc.data()
+        })
       }
     })
     
-    return allStyles
+    // 如果 Firestore 中有数据，合并处理
+    if (firestoreStyles.length > 0) {
+      // 只获取用户创建的公共风格，忽略重复的系统风格
+      const userStyles = firestoreStyles.filter(style => style.createdBy !== 'system')
+      
+      // 过滤掉被隐藏的默认风格
+      const visibleDefaultStyles = defaultStyles.filter(style => 
+        !hiddenStyles.includes(style.id)
+      )
+      
+      // 合并可见的默认风格和用户公共风格
+      const allStyles = [...visibleDefaultStyles, ...userStyles]
+      
+      return allStyles
+    }
+    
+    // 如果 Firestore 中没有数据，返回未被隐藏的默认风格
+    const visibleDefaultStyles = defaultStyles.filter(style => 
+      !hiddenStyles.includes(style.id)
+    )
+    return visibleDefaultStyles
     
   } catch (error) {
     console.error('获取公共风格失败:', error)
-    return getDefaultStyles() // 降级到默认风格
+    // 发生错误时返回代码默认风格，确保应用可用
+    return defaultStyles
   }
 }
 
@@ -107,7 +135,8 @@ export const getUserStyles = async (userId) => {
 // 获取所有可用风格（公共 + 用户私有）
 export const getAllAvailableStyles = async (userId = null) => {
   try {
-    const publicStyles = await getPublicStyles()
+    const isAuthenticated = Boolean(userId)
+    const publicStyles = await getPublicStyles(isAuthenticated, userId)
     const userStyles = userId ? await getUserStyles(userId) : []
     
     return [...publicStyles, ...userStyles]
@@ -171,6 +200,110 @@ export const deleteStyle = async (styleId) => {
     throw new Error('删除风格失败')
   }
 }
+
+// 复制公共风格到用户私人风格
+export const copyStyleToPrivate = async (userId, publicStyleId) => {
+  try {
+    // 先获取公共风格的数据
+    const publicStyleRef = doc(db, COLLECTIONS.STYLES, publicStyleId)
+    const publicStyleDoc = await getDoc(publicStyleRef)
+    
+    if (!publicStyleDoc.exists()) {
+      throw new Error('要复制的风格不存在')
+    }
+    
+    const publicStyleData = publicStyleDoc.data()
+    
+    // 创建私人风格副本
+    const privateStyleData = {
+      name: publicStyleData.name + '_copy',
+      displayName: publicStyleData.displayName + ' (副本)',
+      description: publicStyleData.description,
+      promptTemplate: publicStyleData.promptTemplate || '',
+      isPublic: false,
+      createdBy: userId,
+      copiedFrom: publicStyleId, // 记录复制来源
+      copiedAt: serverTimestamp()
+    }
+    
+    const stylesRef = collection(db, COLLECTIONS.STYLES)
+    const docRef = await addDoc(stylesRef, createStyleData(privateStyleData))
+    
+    return {
+      id: docRef.id,
+      ...privateStyleData,
+      createdAt: new Date()
+    }
+  } catch (error) {
+    console.error('复制风格失败:', error)
+    throw new Error('复制风格失败')
+  }
+}
+
+// 获取系统默认风格（仅从 Firestore）
+export const getSystemStyles = async () => {
+  try {
+    const stylesRef = collection(db, COLLECTIONS.STYLES)
+    // 简化查询避免复合索引问题
+    const q = query(
+      stylesRef,
+      where('createdBy', '==', 'system')
+    )
+    
+    const querySnapshot = await getDocs(q)
+    const systemStyles = []
+    
+    querySnapshot.forEach((doc) => {
+      systemStyles.push({
+        id: doc.id,
+        ...doc.data()
+      })
+    })
+    
+    // 在客户端排序
+    return systemStyles.sort((a, b) => {
+      const aTime = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt)
+      const bTime = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt)
+      return aTime - bTime
+    })
+  } catch (error) {
+    console.error('获取系统风格失败:', error)
+    return []
+  }
+}
+
+// 初始化系统默认风格到 Firestore（已暂停使用）
+export const initializeDefaultStyles = async () => {
+  return getDefaultStyles()
+}
+
+// 默认风格数据定义（用于初始化）
+const getDefaultStylesData = () => [
+  {
+    name: 'chat',
+    displayName: 'Chat Style',
+    description: 'Casual and relaxed conversational tone',
+    promptTemplate: 'Transform the following text into a casual, friendly conversational style:'
+  },
+  {
+    name: 'poem',
+    displayName: 'Poetic Style', 
+    description: 'Literary expression with poetic flair',
+    promptTemplate: 'Transform the following text into poetic, literary expression with artistic flair:'
+  },
+  {
+    name: 'social',
+    displayName: 'Social Style',
+    description: 'Expression suitable for social media',
+    promptTemplate: 'Transform the following text into engaging social media style with appropriate tone:'
+  },
+  {
+    name: 'story',
+    displayName: 'Story Style',
+    description: 'Narrative storytelling expression',
+    promptTemplate: 'Transform the following text into narrative storytelling format:'
+  }
+]
 
 // 默认风格数据（兜底方案）
 const getDefaultStyles = () => [

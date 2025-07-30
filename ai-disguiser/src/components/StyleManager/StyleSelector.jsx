@@ -1,10 +1,11 @@
 // 风格选择器组件
 // 数据驱动的风格选择界面
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import StyleManager from './StyleManager.jsx'
+import gsap from 'gsap'
 import '../../styles/StyleManager.css'
 
 function StyleSelector({ 
@@ -19,16 +20,82 @@ function StyleSelector({
     isLoading, 
     error, 
     hasStyles,
-    loadStyles  // 添加刷新方法
+    loadStyles,
+    handleHideStyle  // 添加隐藏风格方法
   } = useStyles(userId)
 
   
   const [showStyleManager, setShowStyleManager] = useState(false)
+  const [removingStyleId, setRemovingStyleId] = useState(null) // 追踪正在移除的风格
 
   // 处理风格选择
   const handleStyleSelect = (styleId) => {
     if (disabled) return
     onStyleChange(styleId)
+  }
+
+  // 处理移除风格（带GSAP动画）
+  const handleRemoveStyle = async (styleId, styleName, e) => {
+    e.stopPropagation() // 阻止事件冒泡，避免触发选择
+    
+    if (!isAuthenticated || removingStyleId === styleId) {
+      return // 防止重复点击
+    }
+    
+    // 设置正在移除状态
+    setRemovingStyleId(styleId)
+    
+    // 获取要动画的元素
+    const styleItem = e.target.closest('.style-item')
+    if (!styleItem) {
+      setRemovingStyleId(null)
+      return
+    }
+    
+    // 如果当前选中的风格被移除，立即重置选择
+    if (selectedStyle === styleId) {
+      const remainingStyles = styles.filter(s => s.id !== styleId)
+      if (remainingStyles.length > 0) {
+        onStyleChange(remainingStyles[0].id)
+      }
+    }
+
+    try {
+      // 立即开始API调用（乐观更新）
+      const hidePromise = handleHideStyle(styleId)
+      
+      // 创建GSAP动画时间线
+      const tl = gsap.timeline({
+        onComplete: async () => {
+          // 等待API完成
+          try {
+            await hidePromise
+          } catch (error) {
+            console.error('移除风格失败:', error)
+            // 如果API失败，恢复元素状态
+            gsap.set(styleItem, { y: 0, opacity: 1, height: 'auto', marginBottom: '10px', paddingTop: '12px', paddingBottom: '12px' })
+          } finally {
+            setRemovingStyleId(null)
+          }
+        }
+      })
+      
+      // 添加纵向滑动动画序列
+      tl.to(styleItem, {
+        y: '-100%',
+        opacity: 0,
+        height: 0,
+        marginBottom: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        duration: 0.4,
+        ease: 'power2.out'
+      })
+      
+    } catch (error) {
+      console.error('动画执行失败:', error)
+      setRemovingStyleId(null)
+    }
   }
 
   // 打开风格管理器
@@ -96,6 +163,8 @@ function StyleSelector({
       ) : (
         <div className="style-list">
           {styles.map((style) => {
+            // 判断是否可以移除（公共风格且用户已登录）
+            const canRemove = style.isPublic && isAuthenticated
             
             return (
               <div 
@@ -113,8 +182,14 @@ function StyleSelector({
                   <div className="style-description">{style.description}</div>
                 </div>
                 
-                {selectedStyle === style.id && (
-                  <div className="selection-indicator">Selected</div>
+                {/* 移除按钮 - 叉号 */}
+                {canRemove && (
+                  <button
+                    className="remove-style-btn"
+                    onClick={(e) => handleRemoveStyle(style.id, style.displayName, e)}
+                    disabled={disabled || removingStyleId === style.id}
+                    title="从我的列表中移除"
+                  ></button>
                 )}
               </div>
             )

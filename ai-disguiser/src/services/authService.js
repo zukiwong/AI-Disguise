@@ -8,7 +8,7 @@ import {
   GoogleAuthProvider,
   GithubAuthProvider 
 } from 'firebase/auth'
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, getDoc, updateDoc, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore'
 import { auth, db, COLLECTIONS } from './firebase.js'
 
 // 配置认证提供商
@@ -131,16 +131,25 @@ const saveUserToFirestore = async (user) => {
         createdStyles: [],
         favoriteStyles: [],
         sharedPosts: [],
+        hiddenStyles: [], // 初始化隐藏风格数组
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp()
       }
       
       await setDoc(userRef, userData)
     } else {
-      // 现有用户，更新最后登录时间
-      await setDoc(userRef, {
+      // 现有用户，更新最后登录时间并确保hiddenStyles字段存在
+      const updateData = {
         lastLoginAt: serverTimestamp()
-      }, { merge: true })
+      }
+      
+      // 检查是否需要初始化hiddenStyles字段
+      const userData = userDoc.data()
+      if (!userData.hiddenStyles) {
+        updateData.hiddenStyles = []
+      }
+      
+      await setDoc(userRef, updateData, { merge: true })
     }
   } catch (error) {
     console.error('保存用户信息失败:', error)
@@ -194,6 +203,70 @@ export const updateUserProfile = async (uid, updateData) => {
       success: false,
       error: error.message
     }
+  }
+}
+
+/**
+ * 从用户视图中隐藏风格
+ */
+export const hideStyleFromUser = async (userId, styleId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    
+    await updateDoc(userRef, {
+      hiddenStyles: arrayUnion(styleId),
+      updatedAt: serverTimestamp()
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('隐藏风格失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+/**
+ * 从用户隐藏列表中恢复风格
+ */
+export const unhideStyleFromUser = async (userId, styleId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    
+    await updateDoc(userRef, {
+      hiddenStyles: arrayRemove(styleId),
+      updatedAt: serverTimestamp()
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('恢复风格失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+/**
+ * 获取用户隐藏的风格列表
+ */
+export const getUserHiddenStyles = async (userId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data()
+      return userData.hiddenStyles || []
+    }
+    
+    return []
+  } catch (error) {
+    console.error('获取用户隐藏风格失败:', error)
+    return []
   }
 }
 

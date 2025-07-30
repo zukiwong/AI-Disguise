@@ -9,9 +9,11 @@ import {
   createStyle,
   updateStyle,
   deleteStyle,
+  copyStyleToPrivate,
   getStylesFromLocalStorage,
   saveStylesToLocalStorage
 } from '../services/styleService.js'
+import { hideStyleFromUser } from '../services/authService.js'
 
 /**
  * 风格管理 Hook
@@ -42,8 +44,9 @@ export function useStyles(userId = null) {
       const allStyles = await getAllAvailableStyles(userId)
       setStyles(allStyles)
       
-      // 分别加载公共和用户风格
-      const publicStylesData = await getPublicStyles()
+      // 分别加载公共和用户风格（根据登录状态）
+      const isAuthenticated = Boolean(userId)
+      const publicStylesData = await getPublicStyles(isAuthenticated, userId)
       setPublicStyles(publicStylesData)
       
       if (userId) {
@@ -212,6 +215,60 @@ export function useStyles(userId = null) {
     setError('')
   }, [])
 
+  // 隐藏公共风格
+  const handleHideStyle = useCallback(async (styleId) => {
+    if (!userId) {
+      setError('需要登录才能隐藏风格')
+      return false
+    }
+
+    setError('')
+
+    try {
+      await hideStyleFromUser(userId, styleId)
+      
+      // 本地更新状态，避免重新加载
+      const filterStylesArray = (stylesArray) =>
+        stylesArray.filter(style => style.id !== styleId)
+      
+      setStyles(filterStylesArray)
+      setPublicStyles(filterStylesArray)
+      // userStyles不受影响，因为隐藏的是公共风格
+      
+      return true
+    } catch (err) {
+      console.error('隐藏风格失败:', err)
+      setError('隐藏风格失败')
+      return false
+    }
+  }, [userId])
+
+  // 复制公共风格到私人
+  const handleCopyStyle = useCallback(async (publicStyleId) => {
+    if (!userId) {
+      setError('需要登录才能复制风格')
+      return false
+    }
+
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const newStyle = await copyStyleToPrivate(userId, publicStyleId)
+      
+      // 重新加载风格数据
+      await loadStyles()
+      
+      return newStyle
+    } catch (err) {
+      console.error('复制风格失败:', err)
+      setError('复制风格失败')
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }, [userId, loadStyles])
+
   // 组件挂载时自动加载风格，并在用户ID变化时重新加载
   useEffect(() => {
     loadStyles()
@@ -242,6 +299,8 @@ export function useStyles(userId = null) {
     handleCreateStyle,
     handleUpdateStyle,
     handleDeleteStyle,
+    handleHideStyle,
+    handleCopyStyle,
     getStyleById,
     
     // 编辑状态管理

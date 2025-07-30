@@ -85,6 +85,9 @@
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 4px;
+  position: relative;
+  overflow: hidden; /* 确保滑出时不超出容器 */
+  transform: translateX(0); /* 为GSAP变换做准备 */
 }
 
 .style-item.selected {
@@ -145,6 +148,15 @@
 
 .action-button.copy:hover {
   background-color: #138496;
+}
+
+.action-button.hide {
+  background-color: #6c757d;
+  color: white;
+}
+
+.action-button.hide:hover {
+  background-color: #5a6268;
 }
 
 .empty-state {
@@ -215,4 +227,62 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* 首页风格选择器中的移除按钮 - 超细线叉号样式 */
+.remove-style-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+  z-index: 1;
+  transform: translateY(-50%); /* 垂直居中 */
+}
+
+/* 使用伪元素创建超细线叉号 */
+.remove-style-btn::before,
+.remove-style-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 1px;
+  background-color: #c8c8c8;
+  transition: background-color 0.3s ease;
+}
+
+.remove-style-btn::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.remove-style-btn::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.remove-style-btn:hover::before,
+.remove-style-btn:hover::after {
+  background-color: #ef4444;
+}
+
+.remove-style-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 选中状态下的叉号默认稍微深一点 */
+.style-item.selected .remove-style-btn::before,
+.style-item.selected .remove-style-btn::after {
+  background-color: #d0d0d0;
+}
+
+.style-item.selected .remove-style-btn:hover::before,
+.style-item.selected .remove-style-btn:hover::after {
+  background-color: #ef4444;
 }
