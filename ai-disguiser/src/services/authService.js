@@ -132,21 +132,25 @@ const saveUserToFirestore = async (user) => {
         favoriteStyles: [],
         sharedPosts: [],
         hiddenStyles: [], // 初始化隐藏风格数组
+        addedStyles: [], // 初始化添加到账户的风格数组
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp()
       }
       
       await setDoc(userRef, userData)
     } else {
-      // 现有用户，更新最后登录时间并确保hiddenStyles字段存在
+      // 现有用户，更新最后登录时间并确保相关字段存在
       const updateData = {
         lastLoginAt: serverTimestamp()
       }
       
-      // 检查是否需要初始化hiddenStyles字段
+      // 检查是否需要初始化字段
       const userData = userDoc.data()
       if (!userData.hiddenStyles) {
         updateData.hiddenStyles = []
+      }
+      if (!userData.addedStyles) {
+        updateData.addedStyles = []
       }
       
       await setDoc(userRef, updateData, { merge: true })
@@ -247,6 +251,70 @@ export const unhideStyleFromUser = async (userId, styleId) => {
       success: false,
       error: error.message
     }
+  }
+}
+
+/**
+ * 将公共风格添加到用户账户
+ */
+export const addStyleToUserAccount = async (userId, styleId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    
+    await updateDoc(userRef, {
+      addedStyles: arrayUnion(styleId),
+      updatedAt: serverTimestamp()
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('添加风格到账户失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+/**
+ * 从用户账户移除公共风格
+ */
+export const removeStyleFromUserAccount = async (userId, styleId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    
+    await updateDoc(userRef, {
+      addedStyles: arrayRemove(styleId),
+      updatedAt: serverTimestamp()
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('从账户移除风格失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+/**
+ * 获取用户添加到账户的风格列表
+ */
+export const getUserAddedStyles = async (userId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    const userDoc = await getDoc(userRef)
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data()
+      return userData.addedStyles || []
+    }
+    
+    return []
+  } catch (error) {
+    console.error('获取用户添加风格失败:', error)
+    return []
   }
 }
 

@@ -2,17 +2,38 @@
 // 展示所有公共风格，支持搜索和分类
 
 import { useState, useEffect } from 'react'
-import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
+import { getPublicStylesForExplore } from '../../services/styleService.js'
 import '../../styles/Explore.css'
 
 function StyleMarket() {
-  const { publicStyles, isLoading } = useStyles()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, userId } = useAuth()
+  
+  // 使用本地状态管理探索页数据
+  const [publicStyles, setPublicStyles] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [filteredStyles, setFilteredStyles] = useState([])
+
+  // 加载探索页公共风格数据  
+  useEffect(() => {
+    const loadExploreStyles = async () => {
+      setIsLoading(true)
+      try {
+        const styles = await getPublicStylesForExplore(userId)
+        setPublicStyles(styles)
+      } catch (error) {
+        console.error('加载探索页风格失败:', error)
+        setPublicStyles([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadExploreStyles()
+  }, [userId]) // 当用户登录状态变化时重新加载
 
   // 过滤风格
   useEffect(() => {

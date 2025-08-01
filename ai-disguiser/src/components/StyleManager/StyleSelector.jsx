@@ -1,7 +1,7 @@
 // 风格选择器组件
 // 数据驱动的风格选择界面
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import StyleManager from './StyleManager.jsx'
@@ -103,11 +103,10 @@ function StyleSelector({
     setShowStyleManager(true)
   }
 
-  // 关闭风格管理器并刷新数据
+  // 关闭风格管理器
   const handleCloseManager = () => {
     setShowStyleManager(false)
-    // 关闭管理器时刷新风格列表
-    loadStyles()
+    // 移除重新加载，依赖乐观更新保持数据一致性
   }
 
   if (isLoading) {
@@ -126,8 +125,9 @@ function StyleSelector({
     )
   }
 
-  // 处理手动刷新
+  // 处理手动刷新 - 只在没有操作进行中时刷新
   const handleRefresh = () => {
+    // 可以考虑检查是否有操作在进行中，但目前先直接刷新
     loadStyles()
   }
 
@@ -163,8 +163,8 @@ function StyleSelector({
       ) : (
         <div className="style-list">
           {styles.map((style) => {
-            // 判断是否可以移除（公共风格且用户已登录）
-            const canRemove = style.isPublic && isAuthenticated
+            // 判断是否可以移除（登录用户可以移除公共风格和自己创建的私人风格）
+            const canRemove = isAuthenticated && (style.isPublic || style.createdBy === userId)
             
             return (
               <div 
@@ -201,7 +201,7 @@ function StyleSelector({
       {showStyleManager && (
         <StyleManager 
           onClose={handleCloseManager}
-          onStylesUpdated={loadStyles}
+          onStylesUpdated={() => {}} // 空函数，因为StyleManager已经实现乐观更新
         />
       )}
     </div>

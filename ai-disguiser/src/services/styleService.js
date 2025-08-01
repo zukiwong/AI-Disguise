@@ -34,6 +34,47 @@ export const createStyleData = ({
   createdAt: serverTimestamp()
 })
 
+// 获取探索页的所有公共风格（开放浏览策略 - 不应用个人隐藏过滤）
+export const getPublicStylesForExplore = async (userId = null) => {
+  try {
+    const stylesRef = collection(db, COLLECTIONS.STYLES)
+    const q = query(
+      stylesRef, 
+      where('isPublic', '==', true)
+    )
+    const querySnapshot = await getDocs(q)
+    
+    const firestoreStyles = []
+    querySnapshot.forEach((doc) => {
+      // 探索页始终显示所有公共风格，不应用隐藏过滤
+      firestoreStyles.push({
+        id: doc.id,
+        ...doc.data()
+      })
+    })
+    
+    // 如果 Firestore 中有数据，合并处理
+    if (firestoreStyles.length > 0) {
+      // 获取用户创建的公共风格
+      const userStyles = firestoreStyles.filter(style => style.createdBy !== 'system')
+      
+      // 获取所有默认风格
+      const defaultStyles = getDefaultStyles()
+      
+      // 合并所有公共风格（探索页显示完整库）
+      return [...defaultStyles, ...userStyles]
+    }
+    
+    // 如果 Firestore 中没有数据，返回默认风格
+    return getDefaultStyles()
+    
+  } catch (error) {
+    console.error('获取探索页公共风格失败:', error)
+    // 发生错误时返回默认风格
+    return getDefaultStyles()
+  }
+}
+
 // 获取所有公共风格（根据登录状态返回不同内容）
 export const getPublicStyles = async (isAuthenticated = false, userId = null) => {
   // 先返回默认风格，确保未登录用户也能使用
@@ -44,54 +85,50 @@ export const getPublicStyles = async (isAuthenticated = false, userId = null) =>
     return defaultStyles
   }
   
-  // 🔓 登录用户可以看到所有公共风格（排除隐藏的）
+  // 🔓 登录用户可以看到添加到账户的公共风格（排除隐藏的）
   try {
-    // 获取用户隐藏的风格列表
+    // 获取用户隐藏的风格列表和添加到账户的风格列表
     let hiddenStyles = []
+    let addedStyles = []
     if (userId) {
-      const { getUserHiddenStyles } = await import('./authService.js')
+      const { getUserHiddenStyles, getUserAddedStyles } = await import('./authService.js')
       hiddenStyles = await getUserHiddenStyles(userId)
+      addedStyles = await getUserAddedStyles(userId)
     }
     
-    const stylesRef = collection(db, COLLECTIONS.STYLES)
-    const q = query(
-      stylesRef, 
-      where('isPublic', '==', true)
-    )
-    const querySnapshot = await getDocs(q)
+    // 获取用户添加到账户的公共风格
+    const accountPublicStyles = []
     
-    const firestoreStyles = []
-    querySnapshot.forEach((doc) => {
-      // 排除用户隐藏的风格
-      if (!hiddenStyles.includes(doc.id)) {
-        firestoreStyles.push({
-          id: doc.id,
-          ...doc.data()
-        })
-      }
-    })
-    
-    // 如果 Firestore 中有数据，合并处理
-    if (firestoreStyles.length > 0) {
-      // 只获取用户创建的公共风格，忽略重复的系统风格
-      const userStyles = firestoreStyles.filter(style => style.createdBy !== 'system')
-      
-      // 过滤掉被隐藏的默认风格
-      const visibleDefaultStyles = defaultStyles.filter(style => 
-        !hiddenStyles.includes(style.id)
+    if (addedStyles.length > 0) {
+      const stylesRef = collection(db, COLLECTIONS.STYLES)
+      const q = query(
+        stylesRef, 
+        where('isPublic', '==', true)
       )
+      const querySnapshot = await getDocs(q)
       
-      // 合并可见的默认风格和用户公共风格
-      const allStyles = [...visibleDefaultStyles, ...userStyles]
-      
-      return allStyles
+      querySnapshot.forEach((doc) => {
+        // 只包含用户添加到账户且未隐藏的风格
+        if (addedStyles.includes(doc.id) && !hiddenStyles.includes(doc.id)) {
+          accountPublicStyles.push({
+            id: doc.id,
+            ...doc.data()
+          })
+        }
+      })
     }
     
-    // 如果 Firestore 中没有数据，返回未被隐藏的默认风格
-    const visibleDefaultStyles = defaultStyles.filter(style => 
-      !hiddenStyles.includes(style.id)
-    )
-    return visibleDefaultStyles
+    // 处理默认风格 - 除非用户主动隐藏，否则始终包含在账户中
+    const accountDefaultStyles = []
+    for (const defaultStyle of defaultStyles) {
+      if (!hiddenStyles.includes(defaultStyle.id)) {
+        accountDefaultStyles.push(defaultStyle)
+      }
+    }
+    
+    
+    // 合并用户账户中的公共风格
+    return [...accountDefaultStyles, ...accountPublicStyles]
     
   } catch (error) {
     console.error('获取公共风格失败:', error)

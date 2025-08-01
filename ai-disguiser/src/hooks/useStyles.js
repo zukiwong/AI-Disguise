@@ -13,7 +13,7 @@ import {
   getStylesFromLocalStorage,
   saveStylesToLocalStorage
 } from '../services/styleService.js'
-import { hideStyleFromUser } from '../services/authService.js'
+import { hideStyleFromUser, getUserAddedStyles } from '../services/authService.js'
 
 /**
  * 风格管理 Hook
@@ -25,6 +25,8 @@ export function useStyles(userId = null) {
   const [styles, setStyles] = useState([])
   const [publicStyles, setPublicStyles] = useState([])
   const [userStyles, setUserStyles] = useState([])
+  const [addedStyleIds, setAddedStyleIds] = useState([]) // 用户添加到账户的风格ID列表
+  const [operationsInProgress, setOperationsInProgress] = useState(new Set()) // 跟踪进行中的操作
   
   // 加载状态
   const [isLoading, setIsLoading] = useState(false)
@@ -52,8 +54,13 @@ export function useStyles(userId = null) {
       if (userId) {
         const userStylesData = await getUserStyles(userId)
         setUserStyles(userStylesData)
+        
+        // 加载用户添加到账户的风格ID列表
+        const addedIds = await getUserAddedStyles(userId)
+        setAddedStyleIds(addedIds)
       } else {
         setUserStyles([])
+        setAddedStyleIds([])
       }
       
     } catch (err) {
@@ -243,6 +250,70 @@ export function useStyles(userId = null) {
     }
   }, [userId])
 
+  // 乐观更新：添加风格到本地状态
+  const addStyleToLocal = useCallback((newStyle) => {
+    setStyles(prev => [...prev, newStyle])
+    
+    if (newStyle.isPublic) {
+      setPublicStyles(prev => [...prev, newStyle])
+    } else {
+      setUserStyles(prev => [...prev, newStyle])
+    }
+  }, [])
+
+  // 乐观更新：从本地状态移除风格
+  const removeStyleFromLocal = useCallback((styleId) => {
+    const filterStylesArray = (stylesArray) =>
+      stylesArray.filter(style => style.id !== styleId)
+    
+    setStyles(filterStylesArray)
+    setPublicStyles(filterStylesArray)
+    setUserStyles(filterStylesArray)
+  }, [])
+
+  // 乐观更新：更新本地风格数据
+  const updateStyleInLocal = useCallback((styleId, updateData) => {
+    const updateStylesArray = (stylesArray) =>
+      stylesArray.map(style =>
+        style.id === styleId ? { ...style, ...updateData } : style
+      )
+    
+    setStyles(updateStylesArray)
+    setPublicStyles(updateStylesArray)
+    setUserStyles(updateStylesArray)
+  }, [])
+
+  // 静默重新加载（不显示loading状态）
+  const silentReloadStyles = useCallback(async () => {
+    setError('')
+    
+    try {
+      // 不设置loading状态，静默更新
+      const allStyles = await getAllAvailableStyles(userId)
+      setStyles(allStyles)
+      
+      const isAuthenticated = Boolean(userId)
+      const publicStylesData = await getPublicStyles(isAuthenticated, userId)
+      setPublicStyles(publicStylesData)
+      
+      if (userId) {
+        const userStylesData = await getUserStyles(userId)
+        setUserStyles(userStylesData)
+        
+        // 加载用户添加到账户的风格ID列表
+        const addedIds = await getUserAddedStyles(userId)
+        setAddedStyleIds(addedIds)
+      } else {
+        setUserStyles([])
+        setAddedStyleIds([])
+      }
+      
+    } catch (err) {
+      console.error('静默加载风格失败:', err)
+      // 静默失败，不设置错误状态影响用户体验
+    }
+  }, [userId])
+
   // 复制公共风格到私人
   const handleCopyStyle = useCallback(async (publicStyleId) => {
     if (!userId) {
@@ -250,24 +321,152 @@ export function useStyles(userId = null) {
       return false
     }
 
-    setIsLoading(true)
     setError('')
 
     try {
       const newStyle = await copyStyleToPrivate(userId, publicStyleId)
       
-      // 重新加载风格数据
-      await loadStyles()
+      // 乐观更新：立即添加到本地状态
+      addStyleToLocal(newStyle)
+      
+      // 静默同步数据，避免重新加载，延长时间确保Firebase同步
+      setTimeout(() => silentReloadStyles(), 3000)
       
       return newStyle
     } catch (err) {
       console.error('复制风格失败:', err)
       setError('复制风格失败')
       return false
-    } finally {
-      setIsLoading(false)
     }
-  }, [userId, loadStyles])
+  }, [userId, addStyleToLocal, silentReloadStyles])
+
+  // 添加公共风格到用户账户
+  const addPublicStyleToAccount = useCallback(async (styleId) => {
+    if (!userId) {
+      setError('需要登录才能添加风格')
+      return false
+    }
+
+    setError('')
+    
+    // 标记操作开始
+    setOperationsInProgress(prev => new Set([...prev, `add-${styleId}`]))
+
+    try {
+      // 获取要添加的风格数据
+      const { getPublicStylesForExplore } = await import('../services/styleService.js')
+      const allPublicStyles = await getPublicStylesForExplore(userId)
+      const styleToAdd = allPublicStyles.find(style => style.id === styleId)
+      
+      if (!styleToAdd) {
+        setError('风格不存在')
+        setOperationsInProgress(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(`add-${styleId}`)
+          return newSet
+        })
+        return false
+      }
+
+      // 乐观更新：同时更新addedStyleIds和publicStyles
+      setAddedStyleIds(prev => [...prev, styleId])
+      setPublicStyles(prev => [...prev, styleToAdd])
+      setStyles(prev => [...prev, styleToAdd])
+      
+      // 后台异步添加到账户
+      const { addStyleToUserAccount } = await import('../services/authService.js')
+      const result = await addStyleToUserAccount(userId, styleId)
+      
+      if (result.success) {
+        // 成功后延长静默同步延迟，给Firebase充足同步时间
+        setTimeout(() => {
+          // 标记操作完成
+          setOperationsInProgress(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(`add-${styleId}`)
+            return newSet
+          })
+          silentReloadStyles()
+        }, 3000)
+        return true
+      } else {
+        // 失败时回滚所有本地状态
+        setAddedStyleIds(prev => prev.filter(id => id !== styleId))
+        setPublicStyles(prev => prev.filter(style => style.id !== styleId))
+        setStyles(prev => prev.filter(style => style.id !== styleId))
+        setError('添加风格失败')
+        setOperationsInProgress(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(`add-${styleId}`)
+          return newSet
+        })
+        return false
+      }
+    } catch (err) {
+      console.error('添加公共风格失败:', err)
+      // 失败时回滚所有本地状态
+      setAddedStyleIds(prev => prev.filter(id => id !== styleId))
+      setPublicStyles(prev => prev.filter(style => style.id !== styleId))
+      setStyles(prev => prev.filter(style => style.id !== styleId))
+      setError('添加风格失败')
+      setOperationsInProgress(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(`add-${styleId}`)
+        return newSet
+      })
+      return false
+    }
+  }, [userId, silentReloadStyles])
+
+  // 从用户账户移除公共风格
+  const removePublicStyleFromAccount = useCallback(async (styleId) => {
+    if (!userId) {
+      setError('需要登录才能移除风格')
+      return false
+    }
+
+    setError('')
+
+    try {
+      // 保存要移除的风格数据，以便回滚
+      const styleToRemove = publicStyles.find(style => style.id === styleId)
+      
+      // 乐观更新：同时从addedStyleIds、publicStyles和styles中移除
+      setAddedStyleIds(prev => prev.filter(id => id !== styleId))
+      setPublicStyles(prev => prev.filter(style => style.id !== styleId))
+      setStyles(prev => prev.filter(style => style.id !== styleId))
+      
+      // 后台异步从账户移除
+      const { removeStyleFromUserAccount } = await import('../services/authService.js')
+      const result = await removeStyleFromUserAccount(userId, styleId)
+      
+      if (result.success) {
+        // 成功后延长静默同步延迟，给Firebase充足同步时间
+        setTimeout(() => silentReloadStyles(), 3000)
+        return true
+      } else {
+        // 失败时回滚所有本地状态
+        setAddedStyleIds(prev => [...prev, styleId])
+        if (styleToRemove) {
+          setPublicStyles(prev => [...prev, styleToRemove])
+          setStyles(prev => [...prev, styleToRemove])
+        }
+        setError('移除风格失败')
+        return false
+      }
+    } catch (err) {
+      console.error('移除公共风格失败:', err)
+      // 失败时回滚所有本地状态
+      setAddedStyleIds(prev => [...prev, styleId])
+      const styleToRemove = publicStyles.find(style => style.id === styleId)
+      if (styleToRemove) {
+        setPublicStyles(prev => [...prev, styleToRemove])
+        setStyles(prev => [...prev, styleToRemove])
+      }
+      setError('移除风格失败')
+      return false
+    }
+  }, [userId, publicStyles, silentReloadStyles])
 
   // 组件挂载时自动加载风格，并在用户ID变化时重新加载
   useEffect(() => {
@@ -287,6 +486,7 @@ export function useStyles(userId = null) {
     styles,
     publicStyles,
     userStyles,
+    addedStyleIds, // 用户添加到账户的风格ID列表
     
     // 状态
     isLoading,
@@ -302,6 +502,16 @@ export function useStyles(userId = null) {
     handleHideStyle,
     handleCopyStyle,
     getStyleById,
+    
+    // 乐观更新方法
+    addStyleToLocal,
+    removeStyleFromLocal,
+    updateStyleInLocal,
+    silentReloadStyles,
+    
+    // 公共风格账户管理
+    addPublicStyleToAccount,
+    removePublicStyleFromAccount,
     
     // 编辑状态管理
     startEditing,

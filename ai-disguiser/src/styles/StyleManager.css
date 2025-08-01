@@ -75,6 +75,17 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: all 0.2s ease; /* 添加列表变化的过渡效果 */
+}
+
+/* 社区搜索结果部分 */
+.community-search-results {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* 账户风格部分 */
+.account-styles {
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .style-item {
@@ -88,6 +99,8 @@
   position: relative;
   overflow: hidden; /* 确保滑出时不超出容器 */
   transform: translateX(0); /* 为GSAP变换做准备 */
+  transition: all 0.3s ease; /* 添加平滑过渡效果 */
+  opacity: 1; /* 确保默认不透明 */
 }
 
 .style-item.selected {
@@ -123,6 +136,9 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
+  transition: all 0.2s ease; /* 添加按钮过渡效果 */
+  position: relative;
+  overflow: hidden;
 }
 
 .action-button:hover {
@@ -148,6 +164,33 @@
 
 .action-button.copy:hover {
   background-color: #138496;
+}
+
+.action-button.success {
+  background-color: #28a745;
+  color: white;
+}
+
+.action-button.success:hover {
+  background-color: #218838;
+}
+
+/* 禁用状态 */
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 已添加状态文案 */
+.already-added-text {
+  color: #28a745;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 1px solid #28a745;
+  border-radius: 4px;
+  background-color: #f8f9fa;
 }
 
 .action-button.hide {
@@ -215,6 +258,13 @@
   font-weight: normal;
 }
 
+/* 私人标记 */
+.private-badge {
+  font-size: 11px;
+  color: #6f42c1;
+  font-weight: normal;
+}
+
 /* 选择指示器 */
 .selection-indicator {
   font-size: 12px;
@@ -227,6 +277,73 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+/* 搜索区域样式 */
+.search-section {
+  margin: 20px 0;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.style-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+  transition: border-color 0.2s ease;
+}
+
+.style-search-input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+.style-search-input::placeholder {
+  color: #999;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  color: #666;
+}
+
+.search-results-info {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 添加按钮成功状态样式 */
+.action-button.success {
+  background-color: #28a745;
+  color: white;
+}
+
+.action-button.success:hover {
+  background-color: #218838;
 }
 
 /* 首页风格选择器中的移除按钮 - 超细线叉号样式 */
