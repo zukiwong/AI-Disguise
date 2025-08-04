@@ -20,7 +20,6 @@ function StyleSelector({
     isLoading, 
     error, 
     hasStyles,
-    loadStyles,
     handleHideStyle  // 添加隐藏风格方法
   } = useStyles(userId)
 
@@ -125,25 +124,12 @@ function StyleSelector({
     )
   }
 
-  // 处理手动刷新 - 只在没有操作进行中时刷新
-  const handleRefresh = () => {
-    // 可以考虑检查是否有操作在进行中，但目前先直接刷新
-    loadStyles()
-  }
 
   return (
     <div className="style-selector">
       <div className="style-manager-header">
         <h3 className="style-manager-title">Select Style</h3>
         <div className="header-buttons">
-          <button 
-            className="refresh-button"
-            onClick={handleRefresh}
-            disabled={disabled || isLoading}
-            title="刷新风格列表"
-          >
-            🔄
-          </button>
           {showManageButton && (
             <button 
               className="manage-styles-button"

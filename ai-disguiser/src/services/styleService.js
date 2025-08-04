@@ -15,6 +15,7 @@ import {
   orderBy,
   serverTimestamp 
 } from 'firebase/firestore'
+import { getVariantsForMultipleStyles } from './variantService.js'
 
 // 风格数据结构接口
 export const createStyleData = ({
@@ -53,16 +54,56 @@ export const getPublicStylesForExplore = async (userId = null) => {
       })
     })
     
-    // 如果 Firestore 中有数据，合并处理
+    // 如果 Firestore 中有数据，优先使用 Firestore 数据
     if (firestoreStyles.length > 0) {
-      // 获取用户创建的公共风格
-      const userStyles = firestoreStyles.filter(style => style.createdBy !== 'system')
+      console.log('🔍 从 Firestore 获取到的风格:', firestoreStyles)
       
-      // 获取所有默认风格
-      const defaultStyles = getDefaultStyles()
+      // 按优先级排序：官方风格在前，其他按使用次数排序
+      const sortedStyles = firestoreStyles.sort((a, b) => {
+        // 首先按创建者排序：system 在前
+        if (a.createdBy === 'system' && b.createdBy !== 'system') {
+          return -1 // a 在前
+        }
+        if (a.createdBy !== 'system' && b.createdBy === 'system') {
+          return 1 // b 在前
+        }
+        
+        // 如果都是 system 或都不是 system，按固定顺序排列官方风格
+        if (a.createdBy === 'system' && b.createdBy === 'system') {
+          const officialOrder = ['chat', 'poem', 'social', 'story']
+          const aIndex = officialOrder.indexOf(a.name)
+          const bIndex = officialOrder.indexOf(b.name)
+          
+          // 如果都在官方列表中，按顺序排列
+          if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex
+          }
+          // 如果只有一个在官方列表中，在列表中的排前面
+          if (aIndex !== -1) return -1
+          if (bIndex !== -1) return 1
+        }
+        
+        // 对于非官方风格，按使用次数降序排序
+        const usageA = a.usageCount || 0
+        const usageB = b.usageCount || 0
+        if (usageB !== usageA) {
+          return usageB - usageA
+        }
+        
+        // 使用次数相同时按创建时间降序排序（最新的在前）
+        const timeA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
+        const timeB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
+        return timeB - timeA
+      })
       
-      // 合并所有公共风格（探索页显示完整库）
-      return [...defaultStyles, ...userStyles]
+      console.log('✅ 排序后的风格:', sortedStyles.map(s => ({ 
+        name: s.name, 
+        displayName: s.displayName, 
+        createdBy: s.createdBy,
+        usageCount: s.usageCount || 0
+      })))
+      
+      return sortedStyles
     }
     
     // 如果 Firestore 中没有数据，返回默认风格
@@ -238,6 +279,37 @@ export const deleteStyle = async (styleId) => {
   }
 }
 
+// 获取探索页的公共风格（包含变体信息）
+export const getPublicStylesWithVariants = async (userId = null) => {
+  try {
+    // 先获取基础的公共风格数据
+    const styles = await getPublicStylesForExplore(userId)
+    
+    if (styles.length === 0) {
+      return []
+    }
+    
+    // 获取所有风格ID
+    const styleIds = styles.map(style => style.id)
+    
+    // 批量获取变体信息
+    const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+    
+    // 合并风格和变体数据
+    const stylesWithVariants = styles.map(style => ({
+      ...style,
+      variants: variantsByStyle[style.id] || [],
+      hasVariants: (variantsByStyle[style.id] || []).length > 0
+    }))
+    
+    return stylesWithVariants
+  } catch (error) {
+    console.error('获取包含变体的公共风格失败:', error)
+    // 回退到基础数据
+    return await getPublicStylesForExplore(userId)
+  }
+}
+
 // 复制公共风格到用户私人风格
 export const copyStyleToPrivate = async (userId, publicStyleId) => {
   try {
@@ -306,6 +378,147 @@ export const getSystemStyles = async () => {
   } catch (error) {
     console.error('获取系统风格失败:', error)
     return []
+  }
+}
+
+// 清理重复风格和统一数据库结构
+export const cleanDuplicateStyles = async () => {
+  try {
+    console.log('🧹 开始清理重复风格和统一数据库结构...')
+    
+    const stylesRef = collection(db, COLLECTIONS.STYLES)
+    const querySnapshot = await getDocs(stylesRef)
+    
+    const systemStylesData = getDefaultStylesData()
+    
+    // 按风格类型分组
+    const styleGroups = {
+      chat: [],
+      poem: [],
+      social: [],
+      story: [],
+      other: []
+    }
+    
+    // 分析所有文档
+    querySnapshot.forEach((docSnapshot) => {
+      const docId = docSnapshot.id
+      const docData = docSnapshot.data()
+      
+      console.log(`🔍 分析文档: ${docId}`, docData)
+      
+      // 根据name或displayName或内容分类
+      let category = 'other'
+      const docStr = JSON.stringify(docData).toLowerCase()
+      
+      if (docData.name === 'chat' || docData.displayName === 'Chat Style' || docStr.includes('chat')) {
+        category = 'chat'
+      } else if (docData.name === 'poem' || docData.displayName === 'Poetic Style' || docStr.includes('poem') || docStr.includes('poetic')) {
+        category = 'poem'
+      } else if (docData.name === 'social' || docData.displayName === 'Social Style' || docStr.includes('social')) {
+        category = 'social'
+      } else if (docData.name === 'story' || docData.displayName === 'Story Style' || docStr.includes('story')) {
+        category = 'story'
+      }
+      
+      styleGroups[category].push({ id: docId, data: docData })
+    })
+    
+    console.log('📊 风格分组结果:', {
+      chat: styleGroups.chat.length,
+      poem: styleGroups.poem.length,
+      social: styleGroups.social.length,
+      story: styleGroups.story.length,
+      other: styleGroups.other.length
+    })
+    
+    let cleanedCount = 0
+    let mergedCount = 0
+    
+    // 处理每个分组
+    for (const [styleName, docs] of Object.entries(styleGroups)) {
+      if (styleName === 'other') continue // 跳过其他类型
+      
+      if (docs.length > 1) {
+        console.log(`🔧 发现 ${docs.length} 个 ${styleName} 风格，开始合并...`)
+        
+        // 找到最完整的文档作为主文档
+        let primaryDoc = docs[0]
+        let primaryHasVariants = false
+        
+        // 检查哪个文档有变体
+        for (const styleDoc of docs) {
+          try {
+            const variantsRef = collection(db, COLLECTIONS.STYLES, styleDoc.id, 'variants')
+            const variantsSnapshot = await getDocs(variantsRef)
+            if (variantsSnapshot.size > 0) {
+              console.log(`📁 文档 ${styleDoc.id} 有 ${variantsSnapshot.size} 个变体`)
+              primaryDoc = styleDoc
+              primaryHasVariants = true
+              break
+            }
+          } catch (error) {
+            console.log(`⚠️ 检查文档 ${styleDoc.id} 的变体时出错:`, error)
+          }
+        }
+        
+        // 获取对应的系统默认数据
+        const defaultData = systemStylesData.find(s => s.name === styleName)
+        if (!defaultData) {
+          console.log(`⚠️ 找不到 ${styleName} 的默认数据`)
+          continue
+        }
+        
+        // 更新主文档为标准结构
+        console.log(`🔧 更新主文档 ${primaryDoc.id} 为标准结构`)
+        const primaryDocRef = doc(db, COLLECTIONS.STYLES, primaryDoc.id)
+        
+        const standardData = {
+          ...defaultData,
+          createdAt: primaryDoc.data.createdAt || serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }
+        
+        await updateDoc(primaryDocRef, standardData)
+        console.log(`✅ 主文档 ${primaryDoc.id} 更新完成`)
+        
+        // 删除其他重复文档
+        for (const docToDelete of docs) {
+          if (docToDelete.id !== primaryDoc.id) {
+            console.log(`🗑️ 删除重复文档: ${docToDelete.id}`)
+            await deleteDoc(doc(db, COLLECTIONS.STYLES, docToDelete.id))
+            cleanedCount++
+          }
+        }
+        
+        mergedCount++
+      } else if (docs.length === 1) {
+        // 只有一个文档，检查并更新为标准结构
+        const singleDoc = docs[0]
+        const defaultData = systemStylesData.find(s => s.name === styleName)
+        
+        if (defaultData) {
+          console.log(`🔧 更新单个文档 ${singleDoc.id} 为标准结构`)
+          const docRef = doc(db, COLLECTIONS.STYLES, singleDoc.id)
+          
+          const standardData = {
+            ...defaultData,
+            createdAt: singleDoc.data.createdAt || serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }
+          
+          await updateDoc(docRef, standardData)
+          console.log(`✅ 文档 ${singleDoc.id} 更新完成`)
+        }
+      }
+    }
+    
+    console.log(`🎉 清理完成！删除了 ${cleanedCount} 个重复文档，合并了 ${mergedCount} 个风格组`)
+    return { success: true, cleanedCount, mergedCount }
+    
+  } catch (error) {
+    console.error('❌ 清理重复风格失败:', error)
+    throw error
   }
 }
 

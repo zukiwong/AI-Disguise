@@ -76,11 +76,16 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  /* 移除固定高度，让卡片自然伸展 */
 }
 
 .style-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: #ccc;
 }
 
 .style-card-header {
@@ -126,9 +131,29 @@
   margin-bottom: 15px;
 }
 
+/* 卡片内容区域 - 保持自然高度，不强制拉伸 */
+.style-card-content {
+  /* 移除flex: 1，让内容保持自然高度 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 卡片底部布局 - 固定在底部 */
+.style-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f5f5f5;
+}
+
 .style-card-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
 }
 
 .style-action-button {
@@ -152,6 +177,343 @@
 
 .style-action-button.secondary:hover {
   background-color: #555;
+}
+
+.style-action-button.view-all-button {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #1976d2;
+}
+
+.style-action-button.view-all-button:hover {
+  background-color: #bbdefb;
+}
+
+/* 收藏按钮样式 */
+.favorite-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  color: #ff6b35; /* 橘色 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.favorite-button:hover {
+  background-color: rgba(255, 107, 53, 0.1);
+  transform: scale(1.1);
+}
+
+.favorite-button.favorited {
+  color: #ff6b35;
+}
+
+.favorite-button:not(.favorited) {
+  color: #ff6b35;
+  opacity: 0.6;
+}
+
+.favorite-button:not(.favorited):hover {
+  opacity: 1;
+}
+
+/* 变体相关样式 */
+.style-variants {
+  margin-top: 15px;
+  margin-bottom: 0; /* 移除下边距 */
+}
+
+.variant-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 0; /* 移除下边距 */
+}
+
+.variant-tag {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.variant-tag:hover {
+  background-color: #e9e9e9;
+  border-color: #ccc;
+}
+
+.variant-tag.active {
+  background-color: #000;
+  color: white;
+  border-color: #000;
+}
+
+.variant-tag.view-all {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+.variant-tag.view-all:hover {
+  background-color: #bbdefb;
+}
+
+/* 变体模态框样式 - 表格版本 */
+.variant-modal-table {
+  max-width: 920px; /* 从800px增加到920px，增加约15% */
+  width: 95%;
+  max-height: 85vh; /* 也稍微增加高度 */
+  overflow-y: auto;
+}
+
+.variant-table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.variant-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.variant-table thead {
+  background-color: #f8f9fa;
+}
+
+.variant-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 14px;
+}
+
+.variant-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: top; /* 改为顶部对齐 */
+}
+
+.variant-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* 表格列宽设置 - 固定宽度 */
+.variant-table {
+  table-layout: fixed; /* 强制固定表格布局 */
+}
+
+.variant-col-name {
+  width: 150px; /* 固定宽度 */
+}
+
+.variant-col-description {
+  width: 400px; /* 固定宽度 */
+}
+
+.variant-col-usage {
+  width: 100px; /* 固定宽度 */
+}
+
+.variant-col-action {
+  width: 90px; /* 固定宽度 */
+  text-align: center;
+  vertical-align: middle; /* 垂直居中 */
+}
+
+/* 变体名称单元格 */
+.variant-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.default-badge {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* 描述单元格 */
+.variant-description-cell {
+  color: #666;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: normal; /* 允许换行 */
+  overflow-wrap: break-word;
+}
+
+/* 使用数统计 */
+.usage-count {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 表格中的使用按钮 */
+.variant-table-use-button {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  display: inline-block; /* 确保按钮能够居中 */
+}
+
+.variant-table-use-button:hover {
+  background-color: #333;
+}
+
+/* 旧版本样式保留 - 兼容性 */
+.variant-modal {
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.variant-modal-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.variant-submit-button {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.variant-submit-button:hover {
+  background-color: #1565c0;
+}
+
+/* 添加变体相关样式 */
+.variant-add-prompt-row {
+  background-color: #f8f9fa !important;
+}
+
+.variant-add-prompt {
+  text-align: center;
+  padding: 20px !important;
+}
+
+.variant-add-prompt-button {
+  background-color: transparent;
+  color: #1976d2;
+  border: 2px dashed #1976d2;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.variant-add-prompt-button:hover:not(:disabled) {
+  background-color: #e3f2fd;
+}
+
+.variant-add-prompt-button:disabled {
+  color: #999;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+
+.variant-add-row {
+  background-color: #f8f9fa !important; /* 改为浅灰色 */
+}
+
+.variant-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: white;
+  vertical-align: top;
+  margin: 0; /* 移除默认margin */
+  box-sizing: border-box; /* 确保宽度计算正确 */
+}
+
+.variant-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.variant-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: white;
+  resize: none; /* 禁用手动调整大小，改为自动 */
+  min-height: 36px; /* 减小最小高度 */
+  font-family: inherit;
+  overflow: hidden; /* 隐藏滚动条，因为会自动调整高度 */
+  vertical-align: top;
+  margin: 0; /* 移除默认margin */
+  box-sizing: border-box; /* 确保宽度计算正确 */
+}
+
+.variant-textarea:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.variant-table-cancel-button {
+  background: none;
+  color: #666;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.2s;
+  display: inline-block; /* 确保按钮能够居中 */
+}
+
+.variant-table-cancel-button:hover:not(:disabled) {
+  color: #999;
+}
+
+.variant-table-cancel-button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
 }
 
 /* 社区分享 */

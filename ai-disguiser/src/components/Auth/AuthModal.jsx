@@ -78,10 +78,6 @@ function AuthModal({ isOpen, onClose, title = "Login Required", message = "Pleas
               {error}
             </div>
           )}
-          
-          <p className="auth-modal-subtitle" style={{ marginTop: '20px', fontSize: '12px' }}>
-            By signing in, you agree to our terms of service.
-          </p>
         </div>
       </div>
     </div>

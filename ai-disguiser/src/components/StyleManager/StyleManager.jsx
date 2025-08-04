@@ -365,7 +365,7 @@ function StyleManager({ onClose }) {
                       <input
                         type="text"
                         className="style-search-input"
-                        placeholder="一键查找社区的公共库"
+                        placeholder="Search community public styles"
                         value={allTabSearchTerm}
                         onChange={(e) => setAllTabSearchTerm(e.target.value)}
                       />
@@ -386,7 +386,7 @@ function StyleManager({ onClose }) {
                       <input
                         type="text"
                         className="style-search-input"
-                        placeholder="搜索我的公共风格..."
+                        placeholder="Search my public styles..."
                         value={publicTabSearchTerm}
                         onChange={(e) => setPublicTabSearchTerm(e.target.value)}
                       />
@@ -407,7 +407,7 @@ function StyleManager({ onClose }) {
                       <input
                         type="text"
                         className="style-search-input"
-                        placeholder="搜索我的私人风格..."
+                        placeholder="Search my private styles..."
                         value={privateTabSearchTerm}
                         onChange={(e) => setPrivateTabSearchTerm(e.target.value)}
                       />
@@ -455,7 +455,7 @@ function StyleManager({ onClose }) {
                 ) : (
                   <LoginPrompt 
                     title="Login to Create Styles"
-                    message="Sign in to create your own custom styles"
+                    message="Sign in to use public styles and create your own custom styles"
                     buttonText="Sign In to Create"
                   />
                 )}
@@ -484,24 +484,23 @@ function StyleManager({ onClose }) {
                               </div>
                             </div>
                             
-                            <div className="style-actions">
-                              {/* 社区搜索结果显示添加按钮或已添加状态 */}
-                              {isAuthenticated && (
-                                <>
-                                  {isStyleAdded(style.id) ? (
-                                    <span className="already-added-text">Already Added</span>
-                                  ) : (
-                                    <button 
-                                      className={`action-button ${addingStyleIds.has(style.id) ? 'success' : 'copy'}`}
-                                      onClick={() => handleAddToAccount(style.id)}
-                                      disabled={isLoading || addingStyleIds.has(style.id)}
-                                    >
-                                      {addingStyleIds.has(style.id) ? 'Added!' : 'Add to Account'}
-                                    </button>
-                                  )}
-                                </>
-                              )}
-                            </div>
+                            {/* 未登录状态下不显示任何操作按钮 */}
+                            {isAuthenticated && (
+                              <div className="style-actions">
+                                {/* 社区搜索结果显示添加按钮或已添加状态 */}
+                                {isStyleAdded(style.id) ? (
+                                  <span className="already-added-text">Already Added</span>
+                                ) : (
+                                  <button 
+                                    className={`action-button ${addingStyleIds.has(style.id) ? 'success' : 'copy'}`}
+                                    onClick={() => handleAddToAccount(style.id)}
+                                    disabled={isLoading || addingStyleIds.has(style.id)}
+                                  >
+                                    {addingStyleIds.has(style.id) ? 'Added!' : 'Add to Account'}
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -536,10 +535,51 @@ function StyleManager({ onClose }) {
                               </div>
                             </div>
                             
-                            <div className="style-actions">
-                              {/* 根据标签页和风格类型显示不同按钮 */}
-                              {activeTab === 'public' && (
-                                <>
+                            {/* 未登录状态下不显示任何操作按钮 */}
+                            {isAuthenticated && (
+                              <div className="style-actions">
+                                {/* 根据标签页和风格类型显示不同按钮 */}
+                                {activeTab === 'public' && (
+                                  <>
+                                    <button 
+                                      className="action-button copy"
+                                      onClick={() => handleCopyToPrivate(style.id)}
+                                      disabled={isLoading}
+                                      title="复制到私人风格"
+                                    >
+                                      Copy
+                                    </button>
+                                    <button 
+                                      className="action-button danger"
+                                      onClick={() => handleRemoveFromAccount(style.id)}
+                                      disabled={isLoading || removingStyleIds.has(style.id)}
+                                      title="从账户移除"
+                                    >
+                                      {removingStyleIds.has(style.id) ? 'Removing...' : 'Remove'}
+                                    </button>
+                                  </>
+                                )}
+                                
+                                {(activeTab === 'private' || (activeTab === 'all' && !style.isPublic)) && (
+                                  <>
+                                    <button 
+                                      className="action-button"
+                                      onClick={() => handleEditStyle(style.id)}
+                                      disabled={isLoading}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      className="action-button danger"
+                                      onClick={() => handleDelete(style.id)}
+                                      disabled={isLoading}
+                                    >
+                                      Delete
+                                    </button>
+                                  </>
+                                )}
+                                
+                                {activeTab === 'all' && style.isPublic && (
                                   <button 
                                     className="action-button copy"
                                     onClick={() => handleCopyToPrivate(style.id)}
@@ -548,47 +588,9 @@ function StyleManager({ onClose }) {
                                   >
                                     Copy
                                   </button>
-                                  <button 
-                                    className="action-button danger"
-                                    onClick={() => handleRemoveFromAccount(style.id)}
-                                    disabled={isLoading || removingStyleIds.has(style.id)}
-                                    title="从账户移除"
-                                  >
-                                    {removingStyleIds.has(style.id) ? 'Removing...' : 'Remove'}
-                                  </button>
-                                </>
-                              )}
-                              
-                              {(activeTab === 'private' || (activeTab === 'all' && !style.isPublic)) && (
-                                <>
-                                  <button 
-                                    className="action-button"
-                                    onClick={() => handleEditStyle(style.id)}
-                                    disabled={isLoading}
-                                  >
-                                    Edit
-                                  </button>
-                                  <button 
-                                    className="action-button danger"
-                                    onClick={() => handleDelete(style.id)}
-                                    disabled={isLoading}
-                                  >
-                                    Delete
-                                  </button>
-                                </>
-                              )}
-                              
-                              {activeTab === 'all' && style.isPublic && (
-                                <button 
-                                  className="action-button copy"
-                                  onClick={() => handleCopyToPrivate(style.id)}
-                                  disabled={isLoading}
-                                  title="复制到私人风格"
-                                >
-                                  Copy
-                                </button>
-                              )}
-                            </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
