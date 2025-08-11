@@ -7,6 +7,9 @@ import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } f
 import { useStyles } from './useStyles.js'
 import { useAuth } from './useAuth.js'
 import { createShare } from '../services/shareService.js'
+import { getPublicStylesWithVariants } from '../services/styleService.js'
+import { generateVariantPrompt } from '../utils/variantUtils.js'
+import { addHistoryRecord } from '../services/historyService.js'
 
 /**
  * 伪装功能的自定义 Hook
@@ -19,9 +22,14 @@ export function useDisguise() {
   // 使用风格管理 Hook，传递 userId
   const { styles, hasStyles } = useStyles(userId)
   
+  // 管理带变体的风格数据
+  const [stylesWithVariants, setStylesWithVariants] = useState([])
+  const [isLoadingVariants, setIsLoadingVariants] = useState(false)
+  
   // 基础状态管理
   const [inputText, setInputText] = useState('')           // 输入文本
   const [selectedStyle, setSelectedStyle] = useState('')  // 选择的风格
+  const [selectedVariant, setSelectedVariant] = useState(null) // 选择的变体
   const [output, setOutput] = useState('')                 // 输出结果
   const [originalText, setOriginalText] = useState('')     // 保存原文用于对比
   
@@ -45,6 +53,71 @@ export function useDisguise() {
   const [isSharing, setIsSharing] = useState(false)        // 是否正在分享
   const [shareStatus, setShareStatus] = useState('')       // 分享状态信息
 
+  // 加载带变体的风格数据
+  useEffect(() => {
+    const loadStylesWithVariants = async () => {
+      if (!styles || styles.length === 0) return
+      
+      setIsLoadingVariants(true)
+      try {
+        // 获取带变体的风格数据
+        const stylesWithVariantsData = await getPublicStylesWithVariants(userId)
+        
+        // 合并原有风格数据和变体数据
+        const mergedStyles = styles.map(style => {
+          const styleWithVariants = stylesWithVariantsData.find(s => s.id === style.id)
+          return styleWithVariants ? {
+            ...style,
+            variants: styleWithVariants.variants || [],
+            hasVariants: (styleWithVariants.variants || []).length > 0
+          } : style
+        })
+        
+        setStylesWithVariants(mergedStyles)
+      } catch (error) {
+        console.error('加载变体数据失败:', error)
+        // 降级：使用原有风格数据
+        setStylesWithVariants(styles)
+      } finally {
+        setIsLoadingVariants(false)
+      }
+    }
+
+    loadStylesWithVariants()
+  }, [styles, userId])
+  
+  // 检查并应用从探索页传来的选择状态
+  useEffect(() => {
+    try {
+      const savedSelection = localStorage.getItem('selectedStyleFromExplore')
+      if (savedSelection) {
+        const selectionData = JSON.parse(savedSelection)
+        
+        // 检查时间戳，避免应用过旧的选择（超过5分钟）
+        const maxAge = 5 * 60 * 1000 // 5分钟
+        if (Date.now() - selectionData.timestamp < maxAge) {
+          // 验证风格是否存在
+          const styleExists = styles.some(style => style.id === selectionData.styleId)
+          if (styleExists) {
+            setSelectedStyle(selectionData.styleId)
+            setSelectedVariant(selectionData.variantId || null)
+            
+            // 清除已使用的选择状态
+            localStorage.removeItem('selectedStyleFromExplore')
+            return
+          }
+        } else {
+          // 清除过期的选择状态
+          localStorage.removeItem('selectedStyleFromExplore')
+        }
+      }
+    } catch (error) {
+      console.error('应用探索页选择状态失败:', error)
+      // 清除可能损坏的数据
+      localStorage.removeItem('selectedStyleFromExplore')
+    }
+  }, [styles]) // 依赖 styles，当风格数据加载完成后执行
+  
   // 设置默认选中的风格
   useEffect(() => {
     if (hasStyles && styles.length > 0) {
@@ -53,6 +126,7 @@ export function useDisguise() {
       
       if (!selectedStyle || !currentStyleExists) {
         setSelectedStyle(styles[0].id)
+        setSelectedVariant(null) // 重置变体选择
       }
     }
   }, [hasStyles, styles, selectedStyle])
@@ -88,15 +162,25 @@ export function useDisguise() {
       let result
       if (conversionMode === CONVERSION_MODE.STYLE) {
         // 风格模式：查找选中的风格配置
-        const currentStyle = styles.find(style => style.id === selectedStyle)
+        const currentStyle = (stylesWithVariants.length > 0 ? stylesWithVariants : styles).find(style => style.id === selectedStyle)
         if (currentStyle) {
+          let finalPrompt = currentStyle.promptTemplate || ''
+          
+          // 如果选择了变体，使用变体的prompt
+          if (selectedVariant) {
+            const variant = currentStyle.variants?.find(v => v.id === selectedVariant)
+            if (variant) {
+              finalPrompt = generateVariantPrompt(currentStyle, variant)
+            }
+          }
+          
           // 传递完整的风格配置对象
           const styleConfig = {
             id: currentStyle.id,
             name: currentStyle.name,
             displayName: currentStyle.displayName,
             description: currentStyle.description,
-            promptTemplate: currentStyle.promptTemplate || ''
+            promptTemplate: finalPrompt
           }
           result = await disguiseText(inputText, styleConfig, outputLanguage)
         } else {
@@ -111,20 +195,36 @@ export function useDisguise() {
       // 设置输出结果
       setOutput(result)
       
-      // 添加到历史记录
-      const historyItem = {
-        id: Date.now(),
+      // 准备历史记录数据
+      const historyRecordData = {
         original: inputText,
         disguised: result,
         conversionMode: conversionMode,
         style: conversionMode === CONVERSION_MODE.STYLE ? selectedStyle : null,
+        variant: conversionMode === CONVERSION_MODE.STYLE ? selectedVariant : null,
         purpose: conversionMode === CONVERSION_MODE.PURPOSE ? selectedPurpose : null,
         recipient: conversionMode === CONVERSION_MODE.PURPOSE ? selectedRecipient : null,
         outputLanguage: outputLanguage,
-        detectedLanguage: inputLang,
+        detectedLanguage: inputLang
+      }
+
+      // 本地历史记录（兼容现有逻辑）
+      const localHistoryItem = {
+        id: Date.now(),
+        ...historyRecordData,
         timestamp: new Date().toISOString()
       }
-      setHistory(prev => [historyItem, ...prev.slice(0, 9)]) // 保留最近10条记录
+      setHistory(prev => [localHistoryItem, ...prev.slice(0, 9)]) // 保留最近10条记录
+
+      // 如果用户已登录，同步到云端
+      if (isAuthenticated && userId) {
+        try {
+          await addHistoryRecord(userId, historyRecordData)
+        } catch (cloudError) {
+          console.error('保存到云端失败，但本地记录已保存:', cloudError)
+          // 不影响用户体验，静默处理云端同步失败
+        }
+      }
       
     } catch (err) {
       // 错误处理
@@ -134,7 +234,7 @@ export function useDisguise() {
       // 取消加载状态
       setIsLoading(false)
     }
-  }, [inputText, selectedStyle, outputLanguage, conversionMode, selectedPurpose, selectedRecipient, styles])
+  }, [inputText, selectedStyle, selectedVariant, outputLanguage, conversionMode, selectedPurpose, selectedRecipient, styles, stylesWithVariants])
 
 
   /**
@@ -146,6 +246,7 @@ export function useDisguise() {
     setOriginalText('')
     setError('')
     setShareStatus('')
+    // 不重置选择的风格和变体，保持用户选择
   }, [])
 
   /**
@@ -153,12 +254,12 @@ export function useDisguise() {
    */
   const handleShare = useCallback(async () => {
     if (!isAuthenticated) {
-      setError('请先登录才能分享内容')
+      setError('Please log in first to share content.')
       return false
     }
 
     if (!output || !originalText) {
-      setError('没有可分享的内容')
+      setError('No content to share')
       return false
     }
 
@@ -181,12 +282,24 @@ export function useDisguise() {
 
       // 根据转换模式添加具体信息
       if (conversionMode === CONVERSION_MODE.STYLE) {
-        const currentStyle = styles.find(style => style.id === selectedStyle)
+        const currentStyle = (stylesWithVariants.length > 0 ? stylesWithVariants : styles).find(style => style.id === selectedStyle)
         shareData.styleInfo = {
           id: selectedStyle,
           name: currentStyle?.name || selectedStyle,
           displayName: currentStyle?.displayName || selectedStyle,
           description: currentStyle?.description || ''
+        }
+        
+        // 如果选择了变体，添加变体信息
+        if (selectedVariant) {
+          const variant = currentStyle?.variants?.find(v => v.id === selectedVariant)
+          if (variant) {
+            shareData.variantInfo = {
+              id: selectedVariant,
+              name: variant.name,
+              description: variant.description
+            }
+          }
         }
       } else {
         // 确保 PURPOSE_CONFIG 和 RECIPIENT_CONFIG 存在且不为 undefined
@@ -197,7 +310,7 @@ export function useDisguise() {
       // 创建分享
       const result = await createShare(shareData)
       
-      setShareStatus('分享成功！内容已发布到探索页面')
+      setShareStatus('Share successful! Content has been published to the Explore page.')
       
       // 3秒后清除状态提示
       setTimeout(() => {
@@ -207,14 +320,14 @@ export function useDisguise() {
       return true
     } catch (err) {
       console.error('分享失败:', err)
-      setError(err.message || '分享失败，请稍后重试')
+      setError(err.message || 'Sharing failed, please try again later.')
       return false
     } finally {
       setIsSharing(false)
     }
   }, [
     isAuthenticated, output, originalText, conversionMode, userId, userName, userEmail,
-    outputLanguage, detectedLanguage, selectedStyle, styles, selectedPurpose, selectedRecipient
+    outputLanguage, detectedLanguage, selectedStyle, selectedVariant, styles, stylesWithVariants, selectedPurpose, selectedRecipient
   ])
 
   /**
@@ -256,6 +369,15 @@ export function useDisguise() {
    */
   const updateSelectedStyle = useCallback((style) => {
     setSelectedStyle(style)
+    // 当切换风格时，重置变体选择
+    setSelectedVariant(null)
+  }, [])
+  
+  /**
+   * 更新选择的变体
+   */
+  const updateSelectedVariant = useCallback((variant) => {
+    setSelectedVariant(variant)
   }, [])
 
   /**
@@ -291,6 +413,7 @@ export function useDisguise() {
     // 基础状态
     inputText,
     selectedStyle,
+    selectedVariant,
     output,
     originalText,
     isLoading,
@@ -298,6 +421,10 @@ export function useDisguise() {
     history,
     isSharing,
     shareStatus,
+    
+    // 变体相关状态
+    stylesWithVariants,
+    isLoadingVariants,
     
     // 转换模式相关状态
     conversionMode,
@@ -311,6 +438,7 @@ export function useDisguise() {
     // 基础方法
     updateInputText,
     updateSelectedStyle,
+    updateSelectedVariant,
     handleDisguise,
     handleClear,
     copyToClipboard,

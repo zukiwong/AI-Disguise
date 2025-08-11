@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { UserAvatar, AuthModal } from './Auth/index.js'
 import { useAuth } from '../hooks/useAuth.js'
+import './Navigation.css'
 
 function Navigation() {
   const { isAuthenticated } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const location = useLocation()
 
   const handleSignInClick = () => {
     setShowAuthModal(true)
@@ -17,44 +19,45 @@ function Navigation() {
 
   return (
     <>
-      <nav style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: '10px 20px', 
-        borderBottom: '1px solid #ddd',
-        margin: '-20px -20px 20px -20px', // 抵消父容器的padding
-        width: 'calc(100% + 40px)', // 补偿左右margin
-        boxSizing: 'border-box'
-      }}>
-        <h2 style={{ margin: 0 }}>AI Disguiser</h2>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <Link to="/" style={{ textDecoration: 'none', color: '#333' }}>Home</Link>
-          <Link to="/explore" style={{ textDecoration: 'none', color: '#333' }}>Explore</Link>
-          <Link to="/history" style={{ textDecoration: 'none', color: '#333' }}>History</Link>
+      <nav className="immersive-nav">
+        <div className="nav-content">
+          <div className="nav-brand">
+            <Link to="/" className="brand-link">
+              <h2>AI Disguiser</h2>
+            </Link>
+          </div>
           
-          {isAuthenticated ? (
-            <UserAvatar showName={true} />
-          ) : (
-            <button 
-              onClick={handleSignInClick}
-              style={{
-                backgroundColor: '#000',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#333'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#000'}
+          <div className="nav-links">
+            <Link 
+              to="/" 
+              className={location.pathname === '/' ? 'nav-link active' : 'nav-link'}
             >
-              Sign In
-            </button>
-          )}
+              Home
+            </Link>
+            <Link 
+              to="/explore" 
+              className={location.pathname === '/explore' ? 'nav-link active' : 'nav-link'}
+            >
+              Explore
+            </Link>
+            <Link 
+              to="/history" 
+              className={location.pathname === '/history' ? 'nav-link active' : 'nav-link'}
+            >
+              History
+            </Link>
+            
+            {isAuthenticated ? (
+              <UserAvatar showName={true} />
+            ) : (
+              <button 
+                className="nav-signin-btn"
+                onClick={handleSignInClick}
+              >
+                Sign In
+              </button>
+            )}
+          </div>
         </div>
       </nav>
 

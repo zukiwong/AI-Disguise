@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDisguise } from '../hooks/useDisguise.js'
 import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
 import LanguageSelector from '../components/LanguageSelector.jsx'
@@ -9,6 +9,7 @@ function Home() {
   const {
     inputText,
     selectedStyle,
+    selectedVariant, // 新增变体状态
     output,
     isLoading,
     error,
@@ -19,6 +20,7 @@ function Home() {
     selectedRecipient,
     updateInputText,
     updateSelectedStyle,
+    updateSelectedVariant, // 新增变体更新方法
     updateOutputLanguage,
     updateConversionMode,
     updateSelectedPurpose,
@@ -38,6 +40,50 @@ function Home() {
 
   // 复制状态管理
   const [copyStatus, setCopyStatus] = useState('')
+
+  // 检查并应用来自历史记录的预填充数据和预选风格
+  useEffect(() => {
+    const prefillData = localStorage.getItem('prefillFromHistory')
+    const preselectedStyle = localStorage.getItem('preselectedStyle')
+    
+    if (prefillData) {
+      try {
+        const data = JSON.parse(prefillData)
+        
+        // 清除预填充数据，避免重复应用
+        localStorage.removeItem('prefillFromHistory')
+        
+        // 应用预填充数据
+        if (data.inputText) updateInputText(data.inputText)
+        if (data.conversionMode) updateConversionMode(data.conversionMode)
+        if (data.style) updateSelectedStyle(data.style)
+        if (data.variant) updateSelectedVariant(data.variant)
+        if (data.purpose) updateSelectedPurpose(data.purpose)
+        if (data.recipient) updateSelectedRecipient(data.recipient)
+        if (data.outputLanguage) updateOutputLanguage(data.outputLanguage)
+        
+      } catch (error) {
+        console.error('应用预填充数据失败:', error)
+        localStorage.removeItem('prefillFromHistory')
+      }
+    }
+    
+    // 处理从未登录历史页面预选的风格
+    if (preselectedStyle) {
+      localStorage.removeItem('preselectedStyle') // 清除预选数据，避免重复应用
+      updateConversionMode(CONVERSION_MODE.STYLE) // 切换到风格模式
+      updateSelectedStyle(preselectedStyle) // 应用预选风格
+      
+      // 滚动到输入区域，引导用户输入文本
+      setTimeout(() => {
+        const textarea = document.querySelector('textarea')
+        if (textarea) {
+          textarea.focus()
+          textarea.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 100)
+    }
+  }, [])
 
   // 处理复制操作
   const handleCopy = async (text, type) => {
@@ -108,7 +154,9 @@ function Home() {
         {conversionMode === CONVERSION_MODE.STYLE ? (
           <StyleSelector
             selectedStyle={selectedStyle}
+            selectedVariant={selectedVariant} // 传递变体状态
             onStyleChange={updateSelectedStyle}
+            onVariantChange={updateSelectedVariant} // 传递变体更新方法
             disabled={isLoading}
             showManageButton={true}
           />

@@ -133,6 +133,15 @@ const saveUserToFirestore = async (user) => {
         sharedPosts: [],
         hiddenStyles: [], // 初始化隐藏风格数组
         addedStyles: [], // 初始化添加到账户的风格数组
+        // 历史记录相关字段
+        historyRecords: [], // 历史记录列表
+        historyTags: [], // 用户自定义标签库
+        historyPreferences: { // 历史页面偏好设置
+          defaultView: 'list',
+          itemsPerPage: 20,
+          autoSaveTags: true,
+          showTimestamp: true
+        },
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp()
       }
@@ -151,6 +160,21 @@ const saveUserToFirestore = async (user) => {
       }
       if (!userData.addedStyles) {
         updateData.addedStyles = []
+      }
+      // 初始化历史记录相关字段
+      if (!userData.historyRecords) {
+        updateData.historyRecords = []
+      }
+      if (!userData.historyTags) {
+        updateData.historyTags = []
+      }
+      if (!userData.historyPreferences) {
+        updateData.historyPreferences = {
+          defaultView: 'list',
+          itemsPerPage: 20,
+          autoSaveTags: true,
+          showTimestamp: true
+        }
       }
       
       await setDoc(userRef, updateData, { merge: true })

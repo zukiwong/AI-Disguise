@@ -194,7 +194,8 @@ async function callGeminiAPI(prompt, apiKey) {
     throw new Error('GEMINI API 返回的数据格式异常')
   }
 
-  return generatedText.trim()
+  // 清理输出文本，移除不需要的格式化字符和前缀
+  return cleanGeneratedText(generatedText.trim())
 }
 
 /**
@@ -440,4 +441,51 @@ function buildPrompt(text, conversionParams, outputLanguage) {
   const example = template.example.replace('{text}', text)
   
   return `${instruction}\n\n${example}`
+}
+
+/**
+ * 清理生成的文本，移除不需要的格式化字符和前缀
+ * @param {string} text - 原始生成文本
+ * @returns {string} - 清理后的文本
+ */
+function cleanGeneratedText(text) {
+  let cleanedText = text
+  
+  // 移除markdown代码块标记
+  cleanedText = cleanedText.replace(/^```[\w]*\n?/gm, '')
+  cleanedText = cleanedText.replace(/\n?```$/gm, '')
+  cleanedText = cleanedText.replace(/```[\w]*\n?/g, '')
+  cleanedText = cleanedText.replace(/\n?```/g, '')
+  
+  // 移除常见的前缀（如feat:, fix:, docs:等，包括git commit类型）
+  cleanedText = cleanedText.replace(/^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert|update|add|remove|change)[:：]\s*/i, '')
+  
+  // 移除其他常见的技术前缀
+  cleanedText = cleanedText.replace(/^(task|bug|hotfix|feature|enhancement|improvement)[:：]\s*/i, '')
+  
+  // 移除可能的引号包围（支持中英文引号）
+  cleanedText = cleanedText.replace(/^["'"'](.*?)["'"']$/s, '$1')
+  
+  // 移除可能的"转换后的文本："等前缀（多语言支持）
+  cleanedText = cleanedText.replace(/^(转换后的文本|结果|输出|答案|回答|转换结果|转换后|伪装后的文本|伪装结果)[:：]\s*/i, '')
+  cleanedText = cleanedText.replace(/^(transformed text|result|output|answer|response|conversion result|disguised text)[:：]\s*/i, '')
+  cleanedText = cleanedText.replace(/^(変換後のテキスト|結果|出力|答え|回答|変換結果)[:：]\s*/i, '')
+  cleanedText = cleanedText.replace(/^(transformierter text|ergebnis|ausgabe|antwort)[:：]\s*/i, '')
+  cleanedText = cleanedText.replace(/^(texto transformado|resultado|respuesta|salida)[:：]\s*/i, '')
+  
+  // 移除可能的序号和列表标记
+  cleanedText = cleanedText.replace(/^[0-9]+[\.、]\s*/, '')
+  cleanedText = cleanedText.replace(/^[-*•]\s*/, '')
+  
+  // 移除多余的换行符和空白字符
+  cleanedText = cleanedText.replace(/^\s+/, '').replace(/\s+$/, '')
+  cleanedText = cleanedText.replace(/\n\s*\n/g, '\n')
+  
+  // 移除可能的HTML标签
+  cleanedText = cleanedText.replace(/<[^>]*>/g, '')
+  
+  // 最后检查：如果开头还有冒号，移除到第一个冒号之后的内容
+  cleanedText = cleanedText.replace(/^[^:：]*[:：]\s*/, '')
+  
+  return cleanedText.trim()
 }

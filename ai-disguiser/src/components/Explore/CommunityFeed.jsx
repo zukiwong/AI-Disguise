@@ -1,16 +1,19 @@
 // 社区分享组件
 // 展示用户分享的转换内容
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
 import { getPublicShares, toggleLike } from '../../services/shareService.js'
 import '../../styles/Explore.css'
 
 function CommunityFeed() {
   const { isAuthenticated, userId } = useAuth()
+  const [searchParams] = useSearchParams()
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [sortBy, setSortBy] = useState('recent') // 'recent', 'popular'
+  const postRefs = useRef({})
 
   // 从 Firestore 加载真实的分享内容
   useEffect(() => {
@@ -50,6 +53,29 @@ function CommunityFeed() {
 
     loadPosts()
   }, [sortBy, userId])
+  
+  // 滚动到特定帖子的功能
+  useEffect(() => {
+    const highlightId = searchParams.get('highlight')
+    if (highlightId && posts.length > 0) {
+      // 延迟滚动，确保DOM已经渲染
+      setTimeout(() => {
+        const element = postRefs.current[highlightId]
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          })
+          // 高亮显示（使用项目绿色，更细的边框，匹配卡片圆角）
+          element.style.border = '2px solid #4caf50'
+          element.style.borderRadius = '10px'
+          setTimeout(() => {
+            element.style.border = ''
+          }, 3000) // 3秒后移除高亮
+        }
+      }, 500)
+    }
+  }, [searchParams, posts])
 
   // 获取风格显示名称的辅助函数
   const getStyleDisplayName = (share) => {
@@ -137,13 +163,17 @@ function CommunityFeed() {
         </div>
       ) : (
         posts.map((post) => (
-          <PostCard
+          <div
             key={post.id}
-            post={post}
-            onLike={handleLike}
-            onShare={handleShare}
-            canInteract={isAuthenticated}
-          />
+            ref={(el) => postRefs.current[post.id] = el}
+          >
+            <PostCard
+              post={post}
+              onLike={handleLike}
+              onShare={handleShare}
+              canInteract={isAuthenticated}
+            />
+          </div>
         ))
       )}
     </div>

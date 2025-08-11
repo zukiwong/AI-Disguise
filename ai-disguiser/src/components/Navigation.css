@@ -1,0 +1,176 @@
+/* 沉浸式导航栏样式 */
+.immersive-nav {
+  position: fixed; /* 回到固定定位 */
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(236, 236, 236, 0.676);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.nav-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+}
+
+/* 品牌区域 */
+.nav-brand .brand-link {
+  text-decoration: none; /* 移除链接下划线 */
+  cursor: pointer; /* 显示手指指针 */
+  transition: all 0.3s ease; /* 添加过渡效果 */
+}
+
+.nav-brand .brand-link:hover {
+  opacity: 0.8; /* 悬浮时稍微变透明 */
+  transform: translateY(-1px); /* 悬浮时轻微上移 */
+}
+
+.nav-brand h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(#16581a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(46, 125, 50, 0.3);
+}
+
+/* 导航链接区域 */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.nav-link {
+  position: relative;
+  color: rgba(0, 0, 0, 0.7);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: transparent; /* 默认透明背景 */
+}
+
+.nav-link:hover {
+  color: #000000;
+  background: rgba(0, 0, 0, 0.05); /* 悬浮时淡淡的圆框 */
+}
+
+.nav-link.active {
+  color: #2e7d32;
+  background: transparent; /* 活跃状态也是透明背景 */
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #2e7d32;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(46, 125, 50, 0.8);
+}
+
+/* 登录按钮 */
+.nav-signin-btn {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.nav-signin-btn:hover {
+  background: #333333;
+  border-color: #333333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 页面内容区域适配在App.css中处理 */
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .nav-content {
+    padding: 0 16px;
+    height: 56px;
+  }
+  
+  .nav-brand h2 {
+    font-size: 18px;
+  }
+  
+  .nav-links {
+    gap: 20px;
+  }
+  
+  .nav-link {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+  
+  .nav-signin-btn {
+    padding: 6px 16px;
+    font-size: 13px;
+  }
+  
+}
+
+@media (max-width: 480px) {
+  .nav-content {
+    padding: 0 12px;
+    height: 52px;
+  }
+  
+  .nav-brand h2 {
+    font-size: 16px;
+  }
+  
+  .nav-links {
+    gap: 16px;
+  }
+  
+  .nav-link {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  
+  .nav-signin-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+  
+}
+
+/* 增强模糊效果的浏览器兼容性 */
+@supports not (backdrop-filter: blur(20px)) {
+  .immersive-nav {
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  .nav-link,
+  .nav-signin-btn {
+    backdrop-filter: none;
+  }
+}

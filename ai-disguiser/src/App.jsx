@@ -5,6 +5,8 @@ import Home from './pages/Home'
 import Explore from './pages/Explore'
 import Share from './pages/Share'
 import History from './pages/History'
+import Profile from './pages/Profile'
+import NotFound from './pages/NotFound'
 // Import navigation component | 导入导航组件
 import Navigation from './components/Navigation'
 
@@ -21,6 +23,8 @@ function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/share/:id" element={<Share />} />
           <Route path="/history" element={<History />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </div>

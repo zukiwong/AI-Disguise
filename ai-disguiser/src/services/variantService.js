@@ -37,10 +37,7 @@ export const createVariantData = ({
 // 获取指定风格的所有变体
 export const getVariantsByStyleId = async (styleId) => {
   try {
-    console.log('🔍 开始获取变体:', {
-      styleId,
-      path: `${COLLECTIONS.STYLES}/${styleId}/variants`
-    })
+    // console.log('🔍 开始获取变体:', styleId)
     
     const variantsRef = collection(db, COLLECTIONS.STYLES, styleId, 'variants')
     const q = query(
@@ -51,7 +48,7 @@ export const getVariantsByStyleId = async (styleId) => {
     const querySnapshot = await getDocs(q)
     const variants = []
     
-    console.log('🔍 查询到的文档数量:', querySnapshot.size)
+    // console.log('🔍 查询到的文档数量:', querySnapshot.size)
     
     querySnapshot.forEach((doc) => {
       const variantData = {
@@ -59,7 +56,7 @@ export const getVariantsByStyleId = async (styleId) => {
         styleId,
         ...doc.data()
       }
-      console.log('🔍 找到变体:', variantData)
+      // console.log('🔍 找到变体:', variantData)
       variants.push(variantData)
     })
     
@@ -78,7 +75,7 @@ export const getVariantsByStyleId = async (styleId) => {
       return timeB - timeA
     })
     
-    console.log('✅ 最终返回的变体列表:', variants)
+    // console.log('✅ 最终返回的变体列表:', variants)
     
     return variants
   } catch (error) {
@@ -103,23 +100,16 @@ export const getTopVariantsByStyleId = async (styleId, limitCount = 3) => {
 // 创建新变体
 export const createVariant = async (styleId, variantData) => {
   try {
-    console.log('🔥 创建变体开始:', {
-      styleId,
-      variantData,
-      path: `${COLLECTIONS.STYLES}/${styleId}/variants`
-    })
+    // console.log('🔥 创建变体开始:', styleId)
     
     const variantsRef = collection(db, COLLECTIONS.STYLES, styleId, 'variants')
     const newVariant = createVariantData(variantData)
     
-    console.log('🔥 准备写入的变体数据:', newVariant)
+    // console.log('🔥 准备写入的变体数据:', newVariant)
     
     const docRef = await addDoc(variantsRef, newVariant)
     
-    console.log('✅ 变体创建成功:', {
-      docId: docRef.id,
-      fullPath: `${COLLECTIONS.STYLES}/${styleId}/variants/${docRef.id}`
-    })
+    // console.log('✅ 变体创建成功:', docRef.id)
     
     const result = {
       id: docRef.id,
@@ -127,7 +117,7 @@ export const createVariant = async (styleId, variantData) => {
       ...newVariant
     }
     
-    console.log('✅ 返回的变体数据:', result)
+    // console.log('✅ 返回的变体数据:', result)
     
     return result
   } catch (error) {

@@ -2,10 +2,12 @@
 // 显示用户头像和下拉菜单
 
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
 import '../../styles/Auth.css'
 
 function UserAvatar({ showName = true, onProfileClick, onLogout }) {
+  const navigate = useNavigate()
   const { 
     user, 
     userName, 
@@ -43,6 +45,9 @@ function UserAvatar({ showName = true, onProfileClick, onLogout }) {
     setShowMenu(false)
     if (onProfileClick) {
       onProfileClick()
+    } else {
+      // 使用React Router导航到Profile页面
+      navigate('/profile')
     }
   }
 

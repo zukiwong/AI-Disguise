@@ -56,7 +56,7 @@ export const getPublicStylesForExplore = async (userId = null) => {
     
     // 如果 Firestore 中有数据，优先使用 Firestore 数据
     if (firestoreStyles.length > 0) {
-      console.log('🔍 从 Firestore 获取到的风格:', firestoreStyles)
+      // console.log('🔍 从 Firestore 获取到的风格:', firestoreStyles)
       
       // 按优先级排序：官方风格在前，其他按使用次数排序
       const sortedStyles = firestoreStyles.sort((a, b) => {
@@ -96,12 +96,7 @@ export const getPublicStylesForExplore = async (userId = null) => {
         return timeB - timeA
       })
       
-      console.log('✅ 排序后的风格:', sortedStyles.map(s => ({ 
-        name: s.name, 
-        displayName: s.displayName, 
-        createdBy: s.createdBy,
-        usageCount: s.usageCount || 0
-      })))
+      // console.log('✅ 排序后的风格:', sortedStyles.length)
       
       return sortedStyles
     }
@@ -384,7 +379,7 @@ export const getSystemStyles = async () => {
 // 清理重复风格和统一数据库结构
 export const cleanDuplicateStyles = async () => {
   try {
-    console.log('🧹 开始清理重复风格和统一数据库结构...')
+    // console.log('🧹 开始清理重复风格和统一数据库结构...')
     
     const stylesRef = collection(db, COLLECTIONS.STYLES)
     const querySnapshot = await getDocs(stylesRef)
@@ -405,7 +400,7 @@ export const cleanDuplicateStyles = async () => {
       const docId = docSnapshot.id
       const docData = docSnapshot.data()
       
-      console.log(`🔍 分析文档: ${docId}`, docData)
+      // console.log(`🔍 分析文档: ${docId}`, docData)
       
       // 根据name或displayName或内容分类
       let category = 'other'
@@ -424,13 +419,7 @@ export const cleanDuplicateStyles = async () => {
       styleGroups[category].push({ id: docId, data: docData })
     })
     
-    console.log('📊 风格分组结果:', {
-      chat: styleGroups.chat.length,
-      poem: styleGroups.poem.length,
-      social: styleGroups.social.length,
-      story: styleGroups.story.length,
-      other: styleGroups.other.length
-    })
+    // console.log('📊 风格分组结果:', Object.keys(styleGroups).length)
     
     let cleanedCount = 0
     let mergedCount = 0
@@ -440,7 +429,7 @@ export const cleanDuplicateStyles = async () => {
       if (styleName === 'other') continue // 跳过其他类型
       
       if (docs.length > 1) {
-        console.log(`🔧 发现 ${docs.length} 个 ${styleName} 风格，开始合并...`)
+        // console.log(`🔧 发现 ${docs.length} 个 ${styleName} 风格，开始合并...`)
         
         // 找到最完整的文档作为主文档
         let primaryDoc = docs[0]
@@ -452,13 +441,13 @@ export const cleanDuplicateStyles = async () => {
             const variantsRef = collection(db, COLLECTIONS.STYLES, styleDoc.id, 'variants')
             const variantsSnapshot = await getDocs(variantsRef)
             if (variantsSnapshot.size > 0) {
-              console.log(`📁 文档 ${styleDoc.id} 有 ${variantsSnapshot.size} 个变体`)
+              // console.log(`📁 文档 ${styleDoc.id} 有 ${variantsSnapshot.size} 个变体`)
               primaryDoc = styleDoc
               primaryHasVariants = true
               break
             }
           } catch (error) {
-            console.log(`⚠️ 检查文档 ${styleDoc.id} 的变体时出错:`, error)
+            // console.log(`⚠️ 检查文档 ${styleDoc.id} 的变体时出错:`, error)
           }
         }
         
@@ -470,7 +459,7 @@ export const cleanDuplicateStyles = async () => {
         }
         
         // 更新主文档为标准结构
-        console.log(`🔧 更新主文档 ${primaryDoc.id} 为标准结构`)
+        // console.log(`🔧 更新主文档 ${primaryDoc.id} 为标准结构`)
         const primaryDocRef = doc(db, COLLECTIONS.STYLES, primaryDoc.id)
         
         const standardData = {
@@ -480,7 +469,7 @@ export const cleanDuplicateStyles = async () => {
         }
         
         await updateDoc(primaryDocRef, standardData)
-        console.log(`✅ 主文档 ${primaryDoc.id} 更新完成`)
+        // console.log(`✅ 主文档 ${primaryDoc.id} 更新完成`)
         
         // 删除其他重复文档
         for (const docToDelete of docs) {
@@ -498,7 +487,7 @@ export const cleanDuplicateStyles = async () => {
         const defaultData = systemStylesData.find(s => s.name === styleName)
         
         if (defaultData) {
-          console.log(`🔧 更新单个文档 ${singleDoc.id} 为标准结构`)
+          // console.log(`🔧 更新单个文档 ${singleDoc.id} 为标准结构`)
           const docRef = doc(db, COLLECTIONS.STYLES, singleDoc.id)
           
           const standardData = {
@@ -508,12 +497,12 @@ export const cleanDuplicateStyles = async () => {
           }
           
           await updateDoc(docRef, standardData)
-          console.log(`✅ 文档 ${singleDoc.id} 更新完成`)
+          // console.log(`✅ 文档 ${singleDoc.id} 更新完成`)
         }
       }
     }
     
-    console.log(`🎉 清理完成！删除了 ${cleanedCount} 个重复文档，合并了 ${mergedCount} 个风格组`)
+    // console.log(`🎉 清理完成！删除了 ${cleanedCount} 个重复文档，合并了 ${mergedCount} 个风格组`)
     return { success: true, cleanedCount, mergedCount }
     
   } catch (error) {

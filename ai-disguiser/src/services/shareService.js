@@ -144,26 +144,41 @@ export const getPublicShares = async (limitCount = 20) => {
 export const getUserShares = async (userId) => {
   try {
     if (!userId) {
+      console.log('getUserShares: userId 为空')
       return []
     }
     
+    console.log('getUserShares: 查询用户分享内容，userId=', userId)
     const sharesRef = collection(db, COLLECTIONS.POSTS)
     const q = query(
       sharesRef,
-      where('authorId', '==', userId),
-      orderBy('createdAt', 'desc')
+      where('authorId', '==', userId)
+      // 暂时移除 orderBy 以避免索引问题
+      // orderBy('createdAt', 'desc')
     )
     
+    console.log('getUserShares: 执行查询...')
     const querySnapshot = await getDocs(q)
     const shares = []
     
+    console.log('getUserShares: 查询结果数量=', querySnapshot.size)
     querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      console.log('getUserShares: 找到分享记录=', { id: doc.id, authorId: data.authorId, originalText: data.originalText?.substring(0, 50) })
       shares.push({
         id: doc.id,
-        ...doc.data()
+        ...data
       })
     })
     
+    // 在客户端按创建时间倒序排列
+    shares.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0
+      const bTime = b.createdAt?.toMillis() || 0
+      return bTime - aTime
+    })
+    
+    console.log('getUserShares: 最终返回的分享数量=', shares.length)
     return shares
   } catch (error) {
     console.error('获取用户分享内容失败:', error)

@@ -1,7 +1,8 @@
 // 语言选择器组件
-// 独立的模块化组件，可以轻松启用或停用
+// 使用自定义下拉框，独立的模块化组件，可以轻松启用或停用
 
 import { LANGUAGE_FEATURE, LANGUAGE_CONFIG } from '../services/config.js'
+import CustomSelect from './CustomSelect.jsx'
 
 /**
  * 语言选择器组件
@@ -23,9 +24,15 @@ function LanguageSelector({
     return null
   }
 
+  // 转换为自定义下拉框需要的选项格式
+  const options = Object.entries(LANGUAGE_CONFIG).map(([key, language]) => ({
+    value: key,
+    label: language.displayName,
+    description: language.description
+  }))
+
   // 处理语言选择变化
-  const handleLanguageChange = (event) => {
-    const newLanguage = event.target.value
+  const handleLanguageChange = (newLanguage) => {
     if (onLanguageChange) {
       onLanguageChange(newLanguage)
     }
@@ -34,21 +41,16 @@ function LanguageSelector({
   return (
     <div className={`language-selector ${className}`}>
       <h3>Output Language:</h3>
-      <select 
+      <CustomSelect
+        options={options}
         value={selectedLanguage}
         onChange={handleLanguageChange}
         disabled={disabled}
-        className="language-select"
-        title="Select the language for conversion results"
-      >
-        {Object.entries(LANGUAGE_CONFIG).map(([key, language]) => (
-          <option key={key} value={key}>
-            {language.displayName}
-          </option>
-        ))}
-      </select>
+        placeholder="Select output language..."
+        className="language-custom-select"
+      />
       
-      {/* 语言说明文本 */}
+      {/* 语言说明文本 - 现在在下拉框内显示，这里可以移除或保留 */}
       {selectedLanguage !== 'auto' && LANGUAGE_CONFIG[selectedLanguage] && (
         <p className="language-description">
           {LANGUAGE_CONFIG[selectedLanguage].description}

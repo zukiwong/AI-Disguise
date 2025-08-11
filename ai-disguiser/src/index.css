@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -11,6 +11,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 强制所有元素使用 Poppins 字体 */
+* {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+body, html {
+  font-family: 'Poppins', sans-serif !important;
 }
 
 a {
@@ -27,6 +36,9 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100vh;
+  /* 强制显示垂直滚动条，防止页面宽度跳动 */
+  overflow-y: scroll;
+  /* padding-top在App.css中统一管理 */
 }
 
 #root {
@@ -140,31 +152,6 @@ button:focus-visible {
   width: 100%;
 }
 
-.style-selector select {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: inherit;
-  color: inherit;
-  box-sizing: border-box;
-  margin: 0;
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 40px;
-}
-
-.style-selector select:focus {
-  border-color: #4CAF50;
-}
-
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -272,7 +259,76 @@ button:focus-visible {
   background-color: #1976D2;
 }
 
-/* 语言选择器样式 */
+/* 现代化下拉框统一样式 */
+.modern-select, 
+.language-select,
+.filter-select, 
+.form-select,
+.style-selector select {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif !important;
+  background-color: #ffffff;
+  color: #2c3e50;
+  box-sizing: border-box;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  /* 移除系统默认样式 */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* 自定义下拉箭头 */
+  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%23666666"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  
+  /* 阴影效果 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modern-select:hover,
+.language-select:hover,
+.filter-select:hover,
+.form-select:hover,
+.style-selector select:hover {
+  border-color: #3498db;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  transform: translateY(-1px);
+}
+
+.modern-select:focus,
+.language-select:focus,
+.filter-select:focus,
+.form-select:focus,
+.style-selector select:focus {
+  border-color: #2ecc71;
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+  transform: translateY(-1px);
+  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%232ecc71"/></svg>');
+}
+
+.modern-select:disabled,
+.language-select:disabled,
+.filter-select:disabled,
+.form-select:disabled,
+.style-selector select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f8f9fa;
+  border-color: #e1e5e9;
+  transform: none !important;
+}
+
+/* 语言选择器容器样式 */
 .language-selector {
   width: 100%;
 }
@@ -280,32 +336,9 @@ button:focus-visible {
 .language-selector h3 {
   margin-bottom: 8px;
   font-size: 16px;
+  font-weight: 600;
   color: inherit;
-}
-
-.language-select {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: inherit;
-  color: inherit;
-  box-sizing: border-box;
-  margin: 0;
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 40px;
-}
-
-.language-select:focus {
-  border-color: #4CAF50;
+  font-family: 'Poppins', sans-serif !important;
 }
 
 .language-description {
@@ -387,6 +420,18 @@ button:focus-visible {
   .action-buttons button {
     width: 100%;
   }
+  
+  /* 移动端下拉框调整 */
+  .modern-select, 
+  .language-select,
+  .filter-select, 
+  .form-select,
+  .style-selector select {
+    font-size: 16px; /* 防止iOS缩放 */
+    padding: 14px 40px 14px 16px;
+    border-radius: 10px;
+    min-height: 48px; /* 符合移动端触摸标准 */
+  }
 }
 
 /* 深色模式适配 */
@@ -397,18 +442,45 @@ button:focus-visible {
     border-color: #555;
   }
   
+  /* 深色模式下拉框样式 */
+  .modern-select, 
+  .language-select,
+  .filter-select, 
+  .form-select,
   .style-selector select {
     background-color: #2a2a2a;
-    color: white;
-    border-color: #555;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    color: #ffffff;
+    border-color: #4a4a4a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%23ffffff"/></svg>');
   }
-  
-  .language-select {
-    background-color: #2a2a2a;
-    color: white;
-    border-color: #555;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+
+  .modern-select:hover,
+  .language-select:hover,
+  .filter-select:hover,
+  .form-select:hover,
+  .style-selector select:hover {
+    border-color: #5dade2;
+    box-shadow: 0 4px 12px rgba(93, 173, 226, 0.2);
+  }
+
+  .modern-select:focus,
+  .language-select:focus,
+  .filter-select:focus,
+  .form-select:focus,
+  .style-selector select:focus {
+    border-color: #58d68d;
+    box-shadow: 0 4px 12px rgba(88, 214, 141, 0.3);
+    background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%2358d68d"/></svg>');
+  }
+
+  .modern-select:disabled,
+  .language-select:disabled,
+  .filter-select:disabled,
+  .form-select:disabled,
+  .style-selector select:disabled {
+    background-color: #1a1a1a;
+    border-color: #3a3a3a;
   }
   
   .language-description {

@@ -1,9 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { StyleMarket, CommunityFeed } from '../components/Explore/index.js'
 import '../styles/Explore.css'
 
 function Explore() {
+  const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('styles') // 'styles' 或 'community'
+  
+  // 根据URL参数设置初始tab和高亮内容
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'community') {
+      setActiveTab('community')
+    }
+  }, [searchParams])
 
   return (
     <div className="explore-container">

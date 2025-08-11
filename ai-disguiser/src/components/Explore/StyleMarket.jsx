@@ -2,39 +2,25 @@
 // 展示所有公共风格，支持搜索和分类
 
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
+import { useStyles } from '../../hooks/useStyles.js'
 import { getPublicStylesWithVariants } from '../../services/styleService.js'
 import { createVariant } from '../../services/variantService.js'
+import { generateVariantPrompt } from '../../utils/variantUtils.js'
 import '../../styles/Explore.css'
 
-/**
- * 生成变体的最终prompt的帮助函数
- * 
- * 新的变体逻辑：
- * - 用户只需要填写变体名称和描述
- * - 系统会自动根据主风格的基础prompt + 变体描述生成最终prompt
- * - 这样用户操作简单，同时保持灵活性
- * - 向后兼容：已有的自定义promptOverride继续有效
- */
-const generateVariantPrompt = (baseStyle, variant) => {
-  // 如果变体有自定义的promptOverride，直接使用（向后兼容）
-  if (variant.promptOverride && variant.promptOverride.trim()) {
-    return variant.promptOverride
-  }
-  
-  // 否则基于主风格prompt + 变体描述生成
-  const basePrompt = baseStyle.promptTemplate || 'Transform the following text:'
-  const variantRequirement = variant.description || ''
-  
-  if (variantRequirement) {
-    return `${basePrompt} 特别要求：${variantRequirement}`
-  }
-  
-  return basePrompt
-}
 
 function StyleMarket() {
   const { isAuthenticated, userId } = useAuth()
+  const navigate = useNavigate()
+  
+  // 使用统一的风格管理Hook
+  const { 
+    addedStyleIds, 
+    addPublicStyleToAccount,
+    isLoading: stylesLoading 
+  } = useStyles(userId)
   
   // 使用本地状态管理探索页数据
   const [publicStyles, setPublicStyles] = useState([])
@@ -83,44 +69,72 @@ function StyleMarket() {
   }, [publicStyles, searchTerm, categoryFilter])
 
   const handleUseStyle = (styleId, variantId = null) => {
-    // TODO: 集成到主页面，设置为当前选中的风格和变体
+    // 将选择的风格和变体保存到 localStorage，然后跳转到首页
     const style = publicStyles.find(s => s.id === styleId)
     if (!style) {
       console.log('风格未找到:', styleId)
       return
     }
 
-    if (variantId) {
-      const variant = style.variants?.find(v => v.id === variantId)
-      if (variant) {
-        const finalPrompt = generateVariantPrompt(style, variant)
-        console.log('使用风格变体:', { 
-          styleId, 
-          variantId, 
-          styleName: style.displayName,
-          variantName: variant.name,
-          finalPrompt 
-        })
-      } else {
-        console.log('变体未找到:', { styleId, variantId })
+    try {
+      // 保存选择状态到 localStorage
+      const selectedStyleData = {
+        styleId: styleId,
+        variantId: variantId,
+        timestamp: Date.now()
       }
-    } else {
-      console.log('使用默认风格:', { 
-        styleId, 
-        styleName: style.displayName,
-        prompt: style.promptTemplate || 'Transform the following text:'
-      })
+      localStorage.setItem('selectedStyleFromExplore', JSON.stringify(selectedStyleData))
+      
+      // 跳转到首页
+      navigate('/')
+    } catch (error) {
+      console.error('保存风格选择失败:', error)
+      // 即使保存失败也可以跳转
+      navigate('/')
     }
   }
 
   const handleFavoriteStyle = (styleId) => {
     if (!isAuthenticated) {
       // TODO: 显示登录提示
-      console.log('需要登录才能收藏')
+      console.log('Login required for favorites')
       return
     }
     // TODO: 实现收藏功能
-    console.log('收藏风格:', styleId)
+    console.log('Favorite style:', styleId)
+  }
+
+  // 处理添加风格到个人列表
+  const handleAddToMyList = async (styleId) => {
+    if (!isAuthenticated) {
+      alert('Please login first to add styles to your personal list')
+      return
+    }
+
+    try {
+      // 检查是否已经添加过
+      if (addedStyleIds.includes(styleId)) {
+        alert('This style has already been added to your personal list')
+        return
+      }
+
+      console.log('开始添加风格到个人列表:', styleId)
+      console.log('当前addedStyleIds:', addedStyleIds)
+
+      // 使用统一的风格管理方法添加
+      const success = await addPublicStyleToAccount(styleId)
+      
+      console.log('添加结果:', success)
+      
+      if (success) {
+        alert('Style added to your personal list successfully!')
+      } else {
+        alert('Failed to add style, please try again')
+      }
+    } catch (error) {
+      console.error('添加风格失败:', error)
+      alert('Failed to add style, please try again')
+    }
   }
 
   // 更新风格的变体列表
@@ -192,7 +206,10 @@ function StyleMarket() {
               style={style}
               onUse={handleUseStyle}
               onFavorite={handleFavoriteStyle}
+              onAddToMyList={handleAddToMyList}
               canFavorite={isAuthenticated}
+              canAddToList={isAuthenticated}
+              isAddedToList={addedStyleIds.includes(style.id)}
               onVariantAdded={updateStyleVariants}
             />
           ))}
@@ -220,7 +237,7 @@ function HeartIcon({ filled, className }) {
 }
 
 // 风格卡片组件（支持变体）
-function StyleCard({ style, onUse, onFavorite, canFavorite, onVariantAdded }) {
+function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAddToList, isAddedToList, onVariantAdded }) {
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [showVariantModal, setShowVariantModal] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false) // 临时状态，后续可连接真实数据
@@ -331,6 +348,23 @@ function StyleCard({ style, onUse, onFavorite, canFavorite, onVariantAdded }) {
               Use Style {selectedVariant ? `(${selectedVariant.name})` : ''}
             </button>
             
+            {/* 添加到个人列表按钮 */}
+            {canAddToList && (
+              <button
+                className={`style-action-button add-to-list-button ${isAddedToList ? 'added' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (!isAddedToList) {
+                    onAddToMyList(style.id)
+                  }
+                }}
+                disabled={isAddedToList}
+                title={isAddedToList ? 'Already in your personal list' : 'Add to your personal list'}
+              >
+                {isAddedToList ? '✓ Added' : '+ Add to My List'}
+              </button>
+            )}
+            
             {/* View All 按钮 - 只要有变体就显示 */}
             {hasVariants && (
               <button
@@ -408,7 +442,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
   // 处理添加新变体
   const handleAddVariant = () => {
     if (!isAuthenticated) {
-      alert('请先登录后再添加变体')
+      alert('Please login first to add variants')
       return
     }
     setIsAddingVariant(true)
@@ -423,7 +457,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
   // 提交新变体
   const handleSubmitVariant = async () => {
     if (!newVariant.name.trim() || !newVariant.description.trim()) {
-      alert('请填写变体名称和描述')
+      alert('Please fill in variant name and description')
       return
     }
     
@@ -440,7 +474,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
       })
       
       // 成功后只刷新当前窗口数据，不刷新整个页面
-      alert('变体添加成功！')
+      alert('Variant added successfully!')
       
       // 通知父组件更新主状态
       if (onVariantAdded) {
@@ -460,7 +494,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
       
     } catch (error) {
       console.error('添加变体失败:', error)
-      alert('添加变体失败，请重试')
+      alert('Failed to add variant, please try again')
     } finally {
       setIsSubmitting(false)
     }
@@ -479,10 +513,10 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
             <table className="variant-table">
               <thead>
                 <tr>
-                  <th className="variant-col-name">变体名称</th>
-                  <th className="variant-col-description">描述</th>
-                  <th className="variant-col-usage">使用数</th>
-                  <th className="variant-col-action">操作</th>
+                  <th className="variant-col-name">Variant Name</th>
+                  <th className="variant-col-description">Description</th>
+                  <th className="variant-col-usage">Usage Count</th>
+                  <th className="variant-col-action">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -523,7 +557,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
                       <input
                         type="text"
                         className="variant-input"
-                        placeholder="变体名称"
+                        placeholder="Variant Name"
                         value={newVariant.name}
                         onChange={(e) => setNewVariant({...newVariant, name: e.target.value})}
                       />
@@ -531,7 +565,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
                     <td className="variant-col-description">
                       <textarea
                         className="variant-textarea"
-                        placeholder="变体描述"
+                        placeholder="Variant Description"
                         value={newVariant.description}
                         onChange={(e) => {
                           setNewVariant({...newVariant, description: e.target.value})
@@ -544,7 +578,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
                       />
                     </td>
                     <td className="variant-col-usage">
-                      <span style={{ color: '#999', fontSize: '12px' }}>新变体</span>
+                      <span style={{ color: '#999', fontSize: '12px' }}>New Variant</span>
                     </td>
                     <td className="variant-col-action">
                       <button

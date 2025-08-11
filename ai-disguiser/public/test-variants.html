@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试变体功能</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .output { background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        pre { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>变体功能测试</h1>
+    <p>这是一个测试页面，用于调试变体功能</p>
+    
+    <div>
+        <button onclick="listAllStyles()">查看所有风格</button>
+        <button onclick="addTestVariants()">添加测试变体</button>
+        <button onclick="checkVariants()">检查变体数据</button>
+    </div>
+    
+    <div id="output" class="output">
+        <h3>输出：</h3>
+        <pre id="log"></pre>
+    </div>
+
+    <script type="module">
+        // 导入Firebase配置
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js'
+        import { getFirestore, collection, getDocs, addDoc, query, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js'
+
+        // Firebase配置（需要从你的项目获取）
+        const firebaseConfig = {
+            apiKey: "AIzaSyDc8gK3c7Tn5U3L_BfyGsjCt5j4j8ZKWvQ",
+            authDomain: "ai-disguiser-8e3f8.firebaseapp.com",
+            projectId: "ai-disguiser-8e3f8",
+            storageBucket: "ai-disguiser-8e3f8.firebasestorage.app",
+            messagingSenderId: "877550037169",
+            appId: "1:877550037169:web:47b2dd6b7a2b9c0e8e9f2a",
+            measurementId: "G-1PLLXFNQY9"
+        }
+
+        // 初始化Firebase
+        const app = initializeApp(firebaseConfig)
+        const db = getFirestore(app)
+
+        // 日志函数
+        function log(message) {
+            const logElement = document.getElementById('log')
+            logElement.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n'
+            console.log(message)
+        }
+
+        // 查看所有风格
+        window.listAllStyles = async function() {
+            try {
+                log('正在查询所有风格...')
+                const stylesRef = collection(db, 'styles')
+                const snapshot = await getDocs(stylesRef)
+                
+                const styles = []
+                snapshot.forEach((doc) => {
+                    const data = doc.data()
+                    styles.push({
+                        id: doc.id,
+                        name: data.name,
+                        displayName: data.displayName,
+                        description: data.description,
+                        isPublic: data.isPublic
+                    })
+                })
+                
+                log(`找到 ${styles.length} 个风格：`)
+                styles.forEach(style => {
+                    log(`- ${style.displayName} (${style.id}) - ${style.isPublic ? '公共' : '私人'}`)
+                })
+                
+            } catch (error) {
+                log('查询风格失败: ' + error.message)
+            }
+        }
+
+        // 添加测试变体
+        window.addTestVariants = async function() {
+            try {
+                log('开始添加测试变体...')
+                
+                // 先查找第一个公共风格
+                const stylesRef = collection(db, 'styles')
+                const publicStylesQuery = query(stylesRef, where('isPublic', '==', true))
+                const snapshot = await getDocs(publicStylesQuery)
+                
+                if (snapshot.empty) {
+                    log('没有找到公共风格')
+                    return
+                }
+                
+                // 取第一个风格
+                const firstStyle = snapshot.docs[0]
+                const styleId = firstStyle.id
+                const styleData = firstStyle.data()
+                
+                log(`为风格 "${styleData.displayName}" (${styleId}) 添加变体...`)
+                
+                // 测试变体数据
+                const testVariants = [
+                    {
+                        name: '愤怒版',
+                        description: '带有愤怒情绪的表达',
+                        createdBy: 'system',
+                        isPublic: true,
+                        usageCount: 0,
+                        createdAt: new Date()
+                    },
+                    {
+                        name: '冷漠版',
+                        description: '冷淡无情的表达',
+                        createdBy: 'system',
+                        isPublic: true,
+                        usageCount: 0,
+                        createdAt: new Date()
+                    }
+                ]
+                
+                // 添加变体到子集合
+                const variantsRef = collection(db, 'styles', styleId, 'variants')
+                
+                for (const variant of testVariants) {
+                    const docRef = await addDoc(variantsRef, variant)
+                    log(`✅ 添加变体成功: ${variant.name} (${docRef.id})`)
+                }
+                
+                log('所有测试变体添加完成！')
+                
+            } catch (error) {
+                log('添加变体失败: ' + error.message)
+            }
+        }
+
+        // 检查变体数据
+        window.checkVariants = async function() {
+            try {
+                log('检查变体数据...')
+                
+                const stylesRef = collection(db, 'styles')
+                const snapshot = await getDocs(stylesRef)
+                
+                for (const styleDoc of snapshot.docs) {
+                    const styleData = styleDoc.data()
+                    const styleId = styleDoc.id
+                    
+                    // 查询该风格的变体
+                    const variantsRef = collection(db, 'styles', styleId, 'variants')
+                    const variantsSnapshot = await getDocs(variantsRef)
+                    
+                    if (!variantsSnapshot.empty) {
+                        log(`风格 "${styleData.displayName}" 有 ${variantsSnapshot.size} 个变体:`)
+                        variantsSnapshot.forEach(variantDoc => {
+                            const variantData = variantDoc.data()
+                            log(`  - ${variantData.name}: ${variantData.description}`)
+                        })
+                    }
+                }
+                
+            } catch (error) {
+                log('检查变体失败: ' + error.message)
+            }
+        }
+
+        log('测试页面加载完成！点击按钮开始测试。')
+    </script>
+</body>
+</html>

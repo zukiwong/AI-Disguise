@@ -1,24 +1,31 @@
 /* Basic styles for AI Disguiser | AI伪装器基础样式 */
 
 .app {
-  font-family: Arial, sans-serif;
-  padding: 20px;
+  font-family: 'Poppins', Arial, sans-serif;
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
 }
 
-nav {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-  width: 100%;
+.main-content {
+  padding: 84px 20px 20px 20px; /* 顶部留64px+20px给导航栏 */
+  min-height: calc(100vh - 64px);
+  box-sizing: border-box;
 }
 
-nav a {
-  margin: 0 10px;
-  text-decoration: none;
-  color: rgb(0, 0, 0);
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 76px; /* 56px + 20px */
+    min-height: calc(100vh - 56px);
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding-top: 72px; /* 52px + 20px */
+    min-height: calc(100vh - 52px);
+  }
 }
 
 textarea {
