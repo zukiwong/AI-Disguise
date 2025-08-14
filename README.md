@@ -1,24 +1,29 @@
 # AI Disguise
 
-## 项目简介
-待完善...
+## Project Overview
+An AI-powered text transformation web application that helps users disguise and restyle their text using different styles and purposes.
 
-## 功能特性
-- 功能1：待补充
-- 功能2：待补充
-- 功能3：待补充
+## Features
+- **Style Mode**: Transform text into different styles (chat, poetry, social, story)
+- **Purpose + Target Mode**: Adjust expression based on communication purpose and target audience
+- **Multi-language Support**: Supports Chinese, English, Japanese, German, and Spanish
+- **History Management**: Keep track of recent transformations
+- **Community Explore**: Browse and share text styles
+- **User Profiles**: Manage personal settings and transformations
 
-## 安装说明
-待完善...
+## Tech Stack
+- **Frontend**: React 19 + Vite + React Router
+- **Backend**: Vercel Serverless Functions
+- **AI Engine**: Google Gemini API (gemini-2.0-flash-exp)
+- **Styling**: CSS3 with GSAP animations
+- **Database**: Firebase
 
-## 使用方法
-待完善...
+## Live Demo
+- **[Try AI Disguiser](https://ai-disguiser.vercel.app)**
 
-## 技术栈
-待完善...
-
-## 贡献指南
-待完善...
-
-## 许可证
-待完善...
+## Local Development
+```bash
+cd ai-disguiser
+npm install
+npm run dev
+```
