@@ -22,13 +22,6 @@ An AI-powered text transformation web application that helps users disguise and 
 - **User Authentication**: Login via Google or GitHub
 - **Community Features**: Share and explore public transformations
 
-### Interface & Design
-- **Responsive Design**: Optimized for desktop and mobile devices
-- **Modern UI**: Clean black and green theme with smooth animations
-- **Legal Pages**: Comprehensive Privacy Policy and Terms of Service
-- **Help System**: Detailed FAQ and User Guide
-- **Back-to-Top Navigation**: Smooth scrolling enhancements
-
 ### Multi-language Support
 - **Input Languages**: Chinese, English, Japanese, German, Spanish
 - **Auto-detection**: Automatically recognizes input language

@@ -297,7 +297,7 @@ function StyleSelector({
                         className="remove-style-btn"
                         onClick={(e) => handleRemoveStyle(style.id, style.displayName, e)}
                         disabled={disabled || removingStyleId === style.id}
-                        title="从我的列表中移除"
+                        title="Remove from my list"
                       ></button>
                     )}
                   </div>

@@ -12,7 +12,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 12px 40px 12px 16px;
+  padding: 12px 16px 12px 16px; /* 增加右侧padding，让箭头视觉上更居中 */
   border: 1px solid #e1e5e9;
   border-radius: 6px;
   background-color: #ffffff;
@@ -62,11 +62,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 20px; /* 适中的容器尺寸 */
+  height: 20px;
+  margin-left: 6px; /* 与文字保持适当间距，视觉上居中 */
+  transition: transform 0.3s ease;
+  color: #c8c8c8; /* 与关闭按钮保持一致的浅灰色 */
+  flex-shrink: 0; /* 防止箭头被压缩 */
+}
+
+/* SVG保持原始16x16尺寸，在24x24容器中居中 */
+.select-arrow svg {
+  display: block;
   width: 16px;
   height: 16px;
-  margin-left: 8px;
-  transition: transform 0.3s ease;
-  color: #666666;
 }
 
 .select-arrow.rotated {
@@ -155,66 +163,64 @@
   opacity: 0.9;
 }
 
-/* 深色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .select-header {
-    background-color: #2a2a2a;
-    color: #ffffff;
-    border-color: #4a4a4a;
-  }
+/* 深色模式适配 - 使用body.dark类名系统 */
+body.dark .select-header {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
 
-  .select-header:hover {
-    border-color: #5dade2;
-  }
+body.dark .select-header:hover {
+  border-color: #4CAF50;
+}
 
-  .select-header:focus,
-  .custom-select.open .select-header {
-    border-color: #58d68d;
-  }
+body.dark .select-header:focus,
+body.dark .custom-select.open .select-header {
+  border-color: #4CAF50;
+}
 
-  .custom-select.disabled .select-header {
-    background-color: #1a1a1a;
-    border-color: #3a3a3a;
-  }
+body.dark .custom-select.disabled .select-header {
+  background-color: #1a1a1a;
+  border-color: #3a3a3a;
+}
 
-  .select-arrow {
-    color: #ffffff;
-  }
+body.dark .select-arrow {
+  color: #c8c8c8; /* 深色模式下与关闭按钮保持一致的浅灰色 */
+}
 
-  .custom-select.open .select-arrow {
-    color: #58d68d;
-  }
+body.dark .custom-select.open .select-arrow {
+  color: #4CAF50;
+}
 
-  .select-dropdown {
-    background-color: #2a2a2a;
-    border-color: #58d68d;
-  }
+body.dark .select-dropdown {
+  background-color: var(--card-bg);
+  border-color: #4CAF50;
+}
 
-  .select-option {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
+body.dark .select-option {
+  border-bottom-color: var(--border-color);
+}
 
-  .select-option:hover,
-  .select-option.highlighted {
-    background-color: #3a3a3a;
-  }
+body.dark .select-option:hover,
+body.dark .select-option.highlighted {
+  background-color: var(--hover-bg);
+}
 
-  .select-option.selected {
-    background-color: #1a4a3a;
-    color: #58d68d;
-  }
+body.dark .select-option.selected {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #4CAF50;
+}
 
-  .select-option.selected.highlighted {
-    background-color: #2a5a4a;
-  }
+body.dark .select-option.selected.highlighted {
+  background-color: rgba(76, 175, 80, 0.25);
+}
 
-  .option-description {
-    color: #ccc;
-  }
+body.dark .option-description {
+  color: var(--text-secondary);
+}
 
-  .select-option.selected .option-description {
-    color: #7ed6a3;
-  }
+body.dark .select-option.selected .option-description {
+  color: #66bb6a;
 }
 
 /* 移动端适配 */
@@ -270,16 +276,14 @@
   background: #a8a8a8;
 }
 
-@media (prefers-color-scheme: dark) {
-  .select-dropdown::-webkit-scrollbar-track {
-    background: #3a3a3a;
-  }
+body.dark .select-dropdown::-webkit-scrollbar-track {
+  background: #3a3a3a;
+}
 
-  .select-dropdown::-webkit-scrollbar-thumb {
-    background: #666666;
-  }
+body.dark .select-dropdown::-webkit-scrollbar-thumb {
+  background: #666666;
+}
 
-  .select-dropdown::-webkit-scrollbar-thumb:hover {
-    background: #777777;
-  }
+body.dark .select-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #777777;
 }

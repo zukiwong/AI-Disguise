@@ -16,38 +16,42 @@ import Navigation from './components/Navigation'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
 import BackToTop from './components/BackToTop'
+// Import theme provider | 导入主题提供者
+import { ThemeProvider } from './contexts/ThemeContext'
 
 function App() {
   return (
-    <div className="app">
-      {/* 页面切换时滚动到顶部 */}
-      <ScrollToTop />
-      
-      {/* Global Navigation | 全局导航 */}
-      <Navigation />
-      
-      {/* Main Content Routes | 主要内容路由 */}
-      <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/share/:id" element={<Share />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/guide" element={<Guide />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      
-      {/* Footer | 页面底部 */}
-      <Footer />
-      
-      {/* 返回顶部按钮 */}
-      <BackToTop />
-    </div>
+    <ThemeProvider>
+      <div className="app">
+        {/* 页面切换时滚动到顶部 */}
+        <ScrollToTop />
+        
+        {/* Global Navigation | 全局导航 */}
+        <Navigation />
+        
+        {/* Main Content Routes | 主要内容路由 */}
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/share/:id" element={<Share />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/guide" element={<Guide />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        
+        {/* Footer | 页面底部 */}
+        <Footer />
+        
+        {/* 返回顶部按钮 */}
+        <BackToTop />
+      </div>
+    </ThemeProvider>
   )
 }
 

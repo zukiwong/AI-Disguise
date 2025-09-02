@@ -14,13 +14,13 @@
 .explore-title {
   font-size: 28px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary); /* 使用CSS变量支持主题切换 */
   margin-bottom: 10px;
 }
 
 .explore-subtitle {
   font-size: 16px;
-  color: #666;
+  color: var(--text-secondary); /* 使用CSS变量支持主题切换 */
   line-height: 1.5;
 }
 
@@ -29,7 +29,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color); /* 使用CSS变量支持主题切换 */
 }
 
 .explore-tab {
@@ -74,7 +74,7 @@
 }
 
 .explore-tab.active {
-  color: #000;
+  color: var(--text-primary); /* 使用CSS变量支持主题切换 */
 }
 
 .explore-tab.active::after {
@@ -87,6 +87,24 @@
 
 .explore-tab:active {
   background: none !important;
+}
+
+/* 深色模式下探索页tab的特殊样式 */
+body.dark .explore-tab {
+  color: #999; /* 深色模式下未选中tab的颜色 */
+}
+
+body.dark .explore-tab:hover {
+  color: #ccc; /* 深色模式下hover颜色 */
+}
+
+body.dark .explore-tab.active {
+  color: #ffffff; /* 深色模式下选中tab的颜色 - 白色更清晰 */
+}
+
+body.dark .explore-tab:hover::after,
+body.dark .explore-tab.active::after {
+  background-color: #4CAF50; /* 深色模式下使用绿色下划线 */
 }
 
 /* 内容区域 */
@@ -738,4 +756,306 @@ select.filter-select {
 select.filter-select:focus {
   background-image: none !important;
   background: white !important;
+}
+
+/* 深色模式适配 */
+body.dark .explore-title {
+  color: var(--text-primary);
+}
+
+body.dark .explore-subtitle {
+  color: var(--text-secondary);
+}
+
+/* 风格卡片深色模式 */
+body.dark .style-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+body.dark .style-card:hover {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+  border-color: #555;
+}
+
+body.dark .style-card-title {
+  color: var(--text-primary);
+}
+
+body.dark .style-card-description {
+  color: var(--text-secondary);
+}
+
+body.dark .style-card-meta {
+  color: var(--text-secondary);
+}
+
+body.dark .style-card-badge {
+  background-color: #404040;
+  color: var(--text-secondary);
+}
+
+body.dark .style-card-badge.official {
+  background-color: #1a237e;
+  color: #90caf9;
+}
+
+body.dark .style-card-bottom {
+  border-top-color: var(--border-color);
+}
+
+/* 变体标签深色模式 */
+body.dark .variant-tag {
+  background-color: #404040;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+body.dark .variant-tag:hover {
+  background-color: #555;
+  border-color: #666;
+}
+
+body.dark .variant-tag.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+body.dark .variant-tag.view-all {
+  background-color: #1a237e;
+  color: #90caf9;
+  border-color: #1a237e;
+}
+
+body.dark .variant-tag.view-all:hover {
+  background-color: #283593;
+}
+
+/* 动作按钮深色模式 */
+body.dark .style-action-button {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+body.dark .style-action-button:hover {
+  background-color: #555;
+}
+
+body.dark .style-action-button.secondary {
+  background-color: #666;
+  color: var(--text-primary);
+}
+
+body.dark .style-action-button.secondary:hover {
+  background-color: #777;
+}
+
+body.dark .style-action-button.view-all-button {
+  background-color: #1a237e;
+  color: #90caf9;
+  border-color: #1a237e;
+}
+
+body.dark .style-action-button.view-all-button:hover {
+  background-color: #283593;
+}
+
+/* 社区分享深色模式 */
+body.dark .post-card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+body.dark .post-author-name {
+  color: var(--text-primary);
+}
+
+body.dark .post-date {
+  color: var(--text-secondary);
+}
+
+body.dark .post-style-tag {
+  background-color: #404040;
+  color: var(--text-secondary);
+}
+
+body.dark .post-content-label {
+  color: var(--text-secondary);
+}
+
+body.dark .post-text {
+  background-color: #2d2d2d;
+  color: var(--text-primary);
+}
+
+body.dark .post-text.original {
+  border-left-color: #666;
+}
+
+body.dark .post-text.transformed {
+  border-left-color: var(--text-primary);
+}
+
+body.dark .post-action-button {
+  color: var(--text-secondary);
+}
+
+body.dark .post-action-button:hover {
+  color: var(--text-primary);
+}
+
+/* 空状态和加载状态深色模式 */
+body.dark .empty-state {
+  color: var(--text-secondary);
+}
+
+body.dark .empty-state-title {
+  color: var(--text-primary);
+}
+
+body.dark .loading-state {
+  color: var(--text-secondary);
+}
+
+/* 筛选器深色模式 */
+body.dark .filter-input {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark .filter-input:focus {
+  border-color: #4CAF50;
+}
+
+body.dark .explore-container .filter-select,
+body.dark .community-feed .filter-select,
+body.dark .explore-filters .filter-select,
+body.dark select.filter-select {
+  background: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+body.dark .explore-container .filter-select:focus,
+body.dark .community-feed .filter-select:focus,
+body.dark .explore-filters .filter-select:focus,
+body.dark select.filter-select:focus {
+  background: var(--card-bg) !important;
+  border-color: #4CAF50 !important;
+}
+
+/* 变体模态框深色模式 */
+body.dark .variant-table {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+body.dark .variant-table thead {
+  background-color: #404040;
+}
+
+body.dark .variant-table th {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+body.dark .variant-table td {
+  border-bottom-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+body.dark .variant-row:hover {
+  background-color: #404040;
+}
+
+body.dark .variant-name-cell {
+  color: var(--text-primary);
+}
+
+body.dark .variant-description-cell {
+  color: var(--text-secondary);
+}
+
+body.dark .usage-count {
+  color: var(--text-secondary);
+}
+
+body.dark .variant-table-use-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+body.dark .variant-table-use-button:hover {
+  background-color: #45a049;
+}
+
+body.dark .variant-table-cancel-button {
+  color: var(--text-secondary);
+}
+
+body.dark .variant-table-cancel-button:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+body.dark .default-badge {
+  background-color: #1a237e;
+  color: #90caf9;
+}
+
+/* 变体添加行深色模式 */
+body.dark .variant-add-prompt-row {
+  background-color: #404040 !important;
+}
+
+body.dark .variant-add-prompt-button {
+  color: #90caf9;
+  border-color: #90caf9;
+}
+
+body.dark .variant-add-prompt-button:hover:not(:disabled) {
+  background-color: #1a237e;
+}
+
+body.dark .variant-add-prompt-button:disabled {
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+body.dark .variant-add-row {
+  background-color: #404040 !important;
+}
+
+body.dark .variant-input {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark .variant-input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+body.dark .variant-textarea {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+body.dark .variant-textarea:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* 变体模态框按钮深色模式 */
+body.dark .variant-submit-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+body.dark .variant-submit-button:hover {
+  background-color: #45a049;
 }

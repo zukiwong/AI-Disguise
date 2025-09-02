@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { UserAvatar, AuthModal } from './Auth/index.js'
 import { useAuth } from '../hooks/useAuth.js'
+import { useTheme } from '../contexts/ThemeContext'
+import ThemeLightIcon from '../assets/icons/theme-light.svg'
+import ThemeDarkIcon from '../assets/icons/theme-dark.svg'
 import './Navigation.css'
 
 function Navigation() {
   const { isAuthenticated } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const [showAuthModal, setShowAuthModal] = useState(false)
   const location = useLocation()
 
@@ -46,6 +50,19 @@ function Navigation() {
             >
               History
             </Link>
+            
+            {/* 主题切换按钮 */}
+            <button 
+              className="theme-toggle"
+              onClick={toggleTheme}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              <img 
+                src={isDark ? ThemeLightIcon : ThemeDarkIcon} 
+                alt={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="theme-icon"
+              />
+            </button>
             
             {isAuthenticated ? (
               <UserAvatar showName={true} />

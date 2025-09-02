@@ -3,15 +3,124 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* 浅色主题变量 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --text-primary: #2c3e50;
+  --text-secondary: #666;
+  --border-color: #e1e5e9;
+  --nav-bg: rgba(236, 236, 236, 0.676);
+  --card-bg: #ffffff;
+  --hover-bg: rgba(76, 175, 80, 0.1);
+  
+  color-scheme: light;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* 深色主题 */
+body.dark {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --border-color: #404040;
+  --nav-bg: rgba(42, 42, 42, 0.9);
+  --card-bg: #2d2d2d;
+  --hover-bg: rgba(76, 175, 80, 0.2);
+  
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+/* 深色模式下的按钮和元素样式修正 */
+body.dark .primary-button {
+  background-color: #4CAF50 !important;
+  color: white !important;
+}
+
+body.dark .random-button,
+body.dark button[style*="background"] {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark .random-button:hover:not(:disabled),
+body.dark button[style*="background"]:hover:not(:disabled) {
+  background-color: var(--hover-bg) !important;
+}
+
+/* 修正首页其他按钮 */
+body.dark .action-buttons button:not(.primary-button):not(.random-button) {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark .action-buttons button:not(.primary-button):not(.random-button):hover:not(:disabled) {
+  background-color: var(--hover-bg) !important;
+}
+
+/* 修正模式切换按钮 */
+body.dark .mode-tab:not(.active) {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark .mode-tab.active {
+  background-color: #4CAF50 !important;
+  color: white !important;
+}
+
+/* 修正深色模式下的 header-buttons */
+body.dark .header-buttons button {
+  background-color: #666666 !important;
+  color: white !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+body.dark .header-buttons button:hover:not(:disabled) {
+  background-color: #777777 !important;
+}
+
+/* 深色模式下的输入框和选择框 */
+body.dark input,
+body.dark textarea,
+body.dark select {
+  background-color: var(--card-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* 深色模式下的标题和标签文字 */
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6,
+body.dark label,
+body.dark p {
+  color: var(--text-primary) !important;
+}
+
+body.dark .input-section h3,
+body.dark .mode-selector h3,
+body.dark .purpose-selector h3,
+body.dark .recipient-selector h3,
+body.dark .style-selector h3,
+body.dark .result-header h3 {
+  color: var(--text-primary) !important;
+}
+
 
 /* 强制所有元素使用 Poppins 字体 */
 * {
@@ -345,7 +454,7 @@ button:focus-visible {
   margin-top: 6px;
   margin-bottom: 0;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary); /* 使用CSS变量支持主题切换 */
   font-style: italic;
 }
 
@@ -359,7 +468,7 @@ button:focus-visible {
 
 .language-info {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary); /* 使用CSS变量支持主题切换 */
 }
 
 .detected-language {
@@ -526,13 +635,6 @@ button:focus-visible {
     border-color: #3a3a3a;
   }
   
-  .language-description {
-    color: #ccc;
-  }
-  
-  .language-info {
-    color: #ccc;
-  }
   
   .detected-language {
     background-color: #1a237e;

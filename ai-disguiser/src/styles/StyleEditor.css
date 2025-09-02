@@ -5,8 +5,8 @@
   flex-direction: column;
   gap: 16px;
   padding: 20px;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--card-bg); /* 使用CSS变量支持主题切换 */
+  border: 1px solid var(--border-color); /* 使用CSS变量支持主题切换 */
   border-radius: 8px;
 }
 
@@ -20,7 +20,7 @@
 .editor-title {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary); /* 使用CSS变量支持主题切换 */
   margin: 0;
 }
 
@@ -32,7 +32,7 @@
 
 .form-label {
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary); /* 使用CSS变量支持主题切换 */
   font-size: 14px;
 }
 
@@ -40,17 +40,19 @@
 .form-textarea,
 .form-select {
   padding: 10px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color); /* 使用CSS变量支持主题切换 */
   border-radius: 4px;
   font-size: 14px;
   font-family: inherit;
+  background-color: var(--card-bg); /* 使用CSS变量支持主题切换 */
+  color: var(--text-primary); /* 使用CSS变量支持主题切换 */
 }
 
 .form-input:focus,
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: #000;
+  border-color: #4CAF50; /* 使用绿色焦点边框 */
 }
 
 .form-textarea {
@@ -75,7 +77,7 @@
   justify-content: flex-end;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color); /* 使用CSS变量支持主题切换 */
 }
 
 .editor-button {
@@ -117,4 +119,28 @@
   color: #28a745;
   font-size: 14px;
   margin-top: 4px;
+}
+
+/* 深色模式下的特殊样式 */
+body.dark .editor-button {
+  background-color: #4CAF50; /* 深色模式下使用绿色背景 */
+  color: white;
+}
+
+body.dark .editor-button:hover:not(:disabled) {
+  background-color: #45a049; /* 深色模式下hover使用更深的绿色 */
+}
+
+body.dark .editor-button:disabled {
+  background-color: #666; /* 深色模式下禁用状态保持灰色 */
+  cursor: not-allowed;
+}
+
+body.dark .editor-button.secondary {
+  background-color: #666; /* 深色模式下次要按钮保持灰色 */
+  color: white;
+}
+
+body.dark .editor-button.secondary:hover:not(:disabled) {
+  background-color: #777; /* 深色模式下次要按钮hover状态 */
 }

@@ -1,13 +1,38 @@
 /* 沉浸式导航栏样式 */
+
+/* 主题切换按钮 */
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.theme-toggle:hover {
+  background: var(--hover-bg);
+  transform: scale(1.1);
+}
+
+.theme-icon {
+  width: 20px;
+  height: 20px;
+  transition: all 0.3s ease;
+}
 .immersive-nav {
   position: fixed; /* 回到固定定位 */
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(236, 236, 236, 0.676);
+  background: var(--nav-bg);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
   transition: all 0.3s ease;
   z-index: 1000;
 }
@@ -38,10 +63,7 @@
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(#16581a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #4CAF50;
   text-shadow: 0 0 20px rgba(46, 125, 50, 0.3);
 }
 
@@ -54,7 +76,7 @@
 
 .nav-link {
   position: relative;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -65,12 +87,12 @@
 }
 
 .nav-link:hover {
-  color: #000000;
-  background: rgba(0, 0, 0, 0.05); /* 悬浮时淡淡的圆框 */
+  color: var(--text-primary);
+  background: var(--hover-bg); /* 悬浮时淡淡的圆框 */
 }
 
 .nav-link.active {
-  color: #2e7d32;
+  color: #4CAF50;
   background: transparent; /* 活跃状态也是透明背景 */
 }
 
@@ -89,9 +111,9 @@
 
 /* 登录按钮 */
 .nav-signin-btn {
-  background: #000000;
-  color: #ffffff;
-  border: 1px solid #000000;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border: 1px solid var(--text-primary);
   padding: 8px 20px;
   border-radius: 20px;
   font-size: 14px;
@@ -102,10 +124,10 @@
 }
 
 .nav-signin-btn:hover {
-  background: #333333;
-  border-color: #333333;
+  background: var(--text-secondary);
+  border-color: var(--text-secondary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 /* 页面内容区域适配在App.css中处理 */
