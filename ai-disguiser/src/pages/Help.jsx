@@ -93,7 +93,7 @@ const Help = () => {
           <CollapsibleSection title="How to Contact Support">
             <p>Need more help? Here's how to reach us:</p>
             <ul>
-              <li><strong>GitHub Issues:</strong> Report bugs or request features on our repository</li>
+              <li><strong><a href="https://github.com/zukiwong/AI-Disguiser" target="_blank" rel="noopener noreferrer">GitHub</a>:</strong> Report bugs or request features on our repository</li>
               <li><strong>Open Source:</strong> View our code and contribute on GitHub</li>
               <li><strong>Response Time:</strong> We typically respond within 24-48 hours</li>
             </ul>

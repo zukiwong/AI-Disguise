@@ -68,7 +68,7 @@ button {
 } */
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: none;
 }
 
 @media (prefers-color-scheme: light) {
@@ -300,8 +300,8 @@ button:focus-visible {
 .filter-select:hover,
 .form-select:hover,
 .style-selector select:hover {
-  border-color: #3498db;
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+  border-color: #4CAF50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
   transform: translateY(-1px);
 }
 
@@ -310,10 +310,10 @@ button:focus-visible {
 .filter-select:focus,
 .form-select:focus,
 .style-selector select:focus {
-  border-color: #2ecc71;
-  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+  border-color: #4CAF50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
   transform: translateY(-1px);
-  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%232ecc71"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%234CAF50"/></svg>');
 }
 
 .modern-select:disabled,
@@ -407,6 +407,49 @@ button:focus-visible {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Explore 页面特定的 filter-select 样式 */
+.explore-container .filter-select,
+.community-feed .filter-select {
+  width: auto !important;
+  min-width: 200px;
+  padding: 12px 40px 12px 16px !important;
+  border: 2px solid #e1e5e9 !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  font-family: 'Poppins', sans-serif !important;
+  background-color: #ffffff !important;
+  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%23666"/></svg>') !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  color: #2c3e50 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  outline: none !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+.explore-container .filter-select:hover,
+.community-feed .filter-select:hover {
+  border-color: #4CAF50 !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+.explore-container .filter-select:focus,
+.community-feed .filter-select:focus {
+  border-color: #4CAF50 !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2) !important;
+  transform: translateY(-1px) !important;
+  background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%234CAF50"/></svg>') !important;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .home-container {
@@ -460,8 +503,8 @@ button:focus-visible {
   .filter-select:hover,
   .form-select:hover,
   .style-selector select:hover {
-    border-color: #5dade2;
-    box-shadow: 0 4px 12px rgba(93, 173, 226, 0.2);
+    border-color: #66bb6a;
+    box-shadow: 0 4px 12px rgba(102, 187, 106, 0.2);
   }
 
   .modern-select:focus,
@@ -469,9 +512,9 @@ button:focus-visible {
   .filter-select:focus,
   .form-select:focus,
   .style-selector select:focus {
-    border-color: #58d68d;
-    box-shadow: 0 4px 12px rgba(88, 214, 141, 0.3);
-    background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%2358d68d"/></svg>');
+    border-color: #4CAF50;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%234CAF50"/></svg>');
   }
 
   .modern-select:disabled,

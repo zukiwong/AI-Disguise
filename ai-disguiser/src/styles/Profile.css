@@ -67,10 +67,11 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  color: #666;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+  color: #999;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
   display: flex;
+  position: relative;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
@@ -78,12 +79,46 @@
 
 .profile-tab:hover {
   color: #333;
-  background-color: #f5f5f5;
+}
+
+.profile-tab:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #333;
+  transform: scaleX(1);
+  transition: transform 0.3s ease;
+}
+
+.profile-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #333;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .profile-tab.active {
   color: #000;
-  border-bottom-color: #000;
+}
+
+.profile-tab.active::after {
+  transform: scaleX(1);
+}
+
+.profile-tab:focus {
+  outline: none;
+}
+
+.profile-tab:active {
+  background: none !important;
 }
 
 .tab-icon {
@@ -840,11 +875,12 @@
 }
 
 .action-button.primary {
-  background-color: #1976d2;
+  background-color: #4CAF50;
+  color: white;
 }
 
 .action-button.primary:hover {
-  background-color: #1565c0;
+  background-color: #45a049;
 }
 
 .action-button.secondary {
@@ -1316,11 +1352,12 @@
 }
 
 .data-action .action-button.primary {
-  background-color: #1976d2;
+  background-color: #4CAF50;
+  color: white;
 }
 
 .data-action .action-button.primary:hover:not(:disabled) {
-  background-color: #1565c0;
+  background-color: #45a049;
 }
 
 .data-action .action-button.secondary {

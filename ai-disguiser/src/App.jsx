@@ -15,6 +15,7 @@ import NotFound from './pages/NotFound'
 import Navigation from './components/Navigation'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+import BackToTop from './components/BackToTop'
 
 function App() {
   return (
@@ -43,6 +44,9 @@ function App() {
       
       {/* Footer | 页面底部 */}
       <Footer />
+      
+      {/* 返回顶部按钮 */}
+      <BackToTop />
     </div>
   )
 }

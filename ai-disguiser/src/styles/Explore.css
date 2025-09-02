@@ -39,19 +39,54 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  color: #666;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+  color: #999;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .explore-tab:hover {
   color: #333;
-  background-color: #f5f5f5;
+}
+
+.explore-tab:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #333;
+  transform: scaleX(1);
+  transition: transform 0.3s ease;
+}
+
+.explore-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #333;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .explore-tab.active {
   color: #000;
-  border-bottom-color: #000;
+}
+
+.explore-tab.active::after {
+  transform: scaleX(1);
+}
+
+.explore-tab:focus {
+  outline: none;
+}
+
+.explore-tab:active {
+  background: none !important;
 }
 
 /* 内容区域 */
@@ -674,11 +709,33 @@
   font-size: 14px;
 }
 
-.filter-select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  background: white;
-  cursor: pointer;
+.explore-container .filter-select,
+.community-feed .filter-select,
+.explore-filters .filter-select,
+select.filter-select {
+  padding: 8px 12px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  background: white !important;
+  background-image: none !important;
+  background-repeat: no-repeat !important;
+  background-position: initial !important;
+  background-size: initial !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transform: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  -webkit-appearance: menulist !important;
+  -moz-appearance: menulist !important;
+  appearance: menulist !important;
+}
+
+.explore-container .filter-select:focus,
+.community-feed .filter-select:focus,
+.explore-filters .filter-select:focus,
+select.filter-select:focus {
+  background-image: none !important;
+  background: white !important;
 }

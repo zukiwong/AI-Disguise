@@ -1,4 +1,17 @@
 /* 法律页面样式 - 极简黑白风格 */
+
+/* 页面内链接样式 - 绿色主题 */
+.legal-content a {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.legal-content a:hover {
+  color: #45a049;
+  text-decoration: underline;
+}
 .legal-page {
   min-height: 100vh;
   background: #ffffff;
