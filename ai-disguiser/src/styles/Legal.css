@@ -1,0 +1,140 @@
+/* 法律页面样式 - 极简黑白风格 */
+.legal-page {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 1rem 1rem;
+}
+
+.legal-container {
+  background: white;
+}
+
+.legal-container h1 {
+  color: #000000;
+  text-align: center;
+  padding: 1.5rem 0;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.legal-content {
+  padding: 1rem 2rem;
+  line-height: 1.4;
+  color: #333;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.legal-content section {
+  margin-bottom: 1rem;
+  width: 70%;
+  text-align: left;
+}
+
+.legal-content h2 {
+  color: #000000;
+  font-size: 1.2rem;
+  margin-bottom: 0.6rem;
+  margin-top: 0.3rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.2rem;
+  text-align: left;
+}
+
+.legal-content p {
+  margin-bottom: 0.6rem;
+  color: #333333;
+}
+
+.legal-content ul {
+  margin-bottom: 0.6rem;
+  padding-left: 1.5rem;
+}
+
+.legal-content li {
+  margin-bottom: 0.2rem;
+  color: #333333;
+}
+
+.legal-content strong {
+  color: #000000;
+  font-weight: 600;
+}
+
+/* 折叠组件样式 - 简洁版 */
+.collapsible-section {
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #000000;
+  font-weight: 600;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.expand-arrow {
+  font-size: 1.44rem;
+  color: #666;
+  transform-origin: center;
+  transition: transform 0.3s ease, color 0.3s ease;
+  font-weight: 300;
+}
+
+.section-header:hover .expand-arrow {
+  color: #000;
+}
+
+.section-content {
+  overflow: hidden;
+}
+
+.content-inner {
+  padding: 1rem 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 0.5rem 0;
+  }
+  
+  .legal-container h1 {
+    font-size: 1.4rem;
+    padding: 0.8rem;
+  }
+  
+  .legal-content {
+    padding: 0.8rem 1rem;
+  }
+  
+  .legal-content section {
+    width: 90%;
+    margin-bottom: 0.8rem;
+  }
+  
+  .legal-content h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .legal-content p {
+    margin-bottom: 0.5rem;
+  }
+}

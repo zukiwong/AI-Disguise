@@ -5,11 +5,13 @@
   width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-content {
   padding: 84px 20px 20px 20px; /* 顶部留64px+20px给导航栏 */
-  min-height: calc(100vh - 64px);
+  flex: 1;
   box-sizing: border-box;
 }
 
@@ -17,14 +19,12 @@
 @media (max-width: 768px) {
   .main-content {
     padding-top: 76px; /* 56px + 20px */
-    min-height: calc(100vh - 56px);
   }
 }
 
 @media (max-width: 480px) {
   .main-content {
     padding-top: 72px; /* 52px + 20px */
-    min-height: calc(100vh - 52px);
   }
 }
 
@@ -46,6 +46,54 @@ select {
 button {
   padding: 5px 10px;
   margin: 5px;
+}
+
+/* 进度条动画样式 */
+.progress-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(76, 175, 80, 0.2);
+  border-radius: 3px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
+  border-radius: 3px;
+  width: 0%;
+  position: relative;
+}
+
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-text {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin: 0;
 }
 
 /* 模式切换样式 */
@@ -131,16 +179,16 @@ button {
 }
 
 .share-button {
-  background-color: #007bff !important;
+  background-color: #4caf50 !important;
   color: white !important;
 }
 
 .share-button:hover:not(:disabled) {
-  background-color: #0056b3 !important;
+  background-color: #45a049 !important;
 }
 
 .share-button:disabled {
-  background-color: #6c757d !important;
+  background-color: #888 !important;
   cursor: not-allowed !important;
 }
 

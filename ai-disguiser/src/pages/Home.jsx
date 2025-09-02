@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useDisguise } from '../hooks/useDisguise.js'
 import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
 import LanguageSelector from '../components/LanguageSelector.jsx'
 import { StyleSelector } from '../components/StyleManager/index.js'
+import { gsap } from 'gsap'
 
 function Home() {
   // 使用自定义 Hook 管理伪装功能
@@ -40,6 +41,10 @@ function Home() {
 
   // 复制状态管理
   const [copyStatus, setCopyStatus] = useState('')
+  
+  // 进度条动画引用
+  const progressBarRef = useRef(null)
+  const progressTextRef = useRef(null)
 
   // 检查并应用来自历史记录的预填充数据和预选风格
   useEffect(() => {
@@ -97,6 +102,108 @@ function Home() {
     }
   }
 
+  // 处理随机变装功能
+  const handleRandomDisguise = () => {
+    // 获取可用的风格列表
+    let availableStyles = []
+    
+    if (conversionMode === CONVERSION_MODE.STYLE) {
+      // 风格模式：从STYLE_CONFIG中获取可用风格
+      availableStyles = Object.keys(STYLE_CONFIG)
+    } else {
+      // 目的+对象模式：随机选择目的和对象
+      const purposes = Object.keys(PURPOSE_CONFIG)
+      const recipients = Object.keys(RECIPIENT_CONFIG)
+      
+      // 随机选择目的和对象
+      const randomPurpose = purposes[Math.floor(Math.random() * purposes.length)]
+      const randomRecipient = recipients[Math.floor(Math.random() * recipients.length)]
+      
+      // 更新选择的目的和对象
+      updateSelectedPurpose(randomPurpose)
+      updateSelectedRecipient(randomRecipient)
+      
+      // 直接开始转换
+      handleDisguise()
+      return
+    }
+    
+    // 风格模式：随机选择一个风格
+    if (availableStyles.length > 0) {
+      const randomStyle = availableStyles[Math.floor(Math.random() * availableStyles.length)]
+      updateSelectedStyle(randomStyle)
+      
+      // 延迟一下确保状态更新后再执行转换
+      setTimeout(() => {
+        handleDisguise()
+      }, 100)
+    }
+  }
+
+  // 进度条动画效果
+  useEffect(() => {
+    if (isLoading && progressBarRef.current && progressTextRef.current) {
+      // 重置进度条
+      gsap.set(progressBarRef.current, { width: '0%' })
+      gsap.set(progressTextRef.current, { opacity: 1 })
+      
+      // 创建进度动画时间线
+      const tl = gsap.timeline()
+      
+      // 阶段1: 快速到30%
+      tl.to(progressBarRef.current, {
+        width: '30%',
+        duration: 0.5,
+        ease: 'power2.out'
+      })
+      
+      // 阶段2: 慢速到70%
+      .to(progressBarRef.current, {
+        width: '70%',
+        duration: 2,
+        ease: 'power1.inOut'
+      })
+      
+      // 阶段3: 非常慢到85%
+      .to(progressBarRef.current, {
+        width: '85%',
+        duration: 3,
+        ease: 'power1.out'
+      })
+      
+      // 文字呼吸动画
+      gsap.to(progressTextRef.current, {
+        opacity: 0.6,
+        duration: 1,
+        yoyo: true,
+        repeat: -1,
+        ease: 'power2.inOut'
+      })
+      
+      return () => {
+        tl.kill()
+        gsap.killTweensOf(progressTextRef.current)
+      }
+    }
+    
+    // 当加载完成时，快速完成进度条
+    if (!isLoading && progressBarRef.current) {
+      gsap.to(progressBarRef.current, {
+        width: '100%',
+        duration: 0.3,
+        ease: 'power2.out',
+        onComplete: () => {
+          // 稍后重置
+          setTimeout(() => {
+            if (progressBarRef.current) {
+              gsap.set(progressBarRef.current, { width: '0%' })
+            }
+          }, 500)
+        }
+      })
+    }
+  }, [isLoading])
+
   return (
     <div className="home-container">
       <h1>AI Disguiser</h1>
@@ -125,6 +232,7 @@ function Home() {
             )}
           </div>
         </div>
+        
       </div>
 
       {/* 控制区域 */}
@@ -205,8 +313,18 @@ function Home() {
           <button 
             onClick={handleDisguise}
             disabled={!inputText.trim() || isLoading}
+            className="primary-button"
           >
             {isLoading ? 'Converting...' : 'Start Transform'}
+          </button>
+          
+          <button 
+            onClick={handleRandomDisguise}
+            disabled={!inputText.trim() || isLoading}
+            className="random-button"
+            title="Can't decide? Let AI pick a random style for you!"
+          >
+            Random
           </button>
           
           <button 
@@ -239,49 +357,59 @@ function Home() {
         </div>
       )}
 
-      {/* 输出区域 */}
-      {hasOutput && (
-        <div className="output-section">
-          <div className="result-header">
-            <h3>Result:</h3>
-            {/* 显示语言检测信息（仅在启用多语言功能时） */}
-            {isLanguageFeatureEnabled && detectedLanguage && (
-              <div className="language-info">
-                <span className="detected-language">
-                  Detected input language: {detectedLanguage.toUpperCase()}
-                </span>
+      {/* 结果显示区域 */}
+      {(hasOutput || isLoading) && (
+        <div className="result-section">
+          {isLoading ? (
+            <div className="loading-indicator">
+              <div className="progress-container">
+                <div className="progress-bar-bg">
+                  <div 
+                    ref={progressBarRef}
+                    className="progress-bar-fill"
+                  />
+                </div>
+                <p ref={progressTextRef} className="progress-text">
+                  AI is transforming your text, please wait...
+                </p>
               </div>
-            )}
-          </div>
-          
-          <div className="result-container">
-            <div className="text-content">
-              {output}
             </div>
-            <div className="result-actions">
-              <button 
-                onClick={() => handleCopy(output, 'Result')}
-                disabled={isLoading}
-              >
-                Copy Result
-              </button>
-              <button 
-                onClick={handleShare}
-                disabled={isLoading || isSharing}
-                className="share-button"
-              >
-                {isSharing ? 'Sharing...' : 'Share to Explore'}
-              </button>
+          ) : (
+            <div className="output-section">
+              <div className="result-header">
+                <h3>Result:</h3>
+                {/* 显示语言检测信息（仅在启用多语言功能时） */}
+                {isLanguageFeatureEnabled && detectedLanguage && (
+                  <div className="language-info">
+                    <span className="detected-language">
+                      Detected input language: {detectedLanguage.toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="result-container">
+                <div className="text-content">
+                  {output}
+                </div>
+                <div className="result-actions">
+                  <button 
+                    onClick={() => handleCopy(output, 'Result')}
+                    disabled={isLoading}
+                  >
+                    Copy Result
+                  </button>
+                  <button 
+                    onClick={handleShare}
+                    disabled={isLoading || isSharing}
+                    className="share-button"
+                  >
+                    {isSharing ? 'Sharing...' : 'Share to Explore'}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 加载指示器 */}
-      {isLoading && (
-        <div className="loading-indicator">
-          <div className="spinner"></div>
-          <p>AI is transforming your text, please wait...</p>
+          )}
         </div>
       )}
     </div>
