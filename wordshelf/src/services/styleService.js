@@ -116,9 +116,28 @@ export const getPublicStyles = async (isAuthenticated = false, userId = null) =>
   // 先返回默认风格，确保未登录用户也能使用
   const defaultStyles = getDefaultStyles()
   
-  // 🔑 未登录用户只能看到默认的4个风格
+  // 🔑 未登录用户只能看到默认的4个风格，但需要加载变体数据
   if (!isAuthenticated) {
-    return defaultStyles
+    try {
+      // 获取所有风格ID
+      const styleIds = defaultStyles.map(style => style.id)
+      
+      // 批量获取变体信息
+      const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+      
+      // 合并风格和变体数据
+      const stylesWithVariants = defaultStyles.map(style => ({
+        ...style,
+        variants: variantsByStyle[style.id] || [],
+        hasVariants: (variantsByStyle[style.id] || []).length > 0
+      }))
+      
+      console.log('📦 为未登录用户加载了默认样式的变体数据:', stylesWithVariants.length, '个样式')
+      return stylesWithVariants
+    } catch (error) {
+      console.error('为默认样式加载变体失败:', error)
+      return defaultStyles
+    }
   }
   
   // 🔓 登录用户可以看到添加到账户的公共风格（排除隐藏的）
@@ -163,13 +182,53 @@ export const getPublicStyles = async (isAuthenticated = false, userId = null) =>
     }
     
     
-    // 合并用户账户中的公共风格
-    return [...accountDefaultStyles, ...accountPublicStyles]
+    // 合并用户账户中的公共风格，同时为所有样式加载变体数据
+    const allAccountStyles = [...accountDefaultStyles, ...accountPublicStyles]
+    
+    try {
+      // 获取所有风格ID
+      const styleIds = allAccountStyles.map(style => style.id)
+      
+      // 批量获取变体信息
+      const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+      
+      // 合并风格和变体数据
+      const stylesWithVariants = allAccountStyles.map(style => ({
+        ...style,
+        variants: variantsByStyle[style.id] || [],
+        hasVariants: (variantsByStyle[style.id] || []).length > 0
+      }))
+      
+      console.log('📦 为登录用户加载了账户样式的变体数据:', stylesWithVariants.length, '个样式')
+      return stylesWithVariants
+    } catch (error) {
+      console.error('为账户样式加载变体失败:', error)
+      return allAccountStyles
+    }
     
   } catch (error) {
     console.error('获取公共风格失败:', error)
-    // 发生错误时返回代码默认风格，确保应用可用
-    return defaultStyles
+    // 发生错误时返回带变体的默认风格，确保应用可用
+    try {
+      // 获取所有风格ID
+      const styleIds = defaultStyles.map(style => style.id)
+      
+      // 批量获取变体信息
+      const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+      
+      // 合并风格和变体数据
+      const defaultStylesWithVariants = defaultStyles.map(style => ({
+        ...style,
+        variants: variantsByStyle[style.id] || [],
+        hasVariants: (variantsByStyle[style.id] || []).length > 0
+      }))
+      
+      console.log('🔄 错误恢复: 为默认样式加载了变体数据')
+      return defaultStylesWithVariants
+    } catch (variantError) {
+      console.error('错误恢复时加载变体也失败:', variantError)
+      return defaultStyles
+    }
   }
 }
 
@@ -215,7 +274,28 @@ export const getAllAvailableStyles = async (userId = null) => {
     return [...publicStyles, ...userStyles]
   } catch (error) {
     console.error('获取所有风格失败:', error)
-    return getDefaultStyles()
+    // 发生错误时返回带变体的默认风格
+    try {
+      const defaultStyles = getDefaultStyles()
+      // 获取所有风格ID
+      const styleIds = defaultStyles.map(style => style.id)
+      
+      // 批量获取变体信息
+      const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+      
+      // 合并风格和变体数据
+      const defaultStylesWithVariants = defaultStyles.map(style => ({
+        ...style,
+        variants: variantsByStyle[style.id] || [],
+        hasVariants: (variantsByStyle[style.id] || []).length > 0
+      }))
+      
+      console.log('🔄 getAllAvailableStyles 错误恢复: 为默认样式加载了变体数据')
+      return defaultStylesWithVariants
+    } catch (variantError) {
+      console.error('getAllAvailableStyles 错误恢复时加载变体也失败:', variantError)
+      return getDefaultStyles()
+    }
   }
 }
 

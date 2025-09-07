@@ -243,6 +243,7 @@ export const getVariantsForMultipleStyles = async (styleIds) => {
     const promises = styleIds.map(async (styleId) => {
       const variants = await getTopVariantsByStyleId(styleId, 3)
       variantsByStyle[styleId] = variants
+      return { styleId, variantCount: variants.length }
     })
     
     await Promise.all(promises)

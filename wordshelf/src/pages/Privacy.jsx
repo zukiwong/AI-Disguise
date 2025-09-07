@@ -10,7 +10,7 @@ const Privacy = () => {
         <h1>Privacy Policy</h1>
         <div className="legal-content">
           <CollapsibleSection title="Information We Collect">
-            <p>We collect the following types of information when you use AI Disguiser:</p>
+            <p>We collect the following types of information when you use WordShelf:</p>
             <ul>
               <li><strong>Text Content:</strong> The original text you input and the transformed text we generate</li>
               <li><strong>Account Information:</strong> When you log in via Google or GitHub, we collect your name, email, and profile picture</li>

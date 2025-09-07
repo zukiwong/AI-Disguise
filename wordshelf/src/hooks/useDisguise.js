@@ -1,7 +1,7 @@
 // 伪装功能自定义 Hook
 // 管理文本伪装的所有状态和逻辑
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { disguiseText, detectTextLanguage } from '../services/geminiApi.js'
 import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } from '../services/config.js'
 import { useStyles } from './useStyles.js'
@@ -52,84 +52,213 @@ export function useDisguise() {
   // 分享相关状态
   const [isSharing, setIsSharing] = useState(false)        // 是否正在分享
   const [shareStatus, setShareStatus] = useState('')       // 分享状态信息
+  
+  // 缓存和防抖相关
+  const loadTimeoutRef = useRef(null)
+  const lastLoadedStylesRef = useRef('')
 
-  // 加载带变体的风格数据
+  // 加载带变体的风格数据（带防抖和缓存）
   useEffect(() => {
+    // 清除之前的超时
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current)
+    }
+    
     const loadStylesWithVariants = async () => {
-      if (!styles || styles.length === 0) return
+      if (!styles || styles.length === 0) {
+        setStylesWithVariants([])
+        setIsLoadingVariants(false)
+        return
+      }
+      
+      // 创建样式指纹，避免相同数据的重复加载
+      const stylesFingerprint = styles.map(s => `${s.id}-${s.variants?.length || 0}`).join('|')
+      if (stylesFingerprint === lastLoadedStylesRef.current) {
+        // 数据没有变化，跳过重新加载
+        return
+      }
+      lastLoadedStylesRef.current = stylesFingerprint
       
       setIsLoadingVariants(true)
+      
       try {
-        // 获取带变体的风格数据
-        const stylesWithVariantsData = await getPublicStylesWithVariants(userId)
-        
-        // 合并原有风格数据和变体数据
-        const mergedStyles = styles.map(style => {
-          const styleWithVariants = stylesWithVariantsData.find(s => s.id === style.id)
-          return styleWithVariants ? {
-            ...style,
-            variants: styleWithVariants.variants || [],
-            hasVariants: (styleWithVariants.variants || []).length > 0
-          } : style
-        })
-        
-        setStylesWithVariants(mergedStyles)
+        if (!isAuthenticated) {
+          // 未登录用户：使用与探索页相同的方法获取变体数据，然后过滤系统样式
+          const allStylesWithVariants = await getPublicStylesWithVariants(userId)
+          const systemStylesWithVariants = allStylesWithVariants.filter(style => style.createdBy === 'system')
+          setStylesWithVariants(systemStylesWithVariants)
+        } else {
+          // 登录用户：智能加载策略 - 检查是否已有变体数据，避免不必要的查询
+          const hasVariantData = styles.some(style => style.variants && style.variants.length > 0)
+          
+          if (hasVariantData) {
+            // 如果已经有变体数据，直接使用，避免重复查询
+            setStylesWithVariants(styles)
+          } else {
+            // 只在没有变体数据时才进行查询
+            try {
+              const { getVariantsForMultipleStyles } = await import('../services/variantService.js')
+              const styleIds = styles.map(style => style.id)
+              const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+              
+              const stylesWithVariants = styles.map(style => ({
+                ...style,
+                variants: variantsByStyle[style.id] || [],
+                hasVariants: (variantsByStyle[style.id] || []).length > 0
+              }))
+              
+              setStylesWithVariants(stylesWithVariants)
+            } catch (variantError) {
+              // 如果变体加载失败，使用基础数据
+              setStylesWithVariants(styles)
+            }
+          }
+        }
       } catch (error) {
-        console.error('加载变体数据失败:', error)
-        // 降级：使用原有风格数据
-        setStylesWithVariants(styles)
+        // 如果加载变体失败，使用基础样式数据
+        const stylesToShow = !isAuthenticated 
+          ? styles.filter(style => style.createdBy === 'system')
+          : styles
+        setStylesWithVariants(stylesToShow)
       } finally {
         setIsLoadingVariants(false)
       }
     }
-
-    loadStylesWithVariants()
-  }, [styles, userId])
+    
+    // 使用防抖延迟执行，减少频繁的数据库查询
+    loadTimeoutRef.current = setTimeout(() => {
+      loadStylesWithVariants()
+    }, 100) // 100ms 防抖延迟
+    
+    // 清理函数
+    return () => {
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current)
+      }
+    }
+  }, [styles, userId, isAuthenticated])
   
   // 检查并应用从探索页传来的选择状态
   useEffect(() => {
-    try {
-      const savedSelection = localStorage.getItem('selectedStyleFromExplore')
-      if (savedSelection) {
+    const handleExploreStyleSelection = async () => {
+      try {
+        const savedSelection = localStorage.getItem('selectedStyleFromExplore')
+        if (!savedSelection) return
+        
         const selectionData = JSON.parse(savedSelection)
+        
+        console.log('🔍 找到探索页选择数据:', selectionData)
+        console.log('🔍 当前可用样式:', styles.map(s => ({ id: s.id, displayName: s.displayName })))
         
         // 检查时间戳，避免应用过旧的选择（超过5分钟）
         const maxAge = 5 * 60 * 1000 // 5分钟
-        if (Date.now() - selectionData.timestamp < maxAge) {
-          // 验证风格是否存在
-          const styleExists = styles.some(style => style.id === selectionData.styleId)
-          if (styleExists) {
+        if (Date.now() - selectionData.timestamp >= maxAge) {
+          console.log('⏰ 探索页选择数据已过期')
+          localStorage.removeItem('selectedStyleFromExplore')
+          return
+        }
+        
+        // 验证风格是否存在于用户的个人样式列表中
+        const styleExists = styles.some(style => style.id === selectionData.styleId)
+        
+        if (styleExists) {
+          console.log('✅ 应用探索页选择的样式:', selectionData.styleId, '变体:', selectionData.variantId)
+          setSelectedStyle(selectionData.styleId)
+          setSelectedVariant(selectionData.variantId || null)
+          
+          // 切换到风格模式
+          setConversionMode(CONVERSION_MODE.STYLE)
+          
+          // 清除已使用的选择状态
+          localStorage.removeItem('selectedStyleFromExplore')
+          return
+        }
+        
+        // 如果样式不在用户个人列表中，尝试从公共样式中获取并临时应用
+        console.log('❌ 样式不存在于用户样式列表中，尝试从公共样式获取:', selectionData.styleId)
+        
+        try {
+          const publicStyles = await getPublicStylesWithVariants(userId)
+          const publicStyle = publicStyles.find(s => s.id === selectionData.styleId)
+          
+          if (publicStyle) {
+            console.log('✅ 从公共样式中找到样式，临时应用:', publicStyle.displayName)
+            
+            // 创建临时样式对象，包含完整的变体信息
+            const tempStyle = {
+              id: publicStyle.id,
+              displayName: publicStyle.displayName,
+              promptTemplate: publicStyle.promptTemplate,
+              description: publicStyle.description,
+              isPublic: true,
+              isTemp: true, // 标记为临时样式
+              variants: publicStyle.variants || [], // 包含变体信息
+              hasVariants: (publicStyle.variants || []).length > 0, // 变体标识
+              createdBy: publicStyle.createdBy || 'system' // 创建者信息
+            }
+            
+            // 智能合并临时样式：更新现有的或添加新的
+            setStylesWithVariants(prev => {
+              const existingIndex = prev.findIndex(s => s.id === tempStyle.id)
+              if (existingIndex !== -1) {
+                // 如果已经存在，合并数据（使用更完整的变体信息）
+                const updatedStyles = [...prev]
+                updatedStyles[existingIndex] = {
+                  ...updatedStyles[existingIndex],
+                  ...tempStyle, // 使用临时样式的完整数据
+                  variants: tempStyle.variants || updatedStyles[existingIndex].variants || [],
+                  hasVariants: (tempStyle.variants || updatedStyles[existingIndex].variants || []).length > 0
+                }
+                console.log('🔄 更新现有样式的数据:', tempStyle.displayName)
+                return updatedStyles
+              } else {
+                // 如果不存在，添加到列表开头
+                console.log('➕ 添加新的临时样式:', tempStyle.displayName)
+                return [tempStyle, ...prev]
+              }
+            })
+            
+            // 应用选择
             setSelectedStyle(selectionData.styleId)
             setSelectedVariant(selectionData.variantId || null)
+            setConversionMode(CONVERSION_MODE.STYLE)
             
             // 清除已使用的选择状态
             localStorage.removeItem('selectedStyleFromExplore')
-            return
+            
+            console.log('✅ 临时样式应用成功')
+          } else {
+            console.log('❌ 在公共样式中也未找到该样式')
+            localStorage.removeItem('selectedStyleFromExplore')
           }
-        } else {
-          // 清除过期的选择状态
+        } catch (error) {
+          console.error('获取公共样式失败:', error)
           localStorage.removeItem('selectedStyleFromExplore')
         }
+        
+      } catch (error) {
+        console.error('应用探索页选择状态失败:', error)
+        localStorage.removeItem('selectedStyleFromExplore')
       }
-    } catch (error) {
-      console.error('应用探索页选择状态失败:', error)
-      // 清除可能损坏的数据
-      localStorage.removeItem('selectedStyleFromExplore')
     }
-  }, [styles]) // 依赖 styles，当风格数据加载完成后执行
+    
+    if (styles.length > 0) {
+      handleExploreStyleSelection()
+    }
+  }, [styles, userId, setConversionMode]) // 依赖 styles，当风格数据加载完成后执行
   
   // 设置默认选中的风格
   useEffect(() => {
-    if (hasStyles && styles.length > 0) {
+    if (hasStyles && stylesWithVariants.length > 0) {
       // 如果没有选中的风格，或者选中的风格不存在，选择第一个
-      const currentStyleExists = styles.some(style => style.id === selectedStyle)
+      const currentStyleExists = stylesWithVariants.some(style => style.id === selectedStyle)
       
       if (!selectedStyle || !currentStyleExists) {
-        setSelectedStyle(styles[0].id)
+        setSelectedStyle(stylesWithVariants[0].id)
         setSelectedVariant(null) // 重置变体选择
       }
     }
-  }, [hasStyles, styles, selectedStyle])
+  }, [hasStyles, stylesWithVariants, selectedStyle])
 
   /**
    * 执行文本伪装转换

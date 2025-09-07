@@ -19,6 +19,8 @@ function Home() {
     conversionMode,
     selectedPurpose,
     selectedRecipient,
+    stylesWithVariants, // 获取带变体的样式数据
+    isLoadingVariants, // 获取变体加载状态
     updateInputText,
     updateSelectedStyle,
     updateSelectedVariant, // 新增变体更新方法
@@ -206,8 +208,8 @@ function Home() {
 
   return (
     <div className="home-container">
-      <h1>AI Disguiser</h1>
-      <p>Transform your text into different styles using AI</p>
+      <h1>WordShelf</h1>
+      <p>Find the right words, right away.</p>
       
       {/* 输入区域 */}
       <div className="input-section">
@@ -263,6 +265,8 @@ function Home() {
           <StyleSelector
             selectedStyle={selectedStyle}
             selectedVariant={selectedVariant} // 传递变体状态
+            stylesWithVariants={stylesWithVariants} // 传递样式数据
+            isLoadingVariants={isLoadingVariants} // 传递加载状态
             onStyleChange={updateSelectedStyle}
             onVariantChange={updateSelectedVariant} // 传递变体更新方法
             disabled={isLoading}

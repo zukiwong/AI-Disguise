@@ -242,6 +242,9 @@ export function useStyles(userId = null) {
       setPublicStyles(filterStylesArray)
       // userStyles不受影响，因为隐藏的是公共风格
       
+      // 🐛 修复：同时更新 addedStyleIds，从列表中移除被隐藏的风格
+      setAddedStyleIds(prev => prev.filter(id => id !== styleId))
+      
       return true
     } catch (err) {
       console.error('隐藏风格失败:', err)

@@ -27,7 +27,7 @@ function Navigation() {
         <div className="nav-content">
           <div className="nav-brand">
             <Link to="/" className="brand-link">
-              <h2>AI Disguiser</h2>
+              <h2>WordShelf</h2>
             </Link>
           </div>
           

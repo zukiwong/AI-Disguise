@@ -117,6 +117,28 @@ body.dark .explore-tab.active::after {
   margin-top: 20px;
 }
 
+/* 样式区域分割 */
+.styles-section {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
 .style-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -173,6 +195,12 @@ body.dark .explore-tab.active::after {
   color: #666;
   line-height: 1.5;
   margin-bottom: 15px;
+  /* 限制最多显示三行 */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .style-card-meta {
@@ -222,6 +250,16 @@ body.dark .explore-tab.active::after {
 
 .style-action-button:hover {
   background-color: #333;
+}
+
+.style-action-button.disabled {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.style-action-button.disabled:hover {
+  background-color: #ccc;
 }
 
 .style-action-button.secondary {
@@ -288,6 +326,8 @@ body.dark .explore-tab.active::after {
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 0; /* 移除下边距 */
+  max-height: 64px; /* 限制最大高度为两行标签的高度 (约32px * 2) */
+  overflow: hidden; /* 隐藏超出的内容 */
 }
 
 .variant-tag {
@@ -383,12 +423,19 @@ body.dark .explore-tab.active::after {
 
 .variant-col-usage {
   width: 100px; /* 固定宽度 */
+  text-align: center; /* 居中对齐 */
 }
 
 .variant-col-action {
   width: 90px; /* 固定宽度 */
-  text-align: center;
+  text-align: center; /* 水平居中 */
   vertical-align: middle; /* 垂直居中 */
+}
+
+/* 确保表头也居中对齐 */
+.variant-table th.variant-col-usage,
+.variant-table th.variant-col-action {
+  text-align: center;
 }
 
 /* 变体名称单元格 */
@@ -398,6 +445,29 @@ body.dark .explore-tab.active::after {
   gap: 8px;
   font-weight: 600;
   color: #333;
+}
+
+/* 拖拽手柄样式 */
+.drag-handle {
+  cursor: grab;
+  color: #999;
+  font-size: 12px;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.drag-handle:hover {
+  color: #666;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 拖拽时的样式 */
+.variant-row.dragging {
+  background-color: #f0f8ff !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .default-badge {
@@ -441,6 +511,16 @@ body.dark .explore-tab.active::after {
 
 .variant-table-use-button:hover {
   background-color: #333;
+}
+
+.variant-table-use-button.disabled {
+  background-color: #ccc;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.variant-table-use-button.disabled:hover {
+  background-color: #ccc;
 }
 
 /* 旧版本样式保留 - 兼容性 */

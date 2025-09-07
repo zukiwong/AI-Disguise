@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Private documentation
+docs-private/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# node_modules
+node_modules/
+
+# Environment variables
+.env
+
+# Build directories
+dist/
+build/

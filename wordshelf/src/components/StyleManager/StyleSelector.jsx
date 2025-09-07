@@ -11,23 +11,41 @@ import '../../styles/StyleManager.css'
 function StyleSelector({ 
   selectedStyle, 
   selectedVariant = null, // 新增变体选择状态
+  stylesWithVariants: propStylesWithVariants, // 从 props 接收样式数据
+  isLoadingVariants: propIsLoadingVariants = false, // 从 props 接收加载状态
   onStyleChange, 
   onVariantChange, // 新增变体变化回调
   disabled = false,
   showManageButton = true
 }) {
   const { userId, isAuthenticated } = useAuth()
+  
+  // 如果没有从 props 传入样式数据，则使用内部的 useStyles Hook
+  const shouldUseInternalStyles = !propStylesWithVariants
+  const fallbackStylesResult = useStyles(userId)
+  
+  // 只在需要时使用内部样式数据
   const { 
     styles, 
     isLoading, 
     error, 
     hasStyles,
-    handleHideStyle  // 添加隐藏风格方法
-  } = useStyles(userId)
+    removePublicStyleFromAccount  // 添加移除方法
+  } = shouldUseInternalStyles ? fallbackStylesResult : {
+    styles: [],
+    isLoading: false,
+    error: null,
+    hasStyles: false,
+    removePublicStyleFromAccount: () => Promise.resolve(false)
+  }
   
-  // 使用带变体的风格数据
-  const [stylesWithVariants, setStylesWithVariants] = useState([])
-  const [isLoadingVariants, setIsLoadingVariants] = useState(false)
+  // 使用带变体的风格数据 - 优先使用从 props 传入的数据
+  const [internalStylesWithVariants, setInternalStylesWithVariants] = useState([])
+  const [internalIsLoadingVariants, setInternalIsLoadingVariants] = useState(false)
+  
+  // 确定使用的数据源
+  const stylesWithVariants = propStylesWithVariants || internalStylesWithVariants
+  const isLoadingVariants = propIsLoadingVariants || internalIsLoadingVariants
 
   
   const [showStyleManager, setShowStyleManager] = useState(false)
@@ -82,15 +100,15 @@ function StyleSelector({
     }
 
     try {
-      // 立即开始API调用（乐观更新）
-      const hidePromise = handleHideStyle(styleId)
+      // 使用 useStyles 提供的移除方法，这会正确更新所有相关状态
+      const removePromise = removePublicStyleFromAccount(styleId)
       
       // 创建GSAP动画时间线
       const tl = gsap.timeline({
         onComplete: async () => {
           // 等待API完成
           try {
-            await hidePromise
+            await removePromise
           } catch (error) {
             console.error('移除风格失败:', error)
             // 如果API失败，恢复元素状态
@@ -130,22 +148,27 @@ function StyleSelector({
     // 移除重新加载，依赖乐观更新保持数据一致性
   }
   
-  // 暂时禁用变体加载逻辑，使用基础风格数据
+  // 只在使用内部样式数据时才加载变体
   useEffect(() => {
-    setIsLoadingVariants(true)
-    try {
-      // 直接使用基础风格数据
-      setStylesWithVariants(styles || [])
-      console.log('StyleSelector: 使用基础风格数据', (styles || []).length, '个风格')
-    } catch (error) {
-      console.error('设置风格数据失败:', error)
-      setStylesWithVariants([])
-    } finally {
-      setIsLoadingVariants(false)
+    if (shouldUseInternalStyles && styles.length > 0) {
+      setInternalIsLoadingVariants(true)
+      
+      // 检查styles是否已经包含变体数据
+      const hasVariantData = styles.some(style => style.variants || style.hasVariants)
+      
+      if (hasVariantData) {
+        // 如果已经包含变体数据，直接使用
+        setInternalStylesWithVariants(styles)
+      } else {
+        // 如果不包含变体数据，使用基础数据
+        setInternalStylesWithVariants(styles || [])
+      }
+      
+      setInternalIsLoadingVariants(false)
     }
-  }, [styles])
+  }, [shouldUseInternalStyles, styles])
 
-  if (isLoading) {
+  if (shouldUseInternalStyles && isLoading) {
     return (
       <div className="style-selector">
         <div className="loading-state">Loading styles...</div>
@@ -153,7 +176,7 @@ function StyleSelector({
     )
   }
 
-  if (error) {
+  if (shouldUseInternalStyles && error) {
     return (
       <div className="style-selector">
         <div className="error-message">Error loading styles: {error}</div>
@@ -192,10 +215,6 @@ function StyleSelector({
             const isExpanded = expandedStyleId === style.id
             const isStyleSelected = selectedStyle === style.id
             
-            // 临时调试
-            if (hasVariants) {
-              console.log(`风格 ${style.displayName} 有变体:`, style.variants.length, '个')
-            }
             
             
             return (
@@ -211,25 +230,27 @@ function StyleSelector({
                 >
                   <div className="style-info">
                     <div className="style-name">{style.displayName}</div>
-                    <div className="style-description">{style.description}</div>
+                    <div className="style-description">
+                      {(() => {
+                        // 如果选中了变体，显示变体的描述
+                        if (isStyleSelected && selectedVariant && hasVariants) {
+                          const selectedVariantObj = style.variants.find(v => v.id === selectedVariant)
+                          return selectedVariantObj ? selectedVariantObj.description : style.description
+                        }
+                        // 否则显示默认样式描述
+                        return style.description
+                      })()}
+                    </div>
                     
                     {/* 变体标签预览 */}
                     {hasVariants && !isExpanded && (
-                      <div className="variant-tags variant-preview" style={{backgroundColor: '#f0f0f0', padding: '5px', margin: '5px 0'}}>
+                      <div className="variant-tags variant-preview">
                         {/* 默认标签 */}
                         <button
                           className={`variant-tag ${isStyleSelected && !selectedVariant ? 'active' : ''}`}
                           onClick={(e) => {
                             e.stopPropagation()
                             handleVariantSelect(style.id, null)
-                          }}
-                          style={{
-                            backgroundColor: '#e0e0e0',
-                            border: '1px solid #ccc',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            margin: '2px'
                           }}
                         >
                           Default
@@ -244,14 +265,6 @@ function StyleSelector({
                               e.stopPropagation()
                               handleVariantSelect(style.id, variant.id)
                             }}
-                            style={{
-                              backgroundColor: '#d0e0ff',
-                              border: '1px solid #007bff',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              margin: '2px'
-                            }}
                           >
                             {variant.name}
                           </button>
@@ -262,14 +275,6 @@ function StyleSelector({
                           <button
                             className="variant-tag view-all"
                             onClick={(e) => toggleVariants(style.id, e)}
-                            style={{
-                              backgroundColor: '#fff3cd',
-                              border: '1px solid #ffc107',
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              margin: '2px'
-                            }}
                           >
                             +{style.variants.length - 2} more
                           </button>

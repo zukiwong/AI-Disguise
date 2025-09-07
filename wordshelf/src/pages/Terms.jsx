@@ -10,7 +10,7 @@ const Terms = () => {
         <h1>Terms of Service</h1>
         <div className="legal-content">
           <CollapsibleSection title="Service Description">
-            <p>AI Disguiser is a web application that transforms text using artificial intelligence technology. Our service allows you to:</p>
+            <p>WordShelf is a web application that transforms text using artificial intelligence technology. Our service allows you to:</p>
             <ul>
               <li>Convert text between different writing styles (chat, poetry, social, story)</li>
               <li>Adjust text for different purposes and target audiences</li>

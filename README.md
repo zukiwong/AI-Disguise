@@ -1,22 +1,32 @@
-# AI Disguiser
+# WordShelf
+
+*Find the right words, right away.*
 
 ## Project Overview
-An AI-powered text transformation web application that helps users disguise and restyle their text using different styles and purposes. Transform your writing to match various contexts, audiences, and communication goals.
+WordShelf is like a personal shelf for your everyday messages. Whether you need to explain something clearly, write a quick excuse, or handle an awkward moment without overthinking — just open WordShelf and pick the right words.
 
 ## Features
 
-### Core Transformation Modes
-- **Style Mode**: Transform text into different writing styles
-  - Chat: Casual, conversational tone for messaging
-  - Poetry: Artistic, expressive style with rhythm
-  - Social: Engaging content optimized for social media
-  - Story: Narrative format for storytelling
-- **Purpose + Audience Mode**: Tailor communication based on intent and target
-  - Multiple purposes: Explain, Persuade, Comfort, Inform, Request, etc.
-  - Various audiences: Friends, Boss, Children, Colleagues, Family, etc.
+### With WordShelf, you can:
+
+**Store your own responses**: Build a personal library you can always come back to.
+- Create custom writing styles and templates
+- Save frequently used phrases and responses
+- Build your personal communication toolkit
+
+**Explore shared shelves**: See how others handle real-life situations and borrow their ideas.
+- Browse community-shared responses
+- Discover new ways to express yourself
+- Learn from different communication styles
+
+**Generate variants**: Create multiple versions of the same idea — consistent in meaning, different in tone.
+- Transform text into different writing styles (Chat, Poetry, Social, Story)
+- Tailor communication based on purpose and audience
+- Multiple purposes: Explain, Persuade, Comfort, Inform, Request, etc.
+- Various audiences: Friends, Boss, Children, Colleagues, Family, etc.
 
 ### User Experience
-- **Random Transform**: Surprise yourself with unexpected style combinations
+- **Smart Suggestions**: AI-powered text transformation
 - **Real-time Progress**: GSAP-powered animations during transformation
 - **History Management**: Save and revisit your transformations
 - **User Authentication**: Login via Google or GitHub
@@ -30,40 +40,45 @@ An AI-powered text transformation web application that helps users disguise and 
 ## Tech Stack
 - **Frontend**: React 19 + Vite + React Router DOM
 - **Backend**: Vercel Serverless Functions
-- **AI Engine**: Google Gemini API (gemini-2.0-flash-exp model)
+- **AI Engine**: Configurable AI service integration
 - **Animations**: GSAP (GreenSock Animation Platform)
 - **Database**: Firebase (Authentication, Firestore, Hosting)
 - **Styling**: CSS3 with modern design patterns
 - **Build Tools**: Vite with React plugin
 - **Deployment**: Vercel for seamless CI/CD
 
+WordShelf makes it easier to say the right thing, in the right way, every time.
+
 ## Live Demo
-**[Try AI Disguiser](https://ai-disguiser.vercel.app)**
+**[Try WordShelf](https://wordshelf.vercel.app)**
 
-## Local Development
+## Getting Started
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Firebase account (optional for full features)
-- Google Gemini API key
+### Try Online (Easiest)
 
-### Setup
-```bash
-# Clone the repository
-git clone https://github.com/zukiwong/AI-Disguiser.git
-cd AI-Disguiser/ai-disguiser
+**[Launch WordShelf →](https://wordshelf.vercel.app)**
 
-# Install dependencies
-npm install
+No setup required! WordShelf runs securely in your browser with all processing handled through encrypted API calls.
 
-# Create environment variables
-cp .env.example .env
-# Add your GEMINI_API_KEY to .env
+### Deploy Your Own
 
-# Start development server
-npm run dev
-```
+**Option 1: Quick Deploy**
+- One-click deploy to Vercel (fastest setup)
+- Perfect for personal use
+
+**Option 2: Fork & Deploy** 
+- Fork this repository to your GitHub
+- Import to Vercel from your fork
+- Benefits: track updates, customize freely
+- Required: Set your AI service API key in Vercel environment variables
+
+### Local Development
+
+**Requirements:** Node.js 18+, AI service API key
+
+**Setup:** Clone, install dependencies, configure `.env` with your API key, then `npm run dev`
+
+For enhanced features like user auth and history, configure Firebase integration.
 
 ### Available Scripts
 ```bash
@@ -82,7 +97,7 @@ npm run lint
 
 ## Project Structure
 ```
-ai-disguiser/
+wordshelf/
 ├── src/
 │   ├── components/     # Reusable UI components
 │   ├── pages/         # Main application pages
@@ -98,9 +113,7 @@ ai-disguiser/
 ## License
 MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
-- **Repository**: [GitHub Issues](https://github.com/zukiwong/AI-Disguiser/issues)
-- **Live Demo**: [ai-disguiser.vercel.app](https://ai-disguiser.vercel.app)
 
 ---
-Built with React and powered by Google Gemini AI
+Built with React and powered by AI  
+*Find the right words, right away.*

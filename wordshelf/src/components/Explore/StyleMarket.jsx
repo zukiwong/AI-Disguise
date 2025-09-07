@@ -7,7 +7,24 @@ import { useAuth } from '../../hooks/useAuth.js'
 import { useStyles } from '../../hooks/useStyles.js'
 import { getPublicStylesWithVariants } from '../../services/styleService.js'
 import { createVariant } from '../../services/variantService.js'
-import { generateVariantPrompt } from '../../utils/variantUtils.js'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import {
+  CSS,
+} from '@dnd-kit/utilities'
 import '../../styles/Explore.css'
 
 
@@ -18,8 +35,7 @@ function StyleMarket() {
   // 使用统一的风格管理Hook
   const { 
     addedStyleIds, 
-    addPublicStyleToAccount,
-    isLoading: stylesLoading 
+    addPublicStyleToAccount
   } = useStyles(userId)
   
   // 使用本地状态管理探索页数据
@@ -48,7 +64,11 @@ function StyleMarket() {
     loadExploreStyles()
   }, [userId]) // 当用户登录状态变化时重新加载
 
-  // 过滤风格
+  // 分离公共样式和社区样式
+  const [officialStyles, setOfficialStyles] = useState([])
+  const [communityStyles, setCommunityStyles] = useState([])
+  
+  // 过滤和分组风格
   useEffect(() => {
     let filtered = publicStyles
 
@@ -60,15 +80,27 @@ function StyleMarket() {
       )
     }
 
-    // 分类过滤（可以根据需要扩展）
+    // 分类过滤
     if (categoryFilter !== 'all') {
       filtered = filtered.filter(style => style.category === categoryFilter)
     }
 
-    setFilteredStyles(filtered)
+    // 分离公共样式（系统创建）和社区样式（用户创建）
+    const official = filtered.filter(style => style.createdBy === 'system')
+    const community = filtered.filter(style => style.createdBy !== 'system')
+
+    setOfficialStyles(official)
+    setCommunityStyles(community)
+    setFilteredStyles(filtered) // 保持兼容性
   }, [publicStyles, searchTerm, categoryFilter])
 
-  const handleUseStyle = (styleId, variantId = null) => {
+  const handleUseStyle = (styleId, variantId = null, requiresAuth = false) => {
+    // 检查权限：社区样式需要登录
+    if (requiresAuth && !isAuthenticated) {
+      alert('Please login first to use community styles')
+      return
+    }
+    
     // 将选择的风格和变体保存到 localStorage，然后跳转到首页
     const style = publicStyles.find(s => s.id === styleId)
     if (!style) {
@@ -190,31 +222,67 @@ function StyleMarket() {
         
       </div>
 
-      {/* 风格卡片网格 */}
-      {filteredStyles.length === 0 ? (
-        <div className="empty-state">
-          <h3 className="empty-state-title">No styles found</h3>
-          <p className="empty-state-message">
-            {searchTerm ? 'Try a different search term.' : 'No public styles available yet.'}
-          </p>
-        </div>
-      ) : (
-        <div className="style-grid">
-          {filteredStyles.map((style) => (
-            <StyleCard
-              key={style.id}
-              style={style}
-              onUse={handleUseStyle}
-              onFavorite={handleFavoriteStyle}
-              onAddToMyList={handleAddToMyList}
-              canFavorite={isAuthenticated}
-              canAddToList={isAuthenticated}
-              isAddedToList={addedStyleIds.includes(style.id)}
-              onVariantAdded={updateStyleVariants}
-            />
-          ))}
-        </div>
-      )}
+      {/* 公共样式区域 */}
+      <div className="styles-section">
+        <h3 className="section-title">Official Styles</h3>
+        <p className="section-description">High-quality styles created by WordShelf team. Available to all users.</p>
+        
+        {officialStyles.length === 0 ? (
+          <div className="empty-state">
+            <p className="empty-state-message">
+              {searchTerm ? 'No official styles match your search.' : 'No official styles available yet.'}
+            </p>
+          </div>
+        ) : (
+          <div className="style-grid">
+            {officialStyles.map((style) => (
+              <StyleCard
+                key={style.id}
+                style={style}
+                onUse={(styleId, variantId) => handleUseStyle(styleId, variantId, false)} // 公共样式不需要登录
+                onFavorite={handleFavoriteStyle}
+                onAddToMyList={handleAddToMyList}
+                canFavorite={isAuthenticated}
+                canAddToList={isAuthenticated}
+                isAddedToList={addedStyleIds.includes(style.id)}
+                onVariantAdded={updateStyleVariants}
+                requiresAuth={false} // 标记为不需要认证
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 社区样式区域 */}
+      <div className="styles-section">
+        <h3 className="section-title">Community Styles</h3>
+        <p className="section-description">Styles shared by our community members. Login required to use.</p>
+        
+        {communityStyles.length === 0 ? (
+          <div className="empty-state">
+            <p className="empty-state-message">
+              {searchTerm ? 'No community styles match your search.' : 'No community styles available yet.'}
+            </p>
+          </div>
+        ) : (
+          <div className="style-grid">
+            {communityStyles.map((style) => (
+              <StyleCard
+                key={style.id}
+                style={style}
+                onUse={(styleId, variantId) => handleUseStyle(styleId, variantId, true)} // 社区样式需要登录
+                onFavorite={handleFavoriteStyle}
+                onAddToMyList={handleAddToMyList}
+                canFavorite={isAuthenticated}
+                canAddToList={isAuthenticated}
+                isAddedToList={addedStyleIds.includes(style.id)}
+                onVariantAdded={updateStyleVariants}
+                requiresAuth={true} // 标记为需要认证
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -237,7 +305,8 @@ function HeartIcon({ filled, className }) {
 }
 
 // 风格卡片组件（支持变体）
-function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAddToList, isAddedToList, onVariantAdded }) {
+function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAddToList, isAddedToList, onVariantAdded, requiresAuth = false }) {
+  const { isAuthenticated } = useAuth() // 获取用户认证状态
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [showVariantModal, setShowVariantModal] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false) // 临时状态，后续可连接真实数据
@@ -252,19 +321,20 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
     promptOverride: style.promptTemplate
   }
   
-  // 显示的变体标签（最多4个）
-  const displayVariants = hasVariants ? style.variants.slice(0, 4) : []
-  const hasMoreVariants = hasVariants && style.variants.length > 4
+  // 显示的变体标签（最多6个，大约两行）
+  const displayVariants = hasVariants ? style.variants.slice(0, 6) : []
   
   const handleVariantClick = (variant) => {
     setSelectedVariant(variant)
   }
   
-  const handleViewAllClick = () => {
-    setShowVariantModal(true)
-  }
-  
   const handleUseStyle = () => {
+    // 检查权限：社区样式需要登录
+    if (requiresAuth && !isAuthenticated) {
+      alert('Please login first to use community styles')
+      return
+    }
+    
     if (selectedVariant) {
       // 使用选中的变体
       onUse(style.id, selectedVariant.id)
@@ -273,6 +343,9 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
       onUse(style.id, null)
     }
   }
+  
+  // 检查是否可以使用
+  const canUse = !requiresAuth || isAuthenticated
 
   const handleFavoriteClick = (e) => {
     e.stopPropagation() // 阻止事件冒泡
@@ -339,13 +412,15 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
         <div className="style-card-bottom">
           <div className="style-card-actions">
             <button
-              className="style-action-button"
+              className={`style-action-button ${!canUse ? 'disabled' : ''}`}
               onClick={(e) => {
                 e.stopPropagation()
                 handleUseStyle()
               }}
+              disabled={!canUse}
+              title={!canUse ? 'Login required to use community styles' : ''}
             >
-              Use Style {selectedVariant ? `(${selectedVariant.name})` : ''}
+              {!canUse ? 'Login Required' : `Use Style ${selectedVariant ? `(${selectedVariant.name})` : ''}`}
             </button>
             
             {/* 添加到个人列表按钮 */}
@@ -362,19 +437,6 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
                 title={isAddedToList ? 'Already in your personal list' : 'Add to your personal list'}
               >
                 {isAddedToList ? '✓ Added' : '+ Add to My List'}
-              </button>
-            )}
-            
-            {/* View All 按钮 - 只要有变体就显示 */}
-            {hasVariants && (
-              <button
-                className="style-action-button view-all-button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleViewAllClick()
-                }}
-              >
-                View All{hasMoreVariants ? ` (+${style.variants.length - 4})` : ''}
               </button>
             )}
           </div>
@@ -399,14 +461,89 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
           onClose={() => setShowVariantModal(false)}
           onUse={onUse}
           onVariantAdded={onVariantAdded}
+          requiresAuth={requiresAuth}
         />
       )}
     </>
   )
 }
 
+// 可拖拽的表格行组件
+function SortableVariantRow({ variant, style, onUse, onClose, isDragDisabled, requiresAuth = false }) {
+  const { isAuthenticated } = useAuth() // 获取用户认证状态
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id: variant.id,
+    disabled: isDragDisabled // Default 行禁用拖拽
+  })
+
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  // 检查是否可以使用
+  const canUse = !requiresAuth || isAuthenticated
+  
+  const handleUse = () => {
+    if (requiresAuth && !isAuthenticated) {
+      alert('Please login first to use community styles')
+      return
+    }
+    onUse(style.id, variant.isDefault ? null : variant.id)
+    onClose()
+  }
+
+  return (
+    <tr 
+      ref={setNodeRef} 
+      style={dragStyle} 
+      className={`variant-row ${isDragging ? 'dragging' : ''}`}
+      {...attributes}
+    >
+      <td className="variant-col-name">
+        <div className="variant-name-cell">
+          {/* 拖拽手柄 */}
+          {!isDragDisabled && (
+            <span className="drag-handle" {...listeners}>
+              ⋮⋮
+            </span>
+          )}
+          {variant.name}
+          {variant.isDefault && <span className="default-badge">Default</span>}
+        </div>
+      </td>
+      <td className="variant-col-description">
+        <div className="variant-description-cell" title={variant.description}>
+          {variant.description}
+        </div>
+      </td>
+      <td className="variant-col-usage">
+        <span className="usage-count">{variant.usageCount || 0}</span>
+      </td>
+      <td className="variant-col-action">
+        <button
+          className={`variant-table-use-button ${!canUse ? 'disabled' : ''}`}
+          onClick={handleUse}
+          disabled={!canUse}
+          title={!canUse ? 'Login required to use community styles' : ''}
+        >
+          {!canUse ? 'Login Required' : 'Use'}
+        </button>
+      </td>
+    </tr>
+  )
+}
+
 // 变体详情模态框组件
-function VariantModal({ style, onClose, onUse, onVariantAdded }) {
+function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = false }) {
   const { isAuthenticated, userId } = useAuth()
   
   // 添加变体的表单状态
@@ -417,27 +554,64 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  // 合并默认风格和变体，并按热度排序
-  const allVariants = [
-    // 默认风格
-    {
+  // 拖拽传感器配置
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+  
+  // 初始化变体列表状态
+  const [variants, setVariants] = useState(() => {
+    // 合并默认风格和变体
+    const defaultVariant = {
       id: 'default',
       name: 'Default',
       description: style.description,
-      createdBy: style.createdBy === 'system' ? 'AI Disguiser' : style.createdBy,
+      createdBy: style.createdBy === 'system' ? 'WordShelf' : style.createdBy,
       usageCount: style.usageCount || 0,
       isDefault: true
-    },
-    // 变体列表（已经在variantService中按使用次数排序）
-    ...(style.variants || []).map(variant => ({
+    }
+    
+    const normalVariants = (style.variants || []).map(variant => ({
       ...variant,
-      createdBy: variant.createdBy === 'system' ? 'AI Disguiser' : variant.createdBy,
+      createdBy: variant.createdBy === 'system' ? 'WordShelf' : variant.createdBy,
       isDefault: false
     }))
-  ]
+    
+    // 按使用次数降序排序普通变体
+    normalVariants.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+    
+    // Default 始终在顶部，其他按使用次数排序
+    return [defaultVariant, ...normalVariants]
+  })
+  
+  // 处理拖拽结束
+  const handleDragEnd = (event) => {
+    const { active, over } = event
 
-  // 确保按使用次数降序排序
-  allVariants.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    // 不允许拖拽 Default 变体
+    if (active.id === 'default') {
+      return
+    }
+
+    setVariants((items) => {
+      const oldIndex = items.findIndex(item => item.id === active.id)
+      const newIndex = items.findIndex(item => item.id === over.id)
+      
+      // 如果拖拽到 Default 位置，则不允许
+      if (newIndex === 0) {
+        return items
+      }
+      
+      return arrayMove(items, oldIndex, newIndex)
+    })
+  }
   
   // 处理添加新变体
   const handleAddVariant = () => {
@@ -488,6 +662,14 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
         style.variants = [newVariantData]
       }
       
+      // 更新当前模态框的变体列表
+      const newVariantForModal = {
+        ...newVariantData,
+        createdBy: newVariantData.createdBy === 'system' ? 'WordShelf' : newVariantData.createdBy,
+        isDefault: false
+      }
+      setVariants(prev => [...prev, newVariantForModal])
+      
       // 重置表单状态
       setIsAddingVariant(false)  
       setNewVariant({ name: '', description: '' })
@@ -510,45 +692,37 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
         
         <div className="modal-body">
           <div className="variant-table-container">
-            <table className="variant-table">
-              <thead>
-                <tr>
-                  <th className="variant-col-name">Variant Name</th>
-                  <th className="variant-col-description">Description</th>
-                  <th className="variant-col-usage">Usage Count</th>
-                  <th className="variant-col-action">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allVariants.map((variant) => (
-                  <tr key={variant.id} className="variant-row">
-                    <td className="variant-col-name">
-                      <div className="variant-name-cell">
-                        {variant.name}
-                        {variant.isDefault && <span className="default-badge">Default</span>}
-                      </div>
-                    </td>
-                    <td className="variant-col-description">
-                      <div className="variant-description-cell" title={variant.description}>
-                        {variant.description}
-                      </div>
-                    </td>
-                    <td className="variant-col-usage">
-                      <span className="usage-count">{variant.usageCount || 0} uses</span>
-                    </td>
-                    <td className="variant-col-action">
-                      <button
-                        className="variant-table-use-button"
-                        onClick={() => {
-                          onUse(style.id, variant.isDefault ? null : variant.id)
-                          onClose()
-                        }}
-                      >
-                        Use
-                      </button>
-                    </td>
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <table className="variant-table">
+                <thead>
+                  <tr>
+                    <th className="variant-col-name">Variant Name</th>
+                    <th className="variant-col-description">Description</th>
+                    <th className="variant-col-usage">Usage Count</th>
+                    <th className="variant-col-action">Action</th>
                   </tr>
-                ))}
+                </thead>
+                <tbody>
+                  <SortableContext 
+                    items={variants.map(v => v.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {variants.map((variant) => (
+                      <SortableVariantRow
+                        key={variant.id}
+                        variant={variant}
+                        style={style}
+                        onUse={onUse}
+                        onClose={onClose}
+                        isDragDisabled={variant.isDefault}
+                        requiresAuth={requiresAuth}
+                      />
+                    ))}
+                  </SortableContext>
                 
                 {/* 添加新变体的行 */}
                 {isAddingVariant ? (
@@ -605,7 +779,8 @@ function VariantModal({ style, onClose, onUse, onVariantAdded }) {
                 )}
               </tbody>
             </table>
-          </div>
+          </DndContext>
+        </div>
           
           {isAddingVariant && (
             <div className="variant-modal-actions">

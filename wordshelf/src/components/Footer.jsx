@@ -8,8 +8,8 @@ const Footer = () => {
     <footer className="app-footer">
       <div className="footer-content">
         <div className="footer-section">
-          <h3>AI Disguiser</h3>
-          <p>Transform your text with AI-powered style conversion</p>
+          <h3>WordShelf</h3>
+          <p>Find the right words, right away.</p>
         </div>
         
         <div className="footer-section">
@@ -30,7 +30,7 @@ const Footer = () => {
       </div>
       
       <div className="footer-bottom">
-        <p>&copy; {new Date().getFullYear()} AI Disguiser. Licensed under MIT License.</p>
+        <p>&copy; {new Date().getFullYear()} WordShelf. Licensed under MIT License.</p>
         <p>
           Powered by Google Gemini AI | 
           <a href="https://github.com/zukiwong/AI-Disguiser" target="_blank" rel="noopener noreferrer" className="github-link">
