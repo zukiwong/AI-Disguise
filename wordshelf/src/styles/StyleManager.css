@@ -97,7 +97,7 @@
   border: 1px solid var(--border-color); /* 使用CSS变量支持主题切换 */
   border-radius: 4px;
   position: relative;
-  overflow: hidden; /* 确保滑出时不超出容器 */
+  overflow: visible; /* 允许拖拽手柄超出容器 */
   transform: translateX(0); /* 为GSAP变换做准备 */
   transition: all 0.3s ease; /* 添加平滑过渡效果 */
   opacity: 1; /* 确保默认不透明 */
@@ -483,6 +483,61 @@ body.dark .tab-button.active::after {
   margin-right: 40px; /* 给叉号留出空间 */
 }
 
+/* 拖拽手柄样式 */
+.style-drag-handle {
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  color: #ccc;
+  font-size: 12px;
+  user-select: none;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.style-item:hover .style-drag-handle {
+  opacity: 1;
+}
+
+.style-drag-handle:hover {
+  color: #999;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.style-drag-handle:active {
+  cursor: grabbing;
+  color: #666;
+}
+
+/* 确保容器允许超出内容 */
+.style-list {
+  position: relative;
+  overflow: visible;
+}
+
+.style-item-container {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+/* 拖拽状态样式 */
+.style-item.dragging {
+  opacity: 0.8;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: rotate(2deg);
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
 /* 变体切换按钮样式 */
 .variant-toggle-btn {
   background: none;
@@ -492,7 +547,7 @@ body.dark .tab-button.active::after {
   border-radius: 4px;
   transition: all 0.2s ease;
   color: #666;
-  font-size: 12px;
+  font-size: 10px;
   min-width: 24px;
   height: 20px;
   display: flex;
@@ -540,6 +595,19 @@ body.dark .tab-button.active::after {
   background-color: #000;
   color: white;
   border-color: #000;
+}
+
+/* "more" 变体标签样式 - 无边框纯文字 */
+.variant-preview .variant-tag.view-all {
+  background-color: transparent;
+  color: #666;
+  border: none;
+  padding: 4px 6px; /* 减少padding，因为没有边框 */
+}
+
+.variant-preview .variant-tag.view-all:hover {
+  background-color: transparent;
+  color: #333;
 }
 
 /* 变体列表样式 */
@@ -594,4 +662,87 @@ body.dark .tab-button.active::after {
   font-size: 11px;
   color: #999;
   margin-left: 10px;
+}
+
+/* 深色模式下的变体标签样式 */
+body.dark .variant-preview .variant-tag {
+  background-color: #404040;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+body.dark .variant-preview .variant-tag:hover {
+  background-color: #555;
+  border-color: #666;
+}
+
+body.dark .variant-preview .variant-tag.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+/* 深色模式下的 "more" 变体标签样式 */
+body.dark .variant-preview .variant-tag.view-all {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: none;
+}
+
+body.dark .variant-preview .variant-tag.view-all:hover {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+/* 深色模式下的拖拽手柄样式 */
+body.dark .style-drag-handle {
+  color: #666;
+}
+
+body.dark .style-drag-handle:hover {
+  color: #aaa;
+}
+
+body.dark .style-drag-handle:active {
+  color: #ccc;
+}
+
+/* 深色模式下的拖拽状态样式 */
+body.dark .style-item.dragging {
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+/* 深色模式下的变体列表样式 */
+body.dark .variant-list {
+  border-left-color: var(--border-color);
+}
+
+body.dark .variant-item {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+body.dark .variant-item:hover {
+  background-color: #555;
+  border-color: #666;
+}
+
+body.dark .variant-item.selected {
+  background-color: rgba(76, 175, 80, 0.15);
+  border-color: #4CAF50;
+}
+
+body.dark .variant-name {
+  color: var(--text-primary);
+}
+
+body.dark .variant-description {
+  color: var(--text-secondary);
+}
+
+body.dark .variant-usage {
+  color: var(--text-secondary);
 }

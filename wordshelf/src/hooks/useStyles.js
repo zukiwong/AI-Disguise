@@ -3,9 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  getAllAvailableStyles,
-  getPublicStyles,
-  getUserStyles,
+  getUserStylesWithVariants,
   createStyle,
   updateStyle,
   deleteStyle,
@@ -26,7 +24,6 @@ export function useStyles(userId = null) {
   const [publicStyles, setPublicStyles] = useState([])
   const [userStyles, setUserStyles] = useState([])
   const [addedStyleIds, setAddedStyleIds] = useState([]) // 用户添加到账户的风格ID列表
-  const [operationsInProgress, setOperationsInProgress] = useState(new Set()) // 跟踪进行中的操作
   
   // 加载状态
   const [isLoading, setIsLoading] = useState(false)
@@ -36,30 +33,32 @@ export function useStyles(userId = null) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingStyleId, setEditingStyleId] = useState(null)
 
-  // 加载所有可用风格
+  // 加载所有可用风格（使用新的简化函数）
   const loadStyles = useCallback(async () => {
     setIsLoading(true)
     setError('')
     
     try {
-      // 尝试从 Firestore 加载
-      const allStyles = await getAllAvailableStyles(userId)
-      setStyles(allStyles)
+      // 使用新的简化函数一次性加载所有带变体的风格数据
+      const allStylesWithVariants = await getUserStylesWithVariants(userId)
+      setStyles(allStylesWithVariants)
       
-      // 分别加载公共和用户风格（根据登录状态）
-      const isAuthenticated = Boolean(userId)
-      const publicStylesData = await getPublicStyles(isAuthenticated, userId)
+      // 分别设置公共和用户风格（从合并的结果中分离）
+      const publicStylesData = allStylesWithVariants.filter(style => 
+        style.isPublic || (style.createdBy === 'system' && style.isPublic !== false)
+      )
+      const userStylesData = allStylesWithVariants.filter(style => 
+        !style.isPublic && style.createdBy === userId
+      )
+      
       setPublicStyles(publicStylesData)
+      setUserStyles(userStylesData)
       
       if (userId) {
-        const userStylesData = await getUserStyles(userId)
-        setUserStyles(userStylesData)
-        
         // 加载用户添加到账户的风格ID列表
         const addedIds = await getUserAddedStyles(userId)
         setAddedStyleIds(addedIds)
       } else {
-        setUserStyles([])
         setAddedStyleIds([])
       }
       
@@ -292,26 +291,29 @@ export function useStyles(userId = null) {
     setError('')
     
     try {
-      // 不设置loading状态，静默更新
-      const allStyles = await getAllAvailableStyles(userId)
-      console.log('silentReloadStyles: 获取到所有风格:', allStyles.length)
-      setStyles(allStyles)
+      // 使用新的简化函数一次性加载所有带变体的风格数据
+      const allStylesWithVariants = await getUserStylesWithVariants(userId)
+      console.log('silentReloadStyles: 获取到所有带变体风格:', allStylesWithVariants.length)
+      setStyles(allStylesWithVariants)
       
-      const isAuthenticated = Boolean(userId)
-      const publicStylesData = await getPublicStyles(isAuthenticated, userId)
+      // 分别设置公共和用户风格（从合并的结果中分离）
+      const publicStylesData = allStylesWithVariants.filter(style => 
+        style.isPublic || (style.createdBy === 'system' && style.isPublic !== false)
+      )
+      const userStylesData = allStylesWithVariants.filter(style => 
+        !style.isPublic && style.createdBy === userId
+      )
+      
       console.log('silentReloadStyles: 获取到公共风格:', publicStylesData.length)
       setPublicStyles(publicStylesData)
+      setUserStyles(userStylesData)
       
       if (userId) {
-        const userStylesData = await getUserStyles(userId)
-        setUserStyles(userStylesData)
-        
         // 加载用户添加到账户的风格ID列表
         const addedIds = await getUserAddedStyles(userId)
         console.log('silentReloadStyles: 从数据库获取的addedIds:', addedIds)
         setAddedStyleIds(addedIds)
       } else {
-        setUserStyles([])
         setAddedStyleIds([])
       }
       
@@ -355,9 +357,6 @@ export function useStyles(userId = null) {
     }
 
     setError('')
-    
-    // 标记操作开始
-    setOperationsInProgress(prev => new Set([...prev, `add-${styleId}`]))
 
     try {
       // 获取要添加的风格数据
@@ -367,11 +366,6 @@ export function useStyles(userId = null) {
       
       if (!styleToAdd) {
         setError('风格不存在')
-        setOperationsInProgress(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(`add-${styleId}`)
-          return newSet
-        })
         return false
       }
 
@@ -391,12 +385,6 @@ export function useStyles(userId = null) {
         // 成功后延长静默同步延迟，给Firebase充足同步时间
         setTimeout(() => {
           console.log('开始静默重新加载数据')
-          // 标记操作完成
-          setOperationsInProgress(prev => {
-            const newSet = new Set(prev)
-            newSet.delete(`add-${styleId}`)
-            return newSet
-          })
           silentReloadStyles()
         }, 3000)
         return true
@@ -406,11 +394,6 @@ export function useStyles(userId = null) {
         setPublicStyles(prev => prev.filter(style => style.id !== styleId))
         setStyles(prev => prev.filter(style => style.id !== styleId))
         setError('添加风格失败')
-        setOperationsInProgress(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(`add-${styleId}`)
-          return newSet
-        })
         return false
       }
     } catch (err) {
@@ -420,11 +403,6 @@ export function useStyles(userId = null) {
       setPublicStyles(prev => prev.filter(style => style.id !== styleId))
       setStyles(prev => prev.filter(style => style.id !== styleId))
       setError('添加风格失败')
-      setOperationsInProgress(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(`add-${styleId}`)
-        return newSet
-      })
       return false
     }
   }, [userId, silentReloadStyles])

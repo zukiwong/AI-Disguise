@@ -53,90 +53,21 @@ export function useDisguise() {
   const [isSharing, setIsSharing] = useState(false)        // 是否正在分享
   const [shareStatus, setShareStatus] = useState('')       // 分享状态信息
   
-  // 缓存和防抖相关
-  const loadTimeoutRef = useRef(null)
+  // 缓存相关（用于样式选择逻辑）
   const lastLoadedStylesRef = useRef('')
 
-  // 加载带变体的风格数据（带防抖和缓存）
+  // 简化的变体数据同步（直接使用 useStyles 已经提供的带变体数据）
   useEffect(() => {
-    // 清除之前的超时
-    if (loadTimeoutRef.current) {
-      clearTimeout(loadTimeoutRef.current)
+    if (!styles || styles.length === 0) {
+      setStylesWithVariants([])
+      setIsLoadingVariants(false)
+      return
     }
     
-    const loadStylesWithVariants = async () => {
-      if (!styles || styles.length === 0) {
-        setStylesWithVariants([])
-        setIsLoadingVariants(false)
-        return
-      }
-      
-      // 创建样式指纹，避免相同数据的重复加载
-      const stylesFingerprint = styles.map(s => `${s.id}-${s.variants?.length || 0}`).join('|')
-      if (stylesFingerprint === lastLoadedStylesRef.current) {
-        // 数据没有变化，跳过重新加载
-        return
-      }
-      lastLoadedStylesRef.current = stylesFingerprint
-      
-      setIsLoadingVariants(true)
-      
-      try {
-        if (!isAuthenticated) {
-          // 未登录用户：使用与探索页相同的方法获取变体数据，然后过滤系统样式
-          const allStylesWithVariants = await getPublicStylesWithVariants(userId)
-          const systemStylesWithVariants = allStylesWithVariants.filter(style => style.createdBy === 'system')
-          setStylesWithVariants(systemStylesWithVariants)
-        } else {
-          // 登录用户：智能加载策略 - 检查是否已有变体数据，避免不必要的查询
-          const hasVariantData = styles.some(style => style.variants && style.variants.length > 0)
-          
-          if (hasVariantData) {
-            // 如果已经有变体数据，直接使用，避免重复查询
-            setStylesWithVariants(styles)
-          } else {
-            // 只在没有变体数据时才进行查询
-            try {
-              const { getVariantsForMultipleStyles } = await import('../services/variantService.js')
-              const styleIds = styles.map(style => style.id)
-              const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
-              
-              const stylesWithVariants = styles.map(style => ({
-                ...style,
-                variants: variantsByStyle[style.id] || [],
-                hasVariants: (variantsByStyle[style.id] || []).length > 0
-              }))
-              
-              setStylesWithVariants(stylesWithVariants)
-            } catch (variantError) {
-              // 如果变体加载失败，使用基础数据
-              setStylesWithVariants(styles)
-            }
-          }
-        }
-      } catch (error) {
-        // 如果加载变体失败，使用基础样式数据
-        const stylesToShow = !isAuthenticated 
-          ? styles.filter(style => style.createdBy === 'system')
-          : styles
-        setStylesWithVariants(stylesToShow)
-      } finally {
-        setIsLoadingVariants(false)
-      }
-    }
-    
-    // 使用防抖延迟执行，减少频繁的数据库查询
-    loadTimeoutRef.current = setTimeout(() => {
-      loadStylesWithVariants()
-    }, 100) // 100ms 防抖延迟
-    
-    // 清理函数
-    return () => {
-      if (loadTimeoutRef.current) {
-        clearTimeout(loadTimeoutRef.current)
-      }
-    }
-  }, [styles, userId, isAuthenticated])
+    // 直接使用 useStyles 返回的数据（现在已经包含变体信息）
+    setStylesWithVariants(styles)
+    setIsLoadingVariants(false)
+  }, [styles])
   
   // 检查并应用从探索页传来的选择状态
   useEffect(() => {

@@ -27,6 +27,11 @@ import {
 } from '@dnd-kit/utilities'
 import '../../styles/Explore.css'
 
+// 开发环境下导入变体添加工具
+if (import.meta.env.DEV) {
+  import('../../utils/addVariants.js')
+}
+
 
 function StyleMarket() {
   const { isAuthenticated, userId } = useAuth()
@@ -321,8 +326,9 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
     promptOverride: style.promptTemplate
   }
   
-  // 显示的变体标签（最多6个，大约两行）
-  const displayVariants = hasVariants ? style.variants.slice(0, 6) : []
+  // 显示的变体标签（最多5个，为"更多"按钮留出空间）
+  const displayVariants = hasVariants ? style.variants.slice(0, 5) : []
+  const hasMoreVariants = hasVariants && style.variants.length > 5
   
   const handleVariantClick = (variant) => {
     setSelectedVariant(variant)
@@ -375,37 +381,48 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
           
           <p className="style-card-description">{currentContent.description}</p>
           
-          {/* 变体标签区域 */}
-          {hasVariants && (
-            <div className="style-variants">
-              <div className="variant-tags">
-                {/* 默认标签 */}
+          {/* 变体标签区域 - 总是显示 */}
+          <div className="style-variants">
+            <div className="variant-tags">
+              {/* 默认标签 */}
+              <button
+                className={`variant-tag ${!selectedVariant ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedVariant(null)
+                }}
+              >
+                Default
+              </button>
+              
+              {/* 变体标签 */}
+              {hasVariants && displayVariants.map((variant) => (
                 <button
-                  className={`variant-tag ${!selectedVariant ? 'active' : ''}`}
+                  key={variant.id}
+                  className={`variant-tag ${selectedVariant?.id === variant.id ? 'active' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation()
-                    setSelectedVariant(null)
+                    handleVariantClick(variant)
                   }}
                 >
-                  Default
+                  {variant.name}
                 </button>
-                
-                {/* 变体标签 */}
-                {displayVariants.map((variant) => (
-                  <button
-                    key={variant.id}
-                    className={`variant-tag ${selectedVariant?.id === variant.id ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleVariantClick(variant)
-                    }}
-                  >
-                    {variant.name}
-                  </button>
-                ))}
-              </div>
+              ))}
+              
+              {/* 更多按钮 */}
+              {hasMoreVariants && (
+                <button
+                  className="variant-tag more-variants"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowVariantModal(true)
+                  }}
+                >
+                  +{style.variants.length - 5} more
+                </button>
+              )}
             </div>
-          )}
+          </div>
         </div>
         
         {/* 固定在底部的按钮区域 */}
@@ -420,11 +437,11 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
               disabled={!canUse}
               title={!canUse ? 'Login required to use community styles' : ''}
             >
-              {!canUse ? 'Login Required' : `Use Style ${selectedVariant ? `(${selectedVariant.name})` : ''}`}
+              {!canUse ? 'Login Required' : 'Use Style'}
             </button>
             
-            {/* 添加到个人列表按钮 */}
-            {canAddToList && (
+            {/* 添加到个人列表按钮 - 只显示给社区风格 */}
+            {canAddToList && !isOfficial && (
               <button
                 className={`style-action-button add-to-list-button ${isAddedToList ? 'added' : ''}`}
                 onClick={(e) => {
@@ -609,7 +626,17 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
         return items
       }
       
-      return arrayMove(items, oldIndex, newIndex)
+      const newVariants = arrayMove(items, oldIndex, newIndex)
+      
+      // 直接更新父组件中的style.variants以同步新的顺序
+      const reorderedVariants = newVariants
+        .filter(v => !v.isDefault)
+        .map(v => ({ ...v, isDefault: false }))
+      
+      // 更新style对象，这样关闭模态框后卡片会显示新的顺序
+      style.variants = reorderedVariants
+      
+      return newVariants
     })
   }
   

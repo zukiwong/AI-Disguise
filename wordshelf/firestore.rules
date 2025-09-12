@@ -1,0 +1,86 @@
+ rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      // 用户文档 - 只有用户本人可以读写
+      match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid ==
+  userId;
+      }
+
+      // 风格文档
+      match /styles/{styleId} {
+        // 所有人可以读取公共风格
+        allow read: if resource.data.isPublic == true;
+
+        // 所有人可以读取系统风格
+        allow read: if resource.data.createdBy == 'system';
+
+        // 登录用户可以读取自己的私有风格
+        allow read: if request.auth != null &&
+                       request.auth.uid == resource.data.createdBy;
+
+        // 允许创建系统风格（用于数据初始化）
+        allow create: if request.resource.data.createdBy == 'system';
+
+        // 登录用户可以创建风格
+        allow create: if request.auth != null &&
+                         request.auth.uid ==
+  request.resource.data.createdBy;
+
+        // 用户只能更新自己创建的风格
+        allow update: if request.auth != null &&
+                         request.auth.uid == resource.data.createdBy;
+
+        // 用户只能删除自己创建的私有风格
+        allow delete: if request.auth != null &&
+                         request.auth.uid == resource.data.createdBy &&
+                         resource.data.isPublic == false;
+
+        // 变体子集合的规则
+        match /variants/{variantId} {
+          // 允许读取所有公开的变体
+          allow read: if resource.data.isPublic == true;
+
+          // 允许所有人读取系统创建的变体
+          allow read: if resource.data.createdBy == 'system';
+
+          // 允许登录用户读取自己创建的变体
+          allow read: if request.auth != null &&
+                         request.auth.uid == resource.data.createdBy;
+
+          // 允许创建系统变体（用于数据初始化）
+          allow create: if request.resource.data.createdBy == 'system';
+
+          // 允许登录用户创建新的变体（但会记录创建者）
+          allow create: if request.auth != null &&
+                          request.auth.uid ==
+  request.resource.data.createdBy;
+
+          // 允许创建者修改和删除自己的变体
+          allow update, delete: if request.auth != null &&
+                                  request.auth.uid ==
+  resource.data.createdBy;
+        }
+      }
+
+      // 分享内容文档
+      match /posts/{postId} {
+        // 允许所有人读取（在应用层面控制 isPublic）
+        allow read: if true;
+
+        // 只有登录用户可以创建，且必须设置正确的 authorId
+        allow create: if request.auth != null &&
+                         request.auth.uid ==
+  request.resource.data.authorId;
+
+        // 只有作者可以更新和删除自己的内容
+        allow update, delete: if request.auth != null &&
+                                 request.auth.uid ==
+  resource.data.authorId;
+      }
+    }
+  }
+
+  主要变化是在变体部分添加了：
+  // 允许所有人读取系统创建的变体
+  allow read: if resource.data.createdBy == 'system';

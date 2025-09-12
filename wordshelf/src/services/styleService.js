@@ -11,8 +11,7 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  where, 
-  orderBy,
+  where,
   serverTimestamp 
 } from 'firebase/firestore'
 import { getVariantsForMultipleStyles } from './variantService.js'
@@ -36,7 +35,7 @@ export const createStyleData = ({
 })
 
 // 获取探索页的所有公共风格（开放浏览策略 - 不应用个人隐藏过滤）
-export const getPublicStylesForExplore = async (userId = null) => {
+export const getPublicStylesForExplore = async () => {
   try {
     const stylesRef = collection(db, COLLECTIONS.STYLES)
     const q = query(
@@ -264,39 +263,135 @@ export const getUserStyles = async (userId) => {
   }
 }
 
-// 获取所有可用风格（公共 + 用户私有）
-export const getAllAvailableStyles = async (userId = null) => {
+// 获取登录用户的专用风格数据（简化版本）
+export const getUserStylesWithVariants = async (userId) => {
   try {
-    const isAuthenticated = Boolean(userId)
-    const publicStyles = await getPublicStyles(isAuthenticated, userId)
-    const userStyles = userId ? await getUserStyles(userId) : []
+    if (!userId) {
+      // 未登录用户：查询 Firestore 中的系统风格，如果没有则使用默认数据
+      try {
+        const stylesRef = collection(db, COLLECTIONS.STYLES)
+        const q = query(stylesRef, where('createdBy', '==', 'system'))
+        const querySnapshot = await getDocs(q)
+        
+        if (querySnapshot.empty) {
+          return getDefaultStyles()
+        }
+        
+        const systemStyles = []
+        querySnapshot.forEach((doc) => {
+          const data = doc.data()
+          systemStyles.push({
+            id: doc.id, // 使用 Firestore 文档 ID
+            ...data
+          })
+        })
+        
+        // 获取每个风格的变体
+        const styleIds = systemStyles.map(style => style.id)
+        const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+        
+        const result = systemStyles.map(style => ({
+          ...style,
+          variants: variantsByStyle[style.id] || [],
+          hasVariants: (variantsByStyle[style.id] || []).length > 0
+        }))
+        
+        return result
+        
+      } catch (error) {
+        console.error('查询系统风格失败:', error)
+        return getDefaultStyles()
+      }
+    }
+
+    // 登录用户：从 Firestore 查询系统风格 + 用户添加的公共风格 + 用户私有风格
     
-    return [...publicStyles, ...userStyles]
+    // 获取用户的隐藏风格和添加的风格
+    const { getUserHiddenStyles, getUserAddedStyles } = await import('./authService.js')
+    const [hiddenStyles, addedStyles] = await Promise.all([
+      getUserHiddenStyles(userId),
+      getUserAddedStyles(userId)
+    ])
+    
+    // 1. 从 Firestore 查询系统风格（排除被隐藏的）
+    let visibleSystemStyles = []
+    try {
+      const stylesRef = collection(db, COLLECTIONS.STYLES)
+      const systemQuery = query(stylesRef, where('createdBy', '==', 'system'))
+      const systemSnapshot = await getDocs(systemQuery)
+      
+      systemSnapshot.forEach((doc) => {
+        if (!hiddenStyles.includes(doc.id)) {
+          const data = doc.data()
+          visibleSystemStyles.push({
+            id: doc.id, // 使用真实的 Firestore 文档 ID
+            ...data
+          })
+        }
+      })
+    } catch (error) {
+      console.error('查询系统风格失败:', error)
+      // 回退到硬编码数据
+      visibleSystemStyles = getDefaultStyles().filter(style => !hiddenStyles.includes(style.id))
+    }
+    
+    // 2. 获取用户添加的公共风格
+    let addedPublicStyles = []
+    if (addedStyles.length > 0) {
+      const stylesRef = collection(db, COLLECTIONS.STYLES)
+      const q = query(stylesRef, where('isPublic', '==', true))
+      const querySnapshot = await getDocs(q)
+      
+      querySnapshot.forEach((doc) => {
+        if (addedStyles.includes(doc.id) && !hiddenStyles.includes(doc.id)) {
+          addedPublicStyles.push({ id: doc.id, ...doc.data() })
+        }
+      })
+    }
+    
+    // 3. 获取用户私有风格
+    const userPrivateStyles = await getUserStyles(userId)
+    
+    // 4. 合并所有风格
+    const allStyles = [...visibleSystemStyles, ...addedPublicStyles, ...userPrivateStyles]
+    
+    // 5. 批量获取变体信息
+    const styleIds = allStyles.map(style => style.id)
+    const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
+    
+    // 6. 合并风格和变体数据
+    const stylesWithVariants = allStyles.map(style => ({
+      ...style,
+      variants: variantsByStyle[style.id] || [],
+      hasVariants: (variantsByStyle[style.id] || []).length > 0
+    }))
+    
+    return stylesWithVariants
+    
   } catch (error) {
-    console.error('获取所有风格失败:', error)
-    // 发生错误时返回带变体的默认风格
+    console.error('获取用户风格失败:', error)
+    // 错误恢复：返回带变体的默认风格
     try {
       const defaultStyles = getDefaultStyles()
-      // 获取所有风格ID
       const styleIds = defaultStyles.map(style => style.id)
-      
-      // 批量获取变体信息
       const variantsByStyle = await getVariantsForMultipleStyles(styleIds)
       
-      // 合并风格和变体数据
-      const defaultStylesWithVariants = defaultStyles.map(style => ({
+      return defaultStyles.map(style => ({
         ...style,
         variants: variantsByStyle[style.id] || [],
         hasVariants: (variantsByStyle[style.id] || []).length > 0
       }))
-      
-      console.log('🔄 getAllAvailableStyles 错误恢复: 为默认样式加载了变体数据')
-      return defaultStylesWithVariants
     } catch (variantError) {
-      console.error('getAllAvailableStyles 错误恢复时加载变体也失败:', variantError)
+      console.error('错误恢复时加载变体也失败:', variantError)
       return getDefaultStyles()
     }
   }
+}
+
+// 获取所有可用风格（公共 + 用户私有，包含变体信息）
+export const getAllAvailableStyles = async (userId = null) => {
+  // 使用新的简化函数
+  return getUserStylesWithVariants(userId)
 }
 
 // 创建新风格
@@ -513,7 +608,6 @@ export const cleanDuplicateStyles = async () => {
         
         // 找到最完整的文档作为主文档
         let primaryDoc = docs[0]
-        let primaryHasVariants = false
         
         // 检查哪个文档有变体
         for (const styleDoc of docs) {
@@ -523,10 +617,9 @@ export const cleanDuplicateStyles = async () => {
             if (variantsSnapshot.size > 0) {
               // console.log(`📁 文档 ${styleDoc.id} 有 ${variantsSnapshot.size} 个变体`)
               primaryDoc = styleDoc
-              primaryHasVariants = true
               break
             }
-          } catch (error) {
+          } catch {
             // console.log(`⚠️ 检查文档 ${styleDoc.id} 的变体时出错:`, error)
           }
         }

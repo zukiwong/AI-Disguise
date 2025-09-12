@@ -63,7 +63,7 @@
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #4CAF50;
+  color: #196a1c;
   text-shadow: 0 0 20px rgba(46, 125, 50, 0.3);
 }
 
@@ -92,7 +92,8 @@
 }
 
 .nav-link.active {
-  color: #4CAF50;
+  color: #157318;
+  font-weight: 600;
   background: transparent; /* 活跃状态也是透明背景 */
 }
 
@@ -111,9 +112,9 @@
 
 /* 登录按钮 */
 .nav-signin-btn {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border: 1px solid var(--text-primary);
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+  color: white;
+  border: 1px solid #333;
   padding: 8px 20px;
   border-radius: 20px;
   font-size: 14px;
@@ -124,10 +125,10 @@
 }
 
 .nav-signin-btn:hover {
-  background: var(--text-secondary);
-  border-color: var(--text-secondary);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border-color: #555;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* 页面内容区域适配在App.css中处理 */

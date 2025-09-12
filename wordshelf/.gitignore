@@ -60,3 +60,6 @@ docs-private/
 
 # Claude Code 配置文件（不推送到 GitHub）
 CLAUDE.md
+
+# Firebase 项目关联文件（包含特定项目 ID）
+.firebaserc

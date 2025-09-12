@@ -37,8 +37,6 @@ export const createVariantData = ({
 // 获取指定风格的所有变体
 export const getVariantsByStyleId = async (styleId) => {
   try {
-    // console.log('🔍 开始获取变体:', styleId)
-    
     const variantsRef = collection(db, COLLECTIONS.STYLES, styleId, 'variants')
     const q = query(
       variantsRef,
@@ -48,15 +46,12 @@ export const getVariantsByStyleId = async (styleId) => {
     const querySnapshot = await getDocs(q)
     const variants = []
     
-    // console.log('🔍 查询到的文档数量:', querySnapshot.size)
-    
     querySnapshot.forEach((doc) => {
       const variantData = {
         id: doc.id,
         styleId,
         ...doc.data()
       }
-      // console.log('🔍 找到变体:', variantData)
       variants.push(variantData)
     })
     
@@ -75,7 +70,6 @@ export const getVariantsByStyleId = async (styleId) => {
       return timeB - timeA
     })
     
-    // console.log('✅ 最终返回的变体列表:', variants)
     
     return variants
   } catch (error) {
@@ -239,9 +233,9 @@ export const getVariantsForMultipleStyles = async (styleIds) => {
   try {
     const variantsByStyle = {}
     
-    // 并行获取所有风格的变体
+    // 并行获取所有风格的变体 - 获取全部而非前3个
     const promises = styleIds.map(async (styleId) => {
-      const variants = await getTopVariantsByStyleId(styleId, 3)
+      const variants = await getVariantsByStyleId(styleId) // 获取所有变体
       variantsByStyle[styleId] = variants
       return { styleId, variantCount: variants.length }
     })
