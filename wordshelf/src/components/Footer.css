@@ -1,110 +1,102 @@
-/* Footer 组件样式 */
-.app-footer {
-  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
-  color: white;
+/* 极简Footer样式 */
+.simple-footer {
+  background: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
   margin-top: auto;
-  padding: 2rem 0 1rem;
-  border-top: 2px solid #4caf50;
+  padding: 20px 0;
 }
 
 .footer-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 4rem;
-  align-items: start;
+  padding: 0 24px;
+  text-align: center;
 }
 
-.footer-section h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.footer-section h4 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.6rem;
-  color: #66bb6a;
-}
-
-.footer-section p {
-  color: #cccccc;
-  line-height: 1.6;
-  margin: 0;
+.footer-main {
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 300;
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin: 0 0 10px 0;
+  line-height: 1.4;
 }
 
 .footer-links {
   display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .footer-link {
-  color: #aaaaaa;
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 10px;
+  color: var(--text-secondary);
   text-decoration: none;
-  transition: color 0.3s ease;
-  font-size: 0.9rem;
+  transition: opacity 0.3s ease;
 }
 
 .footer-link:hover {
-  color: #4caf50;
+  opacity: 0.7;
   text-decoration: underline;
 }
 
-.footer-bottom {
-  border-top: 1px solid #333333;
-  margin-top: 2rem;
-  padding: 1rem 2rem 0;
-  text-align: center;
-  color: #888888;
-}
-
-.footer-bottom p {
-  margin: 0.25rem 0;
-  font-size: 0.85rem;
+.separator {
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 10px;
+  color: var(--text-secondary);
 }
 
 .github-link {
-  color: #4CAF50;
-  text-decoration: none;
-  margin-left: 8px;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  margin-left: 4px;
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 300;
+  transition: opacity 0.3s ease;
 }
 
 .github-link:hover {
-  color: #66bb6a;
-  text-decoration: underline;
+  opacity: 0.7;
 }
 
-/* 响应式设计 */
+/* 移动端适配 */
 @media (max-width: 768px) {
   .footer-content {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 0 1rem;
+    padding: 0 16px;
   }
-  
-  .footer-section {
-    text-align: center;
+
+  .footer-main {
+    font-size: 9px;
   }
-  
+
+  .footer-link,
+  .separator {
+    font-size: 9px;
+  }
+
   .footer-links {
-    align-items: center;
+    gap: 6px;
   }
-  
-  .app-footer {
-    padding: 1.5rem 0 1rem;
+}
+
+@media (max-width: 480px) {
+  .footer-content {
+    padding: 0 12px;
   }
-  
-  .footer-bottom {
-    padding: 1rem 1rem 0;
+
+  .footer-main {
+    font-size: 8px;
+  }
+
+  .footer-link,
+  .separator {
+    font-size: 8px;
+  }
+
+  .footer-links {
+    gap: 4px;
   }
 }
