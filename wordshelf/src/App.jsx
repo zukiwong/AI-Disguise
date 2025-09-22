@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 // Import page components | 导入页面组件
 import Home from './pages/Home'
@@ -20,17 +20,20 @@ import BackToTop from './components/BackToTop'
 import { ThemeProvider } from './contexts/ThemeContext'
 
 function App() {
+  const location = useLocation()
+  const isHomePage = location.pathname === '/'
+
   return (
     <ThemeProvider>
-      <div className="app">
+      <div className={`app ${isHomePage ? 'home-page' : ''}`}>
         {/* 页面切换时滚动到顶部 */}
         <ScrollToTop />
-        
+
         {/* Global Navigation | 全局导航 */}
         <Navigation />
-        
+
         {/* Main Content Routes | 主要内容路由 */}
-        <main className="main-content">
+        <main className={`main-content ${isHomePage ? 'home-page' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/explore" element={<Explore />} />

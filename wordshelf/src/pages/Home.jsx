@@ -53,6 +53,12 @@ function Home() {
   // StyleSelector引用
   const styleSelectorRef = useRef(null)
 
+  // 滚动容器引用，用于蒙版效果
+  const scrollableContentRef = useRef(null)
+
+  // 控制是否显示输入界面（true=输入状态，false=输出状态）
+  const [showInputMode, setShowInputMode] = useState(true)
+
   // 检查并应用来自历史记录的预填充数据和预选风格
   useEffect(() => {
     const prefillData = localStorage.getItem('prefillFromHistory')
@@ -108,6 +114,19 @@ function Home() {
       setTimeout(() => setCopyStatus(''), 2000)
     }
   }
+
+  // 重写清除函数，同时切换到输入状态
+  const handleClearWithReset = () => {
+    handleClear()
+    setShowInputMode(true)
+  }
+
+  // 当有输出时，自动切换到输出状态
+  useEffect(() => {
+    if (hasOutput && !isLoading) {
+      setShowInputMode(false)
+    }
+  }, [hasOutput, isLoading])
 
   // 处理随机变装功能
   const handleRandomDisguise = () => {
@@ -211,18 +230,48 @@ function Home() {
     }
   }, [isLoading])
 
+  // 滚动蒙版效果检测
+  useEffect(() => {
+    const scrollContainer = scrollableContentRef.current
+    if (!scrollContainer) return
+
+    // 找到左侧面板容器
+    const leftPanel = scrollContainer.closest('.left-panel.style-panel')
+    if (!leftPanel) return
+
+    const checkScrollState = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+      const hasScroll = scrollHeight > clientHeight
+      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 5 // 5px tolerance
+
+      // 在左侧面板容器上动态添加/移除CSS类
+      leftPanel.classList.toggle('has-scroll', hasScroll)
+      leftPanel.classList.toggle('at-bottom', isAtBottom)
+    }
+
+    // 初始检查
+    checkScrollState()
+
+    // 监听滚动事件
+    scrollContainer.addEventListener('scroll', checkScrollState)
+
+    // 监听内容变化（当样式列表更新时）
+    const resizeObserver = new ResizeObserver(checkScrollState)
+    resizeObserver.observe(scrollContainer)
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', checkScrollState)
+      resizeObserver.disconnect()
+    }
+  }, [stylesWithVariants, conversionMode]) // 当样式列表或模式变化时重新检测
+
   return (
     <div className="home-container two-column-layout">
-      <div className="header-section">
-        <h1>WordShelf</h1>
-        <p>When you're stuck for words, find the perfect expression</p>
-      </div>
-
       <div className="main-content-wrapper">
         {/* 左侧：样式选择区域 */}
         <div className="left-panel style-panel">
-          {/* 模式切换 */}
-          <div className="mode-selector">
+          {/* 模式切换 - 固定头部 */}
+          <div className="mode-selector fixed-header">
             <div className="explore-tabs">
               <div className="tab-buttons">
                 <button
@@ -258,115 +307,150 @@ function Home() {
             </div>
           </div>
 
-          {/* 根据模式显示不同的选择器 */}
-          {conversionMode === CONVERSION_MODE.STYLE ? (
-            <StyleSelector
-              ref={styleSelectorRef}
-              selectedStyle={selectedStyle}
-              selectedVariant={selectedVariant}
-              stylesWithVariants={stylesWithVariants}
-              isLoadingVariants={isLoadingVariants}
-              onStyleChange={updateSelectedStyle}
-              onVariantChange={updateSelectedVariant}
-              disabled={isLoading}
-              showManageButton={false}
-              showTitle={false}
-            />
-          ) : (
-            <div className="purpose-recipient-selector">
-              <div className="purpose-selector">
-                <h3>Expression Purpose:</h3>
-                <select
-                  value={selectedPurpose}
-                  onChange={(e) => updateSelectedPurpose(e.target.value)}
-                  disabled={isLoading}
-                >
-                  {Object.entries(PURPOSE_CONFIG).map(([key, purpose]) => (
-                    <option key={key} value={key}>
-                      {purpose.displayName} - {purpose.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* 可滚动内容区域 */}
+          <div ref={scrollableContentRef} className="scrollable-content">
+            {/* 根据模式显示不同的选择器 */}
+            {conversionMode === CONVERSION_MODE.STYLE ? (
+              <StyleSelector
+                ref={styleSelectorRef}
+                selectedStyle={selectedStyle}
+                selectedVariant={selectedVariant}
+                stylesWithVariants={stylesWithVariants}
+                isLoadingVariants={isLoadingVariants}
+                onStyleChange={updateSelectedStyle}
+                onVariantChange={updateSelectedVariant}
+                disabled={isLoading}
+                showManageButton={false}
+                showTitle={false}
+              />
+            ) : (
+              <div className="purpose-recipient-selector">
+                <div className="purpose-selector">
+                  <h3>Expression Purpose:</h3>
+                  <select
+                    value={selectedPurpose}
+                    onChange={(e) => updateSelectedPurpose(e.target.value)}
+                    disabled={isLoading}
+                  >
+                    {Object.entries(PURPOSE_CONFIG).map(([key, purpose]) => (
+                      <option key={key} value={key}>
+                        {purpose.displayName} - {purpose.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="recipient-selector">
-                <h3>Target Recipient:</h3>
-                <select
-                  value={selectedRecipient}
-                  onChange={(e) => updateSelectedRecipient(e.target.value)}
-                  disabled={isLoading}
-                >
-                  {Object.entries(RECIPIENT_CONFIG).map(([key, recipient]) => (
-                    <option key={key} value={key}>
-                      {recipient.displayName} - {recipient.description}
-                    </option>
-                  ))}
-                </select>
+                <div className="recipient-selector">
+                  <h3>Target Recipient:</h3>
+                  <select
+                    value={selectedRecipient}
+                    onChange={(e) => updateSelectedRecipient(e.target.value)}
+                    disabled={isLoading}
+                  >
+                    {Object.entries(RECIPIENT_CONFIG).map(([key, recipient]) => (
+                      <option key={key} value={key}>
+                        {recipient.displayName} - {recipient.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-          )}
-
+            )}
+          </div>
         </div>
 
         {/* 右侧：输入输出区域 */}
         <div className="right-panel content-panel">
-          {/* 输入区域 */}
-          <div className="input-section">
-            <h3>What are you trying to say?</h3>
-            <div className="input-wrapper">
-              <textarea
-                value={inputText}
-                onChange={(e) => updateInputText(e.target.value)}
-                placeholder="Describe your situation or what's on your mind..."
-                maxLength={TEXT_LIMITS.MAX_INPUT_LENGTH}
-                disabled={isLoading}
-                className={error ? 'error' : ''}
-              />
-              <div className="input-info">
-                <span className="char-count">
-                  {inputText.length}/{TEXT_LIMITS.MAX_INPUT_LENGTH}
-                </span>
-                {inputText.length > TEXT_LIMITS.MAX_INPUT_LENGTH - 50 && (
-                  <span className="char-warning">
-                    {TEXT_LIMITS.MAX_INPUT_LENGTH - inputText.length} characters remaining
+          {/* 输入状态：完整输入界面 */}
+          {showInputMode && (
+            <div className="input-section">
+              <h3>What are you trying to say?</h3>
+              <div className="input-wrapper">
+                <textarea
+                  value={inputText}
+                  onChange={(e) => updateInputText(e.target.value)}
+                  placeholder="Describe your situation or what's on your mind..."
+                  maxLength={TEXT_LIMITS.MAX_INPUT_LENGTH}
+                  disabled={isLoading}
+                  className={error ? 'error' : ''}
+                />
+                <div className="input-info">
+                  <span className="char-count">
+                    {inputText.length}/{TEXT_LIMITS.MAX_INPUT_LENGTH}
                   </span>
-                )}
+                  {inputText.length > TEXT_LIMITS.MAX_INPUT_LENGTH - 50 && (
+                    <span className="char-warning">
+                      {TEXT_LIMITS.MAX_INPUT_LENGTH - inputText.length} characters remaining
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 语言选择器 */}
+              <LanguageSelector
+                selectedLanguage={outputLanguage}
+                onLanguageChange={updateOutputLanguage}
+                disabled={isLoading}
+              />
+
+              <div className="action-buttons">
+                <button
+                  onClick={handleDisguise}
+                  disabled={!inputText.trim() || isLoading}
+                  className="primary-button"
+                >
+                  {isLoading ? 'Finding the right words...' : 'Transform Text'}
+                </button>
+
+                <button
+                  onClick={handleRandomDisguise}
+                  disabled={!inputText.trim() || isLoading}
+                  className="random-button"
+                  title="Need inspiration? Let us pick a style for you!"
+                >
+                  Try Something Random
+                </button>
+
+                <button
+                  onClick={handleClearWithReset}
+                  disabled={isLoading}
+                >
+                  Clear
+                </button>
               </div>
             </div>
+          )}
 
-            {/* 语言选择器 */}
-            <LanguageSelector
-              selectedLanguage={outputLanguage}
-              onLanguageChange={updateOutputLanguage}
-              disabled={isLoading}
-            />
-
-            <div className="action-buttons">
-              <button
-                onClick={handleDisguise}
-                disabled={!inputText.trim() || isLoading}
-                className="primary-button"
-              >
-                {isLoading ? 'Finding the right words...' : 'Transform Text'}
-              </button>
-
-              <button
-                onClick={handleRandomDisguise}
-                disabled={!inputText.trim() || isLoading}
-                className="random-button"
-                title="Need inspiration? Let us pick a style for you!"
-              >
-                Try Something Random
-              </button>
-
-              <button
-                onClick={handleClear}
-                disabled={isLoading}
-              >
-                Clear
-              </button>
+          {/* 输出状态：紧凑输入预览 */}
+          {!showInputMode && hasOutput && (
+            <div className="compact-controls">
+              <div className="input-preview">
+                <span className="input-preview-text">{inputText.slice(0, 80)}{inputText.length > 80 ? '...' : ''}</span>
+                <button
+                  className="edit-input-btn"
+                  onClick={() => setShowInputMode(true)}
+                >
+                  Edit
+                </button>
+              </div>
+              <div className="quick-actions">
+                <button
+                  onClick={handleDisguise}
+                  disabled={!inputText.trim() || isLoading}
+                  className="primary-button compact"
+                >
+                  Regenerate
+                </button>
+                <button
+                  onClick={handleClearWithReset}
+                  disabled={isLoading}
+                  className="clear-btn compact"
+                >
+                  New
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 错误信息显示 */}
           {error && (
@@ -389,8 +473,8 @@ function Home() {
             </div>
           )}
 
-          {/* 结果显示区域 */}
-          {(hasOutput || isLoading) && (
+          {/* 结果显示区域 - 加载时始终显示，有输出时只在输出状态显示 */}
+          {(isLoading || (hasOutput && !showInputMode)) && (
             <div className="result-section">
               {isLoading ? (
                 <div className="loading-indicator">

@@ -238,20 +238,22 @@ const StyleSelector = forwardRef(function StyleSelector({
 
   return (
     <div className="style-selector">
-      <div className="style-manager-header">
-        <h3 className="style-manager-title">Select Style</h3>
-        <div className="header-buttons">
-          {showManageButton && (
-            <button 
-              className="manage-styles-button"
-              onClick={handleManageStyles}
-              disabled={disabled}
-            >
-              Manage Styles
-            </button>
-          )}
+      {showTitle && (
+        <div className="style-manager-header">
+          <h3 className="style-manager-title">Select Style</h3>
+          <div className="header-buttons">
+            {showManageButton && (
+              <button
+                className="manage-styles-button"
+                onClick={handleManageStyles}
+                disabled={disabled}
+              >
+                Manage Styles
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {!hasStyles ? (
         <div className="empty-state">

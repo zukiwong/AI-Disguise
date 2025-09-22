@@ -119,7 +119,7 @@ body.dark .style-item.selected {
 }
 
 .style-name {
-  font-weight: 500;
+  font-weight: 600; /* 加粗字体 */
   color: var(--text-primary); /* 使用CSS变量支持主题切换 */
   margin-bottom: 4px;
 }
@@ -409,17 +409,16 @@ body.dark .tab-button.active::after {
 /* 首页风格选择器中的移除按钮 - 超细线叉号样式 */
 .remove-style-btn {
   position: absolute;
-  top: 50%;
+  top: 12px; /* 移到右上角，与内容有适当间距 */
   right: 8px;
-  width: 30px;
-  height: 30px;
+  width: 20px; /* 减小尺寸 */
+  height: 20px; /* 与下拉按钮高度一致 */
   border: none;
   background: none;
   cursor: pointer;
   padding: 0;
   transition: all 0.3s ease;
-  z-index: 1;
-  transform: translateY(-50%); /* 垂直居中 */
+  z-index: 2; /* 提高层级确保在最上方 */
 }
 
 /* 使用伪元素创建超细线叉号 */
@@ -429,7 +428,7 @@ body.dark .tab-button.active::after {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 18px;
+  width: 12px; /* 调整线条长度适应新的按钮尺寸 */
   height: 1px;
   background-color: #c8c8c8;
   transition: background-color 0.3s ease;
@@ -480,7 +479,7 @@ body.dark .tab-button.active::after {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 40px; /* 给叉号留出空间 */
+  margin-right: 35px; /* 为右上角的叉号留出空间 */
 }
 
 /* 拖拽手柄样式 */

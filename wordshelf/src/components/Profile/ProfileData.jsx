@@ -5,6 +5,11 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useHistoryManager } from '../../hooks/useHistoryManager.js'
 import { clearAllHistory } from '../../services/historyService.js'
+import {
+  exportPersonalReport,
+  exportSmartDataPack,
+  exportFavoriteCollection
+} from '../../services/exportService.js'
 
 // 导入图标
 import ChartReportIcon from '../../assets/icons/chart-report.svg'
@@ -17,37 +22,134 @@ function ProfileData() {
   
   // 状态管理
   const [isExporting, setIsExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState(0)
+  const [exportStatus, setExportStatus] = useState('')
   const [isClearing, setIsClearing] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState(new Date())
 
-  // 占位符：个人报告导出
-  const exportPersonalReport = async () => {
+  // 个人报告导出（简单统计PDF格式）
+  const exportPersonalReportHandler = async () => {
+    if (historyRecords.length === 0) {
+      alert('No data available to export. Please create some transformations first.')
+      return
+    }
+
     setIsExporting(true)
-    
-    setTimeout(() => {
+    setExportProgress(0)
+    setExportStatus('Generating personal report...')
+
+    try {
+      const userProfile = { userId, userEmail }
+
+      await exportPersonalReport(
+        historyRecords,
+        userProfile,
+        userTags,
+        (progress) => {
+          setExportProgress(progress)
+          if (progress <= 60) setExportStatus('Processing usage data...')
+          else setExportStatus('Creating PDF report...')
+        }
+      )
+
+      setExportStatus('Personal report exported successfully!')
+      setTimeout(() => {
+        setExportStatus('')
+        setExportProgress(0)
+      }, 2000)
+
+    } catch (error) {
+      console.error('Export personal report failed:', error)
+      alert(`Export failed: ${error.message}`)
+      setExportStatus('')
+      setExportProgress(0)
+    } finally {
       setIsExporting(false)
-      alert('Personal Report export feature is coming soon! This will include your usage statistics, achievements, and favorite transformations in a beautiful PDF format.')
-    }, 1000)
+    }
   }
 
-  // 占位符：智能数据包导出
-  const exportSmartDataPack = async () => {
+  // 智能数据包导出（包含AI分析的PDF格式）
+  const exportSmartDataPackHandler = async () => {
+    if (historyRecords.length === 0) {
+      alert('No data available to export. Please create some transformations first.')
+      return
+    }
+
     setIsExporting(true)
-    
-    setTimeout(() => {
+    setExportProgress(0)
+    setExportStatus('Preparing smart analysis...')
+
+    try {
+      const userProfile = { userId, userEmail }
+
+      await exportSmartDataPack(
+        historyRecords,
+        userProfile,
+        userTags,
+        (progress) => {
+          setExportProgress(progress)
+          if (progress <= 30) setExportStatus('Analyzing usage data...')
+          else if (progress <= 60) setExportStatus('AI generating insights...')
+          else setExportStatus('Creating analysis report...')
+        }
+      )
+
+      setExportStatus('Smart analysis report exported successfully!')
+      setTimeout(() => {
+        setExportStatus('')
+        setExportProgress(0)
+      }, 2000)
+
+    } catch (error) {
+      console.error('Export smart analysis failed:', error)
+      alert(`Export failed: ${error.message}`)
+      setExportStatus('')
+      setExportProgress(0)
+    } finally {
       setIsExporting(false)
-      alert('Smart Data Pack export feature is coming soon! This will include your transformation history, personalized insights, and curated content recommendations.')
-    }, 1000)
+    }
   }
 
-  // 占位符：收藏集合导出
-  const exportFavoriteCollection = async () => {
+  // 收藏集合导出（HTML格式）
+  const exportFavoriteCollectionHandler = async () => {
+    const favoriteRecords = historyRecords.filter(r => r.isFavorited)
+
+    if (favoriteRecords.length === 0) {
+      alert('You have no favorited items to export. Please favorite some transformations first.')
+      return
+    }
+
     setIsExporting(true)
-    
-    setTimeout(() => {
+    setExportProgress(0)
+    setExportStatus('Generating favorite collection...')
+
+    try {
+      const userProfile = { userId, userEmail }
+
+      await exportFavoriteCollection(
+        historyRecords,
+        userProfile,
+        (progress) => {
+          setExportProgress(progress)
+          if (progress <= 50) setExportStatus('Organizing favorite content...')
+          else setExportStatus('Creating beautiful document...')
+        }
+      )
+
+      setExportStatus('Favorite collection exported successfully!')
+      setTimeout(() => {
+        setExportStatus('')
+        setExportProgress(0)
+      }, 2000)
+
+    } catch (error) {
+      console.error('Export favorite collection failed:', error)
+      alert(`Export failed: ${error.message}`)
+      setExportStatus('')
+      setExportProgress(0)
+    } finally {
       setIsExporting(false)
-      alert('Favorite Collection export feature is coming soon! This will create a beautifully formatted document with your best transformations and notes.')
-    }, 1000)
+    }
   }
 
   // 清空所有历史记录
@@ -133,16 +235,16 @@ function ProfileData() {
             </div>
             <div className="export-content">
               <h4>Personal Report</h4>
-              <p>Beautiful PDF with your usage stats, achievements, and insights</p>
+              <p>Clean PDF with your basic usage statistics and patterns</p>
               <div className="export-features">
-                <span>• Usage analytics</span>
-                <span>• Achievement showcase</span>
+                <span>• Usage statistics</span>
+                <span>• Activity patterns</span>
                 <span>• Top transformations</span>
               </div>
             </div>
             <button
               className="action-button tertiary"
-              onClick={exportPersonalReport}
+              onClick={exportPersonalReportHandler}
               disabled={isExporting || historyRecords.length === 0}
             >
               {isExporting ? 'Generating...' : 'Generate Report'}
@@ -154,20 +256,20 @@ function ProfileData() {
               <img src={DataPackIcon} alt="Data Pack" className="export-icon-svg" />
             </div>
             <div className="export-content">
-              <h4>Smart Data Pack</h4>
-              <p>Comprehensive export with personalized insights and recommendations</p>
+              <h4>Smart Analysis Pack</h4>
+              <p>AI-powered PDF report with personalized insights and recommendations</p>
               <div className="export-features">
-                <span>• Complete history</span>
-                <span>• Personal insights</span>
-                <span>• Usage patterns</span>
+                <span>• AI personality insights</span>
+                <span>• Smart recommendations</span>
+                <span>• Visual data charts</span>
               </div>
             </div>
             <button
               className="action-button tertiary"
-              onClick={exportSmartDataPack}
+              onClick={exportSmartDataPackHandler}
               disabled={isExporting || historyRecords.length === 0}
             >
-              {isExporting ? 'Preparing...' : 'Download Pack'}
+              {isExporting ? 'Analyzing...' : 'Generate Analysis'}
             </button>
           </div>
 
@@ -186,13 +288,28 @@ function ProfileData() {
             </div>
             <button
               className="action-button tertiary"
-              onClick={exportFavoriteCollection}
+              onClick={exportFavoriteCollectionHandler}
               disabled={isExporting || historyRecords.filter(r => r.isFavorited).length === 0}
             >
               {isExporting ? 'Creating...' : 'Export Favorites'}
             </button>
           </div>
         </div>
+
+        {/* 导出进度指示器 */}
+        {isExporting && (
+          <div className="export-progress">
+            <div className="export-progress-bar">
+              <div
+                className="export-progress-fill"
+                style={{ width: `${exportProgress}%` }}
+              ></div>
+            </div>
+            <div className="export-progress-text">
+              {exportStatus} ({exportProgress}%)
+            </div>
+          </div>
+        )}
 
         {historyRecords.length === 0 && (
           <div className="data-notice">

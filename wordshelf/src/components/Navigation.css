@@ -1,4 +1,44 @@
-/* 沉浸式导航栏样式 */
+/* 紧凑型导航栏样式 */
+
+/* 汉堡菜单图标样式 */
+.hamburger-menu {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  z-index: 1001;
+}
+
+.hamburger-line {
+  width: 18px;
+  height: 2px;
+  background: var(--text-primary);
+  transition: all 0.3s ease;
+  border-radius: 1px;
+}
+
+.hamburger-menu.expanded .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(4px, 4px);
+}
+
+.hamburger-menu.expanded .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.expanded .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+.hamburger-menu:hover {
+  background: var(--hover-bg);
+}
 
 /* 主题切换按钮 */
 .theme-toggle {
@@ -25,7 +65,7 @@
   transition: all 0.3s ease;
 }
 .immersive-nav {
-  position: fixed; /* 回到固定定位 */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -43,11 +83,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
-  height: 64px;
+  padding: 0 12px; /* 减少左右边距 */
+  height: 48px; /* 减少导航栏高度 */
+  position: relative;
 }
 
 /* 品牌区域 */
+
 .nav-brand .brand-link {
   text-decoration: none; /* 移除链接下划线 */
   cursor: pointer; /* 显示手指指针 */
@@ -60,9 +102,9 @@
 }
 
 .brand-logo {
-  height: 32px;
+  height: 28px; /* 稍微减小logo高度 */
   width: auto;
-  max-width: 150px;
+  max-width: 130px; /* 减小最大宽度 */
   object-fit: contain;
 }
 
@@ -78,7 +120,34 @@
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 20px; /* 减少链接间距 */
+  transition: all 0.3s ease;
+}
+
+
+/* 导航栏右侧区域：包含导航链接或汉堡图标 */
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+/* 紧凑状态：只显示汉堡图标 */
+.immersive-nav.compact .hamburger-menu {
+  display: flex;
+}
+
+.immersive-nav.compact .nav-links {
+  display: none;
+}
+
+/* 展开状态：显示导航链接和汉堡图标 */
+.immersive-nav.expanded .hamburger-menu {
+  display: flex;
+  margin-left: 12px; /* 在导航链接右侧留一点间距 */
+}
+
+.immersive-nav.expanded .nav-links {
+  display: flex;
 }
 
 .nav-link {
@@ -117,25 +186,24 @@
   box-shadow: 0 0 8px rgba(46, 125, 50, 0.8);
 }
 
-/* 登录按钮 */
+/* 登录按钮 - 与其他导航链接一致的样式 */
 .nav-signin-btn {
-  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
-  color: white;
-  border: 1px solid #333;
-  padding: 8px 20px;
-  border-radius: 20px;
+  position: relative;
+  color: var(--text-secondary);
+  text-decoration: none;
   font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 6px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .nav-signin-btn:hover {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  border-color: #555;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+  background: var(--hover-bg);
 }
 
 /* 页面内容区域适配在App.css中处理 */
@@ -143,64 +211,62 @@
 /* 移动端适配 */
 @media (max-width: 768px) {
   .nav-content {
-    padding: 0 16px;
-    height: 56px;
+    padding: 0 10px; /* 进一步减少移动端边距 */
+    height: 44px; /* 移动端更紧凑的高度 */
   }
-  
+
   .brand-logo {
-    height: 28px;
-    max-width: 120px;
+    height: 24px; /* 移动端更小的logo */
+    max-width: 110px;
   }
 
   .nav-brand h2 {
     font-size: 18px;
   }
-  
+
   .nav-links {
-    gap: 20px;
+    gap: 16px; /* 移动端更紧凑的链接间距 */
   }
-  
+
   .nav-link {
     font-size: 13px;
-    padding: 6px 12px;
+    padding: 5px 10px; /* 减少内边距 */
   }
-  
+
   .nav-signin-btn {
-    padding: 6px 16px;
+    padding: 5px 10px; /* 与其他导航链接一致的内边距 */
     font-size: 13px;
   }
-  
 }
 
 @media (max-width: 480px) {
   .nav-content {
-    padding: 0 12px;
-    height: 52px;
+    padding: 0 8px; /* 最小屏幕最紧凑的边距 */
+    height: 40px; /* 最小屏幕最紧凑的高度 */
   }
-  
+
   .brand-logo {
-    height: 24px;
-    max-width: 100px;
+    height: 22px; /* 最小屏幕更小的logo */
+    max-width: 90px;
   }
 
   .nav-brand h2 {
     font-size: 16px;
   }
-  
+
   .nav-links {
-    gap: 16px;
+    gap: 12px; /* 最小屏幕最紧凑的链接间距 */
   }
-  
+
   .nav-link {
     font-size: 12px;
     padding: 4px 8px;
   }
-  
+
   .nav-signin-btn {
-    padding: 5px 12px;
+    padding: 4px 8px; /* 与其他导航链接一致的内边距 */
     font-size: 12px;
   }
-  
 }
 
 /* 增强模糊效果的浏览器兼容性 */

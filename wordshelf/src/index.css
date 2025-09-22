@@ -197,66 +197,117 @@ button:focus-visible {
 .home-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  padding-top: 80px; /* 给导航栏留出空间 */
-  height: 100%;
-  overflow: hidden;
+  padding-top: 15px; /* 顶部间距 */
+  padding-bottom: 20px; /* 底部间距，避免与footer贴近 */
+  height: calc(100vh - 48px - 60px - 40px); /* 调整高度计算，考虑新的间距 */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden; /* 整体页面不滚动 */
 }
 
 /* 两栏布局样式 */
-.two-column-layout .header-section {
-  text-align: center;
-  margin-bottom: 20px;
-  flex-shrink: 0;
-}
-
 .two-column-layout .main-content-wrapper {
   display: grid;
-  grid-template-columns: 500px 1fr;
-  gap: 40px;
-  align-items: stretch;
+  grid-template-columns: 480px 1fr; /* 稍微减少左侧宽度 */
+  gap: 50px; /* 增加栏间距 */
+  align-items: start; /* 改为顶部对齐，不拉伸高度 */
   flex: 1;
-  overflow: hidden;
   min-height: 0; /* 允许flex子项收缩 */
+  overflow: hidden; /* 防止整体滚动 */
+  margin-top: 25px; /* 增加与顶部导航栏的间距 */
 }
 
 .left-panel.style-panel {
   background-color: var(--bg-secondary);
   border-radius: 12px;
-  padding: 24px;
-  overflow-y: auto;
-  height: 100%;
+  padding: 0; /* 重置内边距，让子元素分别处理 */
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* 使用flex容器的高度 */
+  overflow: hidden; /* 面板本身不滚动 */
+  position: relative; /* 为蒙版提供定位基准 */
+}
+
+/* 固定头部样式 */
+.left-panel .fixed-header {
+  flex-shrink: 0; /* 固定不收缩 */
+  padding: 20px 20px 15px 20px; /* 顶部和左右内边距 */
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  border-radius: 12px 12px 0 0; /* 只有顶部圆角 */
+}
+
+/* 可滚动内容区域 */
+.left-panel .scrollable-content {
+  flex: 1; /* 占据剩余空间 */
+  overflow-y: auto; /* 允许垂直滚动 */
+  padding: 15px 20px 20px 20px; /* 内容区域的内边距 */
+  min-height: 0; /* 允许flex子项收缩 */
+}
+
+/* 左侧面板容器 - 为蒙版提供定位基准 */
+.left-panel.style-panel.has-scroll::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px; /* 蒙版高度 */
+  background: linear-gradient(to top,
+    var(--bg-secondary) 0%,
+    rgba(0, 0, 0, 0.02) 50%, /* 进一步减少不透明度 */
+    transparent 100%
+  );
+  pointer-events: none; /* 不影响滚动和点击 */
+  border-radius: 0 0 12px 12px; /* 匹配容器的底部圆角 */
+  z-index: 2; /* 确保在内容之上 */
+  transition: opacity 0.3s ease; /* 平滑显示/隐藏 */
+}
+
+/* 深色模式下的蒙版效果 */
+body.dark .left-panel.style-panel.has-scroll::after {
+  background: linear-gradient(to top,
+    var(--bg-secondary) 0%,
+    rgba(255, 255, 255, 0.015) 50%, /* 进一步减少不透明度 */
+    transparent 100%
+  );
+}
+
+/* 当滚动到底部时隐藏蒙版 */
+.left-panel.style-panel.at-bottom::after {
+  opacity: 0;
 }
 
 .right-panel.content-panel {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  height: 100%; /* 使用flex容器的高度 */
+  overflow: hidden; /* 右侧不滚动 */
 }
 
-/* 初始状态下让左右高度匹配 */
+/* 右侧面板区域样式 - 移除背景框 */
 .right-panel .input-section {
-  background-color: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
-  flex: 1;
+  margin-bottom: 20px; /* 适当间距 */
+  flex: 0 0 auto; /* 不收缩，不拉伸，自动高度 */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
 }
 
 .right-panel .result-section {
+  animation: slideInUp 0.4s ease-out;
+  flex: 1; /* 占据剩余空间 */
+  overflow-y: auto; /* 结果区域可以滚动 */
+  min-height: 0; /* 允许收缩 */
+}
+
+/* 为结果区域保留背景，但输入区域无背景 */
+.right-panel .result-section .result-container {
   background-color: var(--bg-secondary);
   border-radius: 12px;
-  padding: 24px;
-  animation: slideInUp 0.4s ease-out;
-  flex: 1;
-  overflow-y: auto;
+  padding: 20px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes slideInUp {
@@ -273,6 +324,123 @@ button:focus-visible {
 /* 输入区域样式 */
 .input-section {
   margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+/* 输入区域标题样式 */
+.input-section h3 {
+  font-size: 30px; /* 放大字体 */
+  font-weight: 600; /* 稍微加粗 */
+  margin-bottom: 15px;
+  color: var(--text-primary);
+}
+
+/* 输入内容区域 */
+.input-content {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+/* 收缩状态的输入内容 */
+.input-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* 紧凑控制区 */
+.compact-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  margin-top: 15px;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.input-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.input-preview-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edit-input-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-input-btn:hover {
+  background-color: var(--hover-bg);
+}
+
+.quick-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.primary-button.compact,
+.clear-btn.compact {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.clear-btn {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-btn:hover:not(:disabled) {
+  background-color: #e9e9e9;
+}
+
+/* 收缩控制区 */
+.collapse-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.collapse-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.collapse-btn:hover {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .input-wrapper {
@@ -281,8 +449,8 @@ button:focus-visible {
 
 .input-section textarea {
   width: 100%;
-  min-height: 120px;
-  padding: 12px;
+  min-height: 300px; /* 进一步增加文本区域高度 */
+  padding: 15px; /* 增加内边距，提升体验 */
   border: 2px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
@@ -377,21 +545,20 @@ button:focus-visible {
 
 /* 错误和状态消息样式 */
 .error-message {
-  background-color: #ffebee;
-  color: #c62828;
-  padding: 12px;
-  border-radius: 8px;
+  color: #f44336;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
   margin: 10px 0;
-  border-left: 4px solid #f44336;
+  animation: fadeIn 0.3s ease;
 }
 
 .copy-status {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  padding: 10px;
-  border-radius: 8px;
+  color: #4caf50;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
   margin: 10px 0;
-  border-left: 4px solid #4caf50;
   animation: fadeIn 0.3s ease;
 }
 
@@ -509,6 +676,7 @@ button:focus-visible {
 /* 语言选择器容器样式 */
 .language-selector {
   width: 100%;
+  margin-bottom: 25px; /* 增加与action-buttons的间距 */
 }
 
 .language-selector h3 {
@@ -633,7 +801,7 @@ button:focus-visible {
   .home-container {
     padding: 0; /* App.css中已经有padding了 */
     height: auto;
-    min-height: calc(100vh - 96px); /* 减去导航栏和底部空间 */
+    min-height: calc(100vh - 70px); /* 减少预留空间，因为导航栏更紧凑了 */
     overflow: visible;
   }
 
