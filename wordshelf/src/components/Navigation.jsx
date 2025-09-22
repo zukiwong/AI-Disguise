@@ -27,7 +27,7 @@ function Navigation() {
         <div className="nav-content">
           <div className="nav-brand">
             <Link to="/" className="brand-link">
-              <h2>WordShelf</h2>
+              <img src="/src/assets/logo.svg" alt="WordShelf" className="brand-logo" />
             </Link>
           </div>
           

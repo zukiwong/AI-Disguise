@@ -195,10 +195,79 @@ button:focus-visible {
 
 /* WordShelf 专用样式 */
 .home-container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  min-height: 100vh;
+  padding-top: 80px; /* 给导航栏留出空间 */
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* 两栏布局样式 */
+.two-column-layout .header-section {
+  text-align: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.two-column-layout .main-content-wrapper {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 40px;
+  align-items: stretch;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0; /* 允许flex子项收缩 */
+}
+
+.left-panel.style-panel {
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.right-panel.content-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 初始状态下让左右高度匹配 */
+.right-panel .input-section {
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.right-panel .result-section {
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 24px;
+  animation: slideInUp 0.4s ease-out;
+  flex: 1;
+  overflow-y: auto;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 输入区域样式 */
@@ -562,21 +631,54 @@ button:focus-visible {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .home-container {
-    padding: 15px;
+    padding: 0; /* App.css中已经有padding了 */
+    height: auto;
+    min-height: calc(100vh - 96px); /* 减去导航栏和底部空间 */
+    overflow: visible;
   }
-  
+
+  /* 移动端恢复垂直布局 */
+  .two-column-layout .main-content-wrapper {
+    display: block;
+    gap: 0;
+    flex: none;
+    overflow: visible;
+  }
+
+  .left-panel.style-panel {
+    position: static;
+    max-height: none;
+    height: auto;
+    margin-bottom: 20px;
+    overflow-y: visible;
+  }
+
+  .right-panel.content-panel {
+    overflow: visible;
+  }
+
+  .right-panel .input-section {
+    flex: none;
+    overflow: visible;
+  }
+
+  .right-panel .result-section {
+    flex: none;
+    overflow: visible;
+  }
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .action-buttons button {
     width: 100%;
   }
-  
+
   /* 移动端下拉框调整 */
-  .modern-select, 
+  .modern-select,
   .language-select,
-  .filter-select, 
+  .filter-select,
   .form-select,
   .style-selector select {
     font-size: 16px; /* 防止iOS缩放 */

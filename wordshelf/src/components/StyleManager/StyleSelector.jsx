@@ -1,7 +1,7 @@
 // 风格选择器组件
 // 数据驱动的风格选择界面
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import StyleManager from './StyleManager.jsx'
@@ -26,16 +26,17 @@ import {
 } from '@dnd-kit/utilities'
 import '../../styles/StyleManager.css'
 
-function StyleSelector({ 
-  selectedStyle, 
+const StyleSelector = forwardRef(function StyleSelector({
+  selectedStyle,
   selectedVariant = null, // 新增变体选择状态
   stylesWithVariants: propStylesWithVariants, // 从 props 接收样式数据
   isLoadingVariants: propIsLoadingVariants = false, // 从 props 接收加载状态
-  onStyleChange, 
+  onStyleChange,
   onVariantChange, // 新增变体变化回调
   disabled = false,
-  showManageButton = true
-}) {
+  showManageButton = true,
+  showTitle = true // 新增：是否显示标题
+}, ref) {
   const { userId, isAuthenticated } = useAuth()
   
   // 简化逻辑：优先使用从 props 传入的数据，否则使用内部 Hook
@@ -210,6 +211,13 @@ function StyleSelector({
     setShowStyleManager(false)
     // 移除重新加载，依赖乐观更新保持数据一致性
   }
+
+  // 暴露给父组件的方法
+  useImperativeHandle(ref, () => ({
+    openManager: () => {
+      setShowStyleManager(true)
+    }
+  }))
   
   if (isLoading) {
     return (
@@ -300,7 +308,7 @@ function StyleSelector({
       )}
     </div>
   )
-}
+})
 
 // 可拖拽的样式项组件
 function SortableStyleItem({ 

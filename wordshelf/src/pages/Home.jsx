@@ -4,6 +4,8 @@ import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
 import LanguageSelector from '../components/LanguageSelector.jsx'
 import { StyleSelector } from '../components/StyleManager/index.js'
 import { gsap } from 'gsap'
+import '../styles/Explore.css'
+import ManageIcon from '../assets/icons/manage.svg'
 
 function Home() {
   // 使用自定义 Hook 管理伪装功能
@@ -43,10 +45,13 @@ function Home() {
 
   // 复制状态管理
   const [copyStatus, setCopyStatus] = useState('')
-  
+
   // 进度条动画引用
   const progressBarRef = useRef(null)
   const progressTextRef = useRef(null)
+
+  // StyleSelector引用
+  const styleSelectorRef = useRef(null)
 
   // 检查并应用来自历史记录的预填充数据和预选风格
   useEffect(() => {
@@ -207,215 +212,239 @@ function Home() {
   }, [isLoading])
 
   return (
-    <div className="home-container">
-      <h1>WordShelf</h1>
-      <p>Find the right words, right away.</p>
-      
-      {/* 输入区域 */}
-      <div className="input-section">
-        <h3>Input Text:</h3>
-        <div className="input-wrapper">
-          <textarea 
-            value={inputText}
-            onChange={(e) => updateInputText(e.target.value)}
-            placeholder="Enter text to transform..."
-            maxLength={TEXT_LIMITS.MAX_INPUT_LENGTH}
-            disabled={isLoading}
-            className={error ? 'error' : ''}
-          />
-          <div className="input-info">
-            <span className="char-count">
-              {inputText.length}/{TEXT_LIMITS.MAX_INPUT_LENGTH}
-            </span>
-            {inputText.length > TEXT_LIMITS.MAX_INPUT_LENGTH - 50 && (
-              <span className="char-warning">
-                {TEXT_LIMITS.MAX_INPUT_LENGTH - inputText.length} characters remaining
-              </span>
-            )}
-          </div>
-        </div>
-        
+    <div className="home-container two-column-layout">
+      <div className="header-section">
+        <h1>WordShelf</h1>
+        <p>When you're stuck for words, find the perfect expression</p>
       </div>
 
-      {/* 控制区域 */}
-      <div className="control-section">
-        {/* 模式切换 */}
-        <div className="mode-selector">
-          <h3>Conversion Mode:</h3>
-          <div className="mode-tabs">
-            <button 
-              className={`mode-tab ${conversionMode === CONVERSION_MODE.STYLE ? 'active' : ''}`}
-              onClick={() => updateConversionMode(CONVERSION_MODE.STYLE)}
-              disabled={isLoading}
-            >
-              Style Mode
-            </button>
-            <button 
-              className={`mode-tab ${conversionMode === CONVERSION_MODE.PURPOSE ? 'active' : ''}`}
-              onClick={() => updateConversionMode(CONVERSION_MODE.PURPOSE)}
-              disabled={isLoading}
-            >
-              Purpose + Recipient Mode
-            </button>
-          </div>
-        </div>
-
-        {/* 根据模式显示不同的选择器 */}
-        {conversionMode === CONVERSION_MODE.STYLE ? (
-          <StyleSelector
-            selectedStyle={selectedStyle}
-            selectedVariant={selectedVariant} // 传递变体状态
-            stylesWithVariants={stylesWithVariants} // 传递样式数据
-            isLoadingVariants={isLoadingVariants} // 传递加载状态
-            onStyleChange={updateSelectedStyle}
-            onVariantChange={updateSelectedVariant} // 传递变体更新方法
-            disabled={isLoading}
-            showManageButton={true}
-          />
-        ) : (
-          <div className="purpose-recipient-selector">
-            <div className="purpose-selector">
-              <h3>Expression Purpose:</h3>
-              <select 
-                value={selectedPurpose}
-                onChange={(e) => updateSelectedPurpose(e.target.value)}
-                disabled={isLoading}
-              >
-                {Object.entries(PURPOSE_CONFIG).map(([key, purpose]) => (
-                  <option key={key} value={key}>
-                    {purpose.displayName} - {purpose.description}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="recipient-selector">
-              <h3>Target Recipient:</h3>
-              <select 
-                value={selectedRecipient}
-                onChange={(e) => updateSelectedRecipient(e.target.value)}
-                disabled={isLoading}
-              >
-                {Object.entries(RECIPIENT_CONFIG).map(([key, recipient]) => (
-                  <option key={key} value={key}>
-                    {recipient.displayName} - {recipient.description}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-        
-        {/* 语言选择器 - 只在启用时显示 */}
-        <LanguageSelector
-          selectedLanguage={outputLanguage}
-          onLanguageChange={updateOutputLanguage}
-          disabled={isLoading}
-        />
-        
-        <div className="action-buttons">
-          <button 
-            onClick={handleDisguise}
-            disabled={!inputText.trim() || isLoading}
-            className="primary-button"
-          >
-            {isLoading ? 'Converting...' : 'Start Transform'}
-          </button>
-          
-          <button 
-            onClick={handleRandomDisguise}
-            disabled={!inputText.trim() || isLoading}
-            className="random-button"
-            title="Can't decide? Let AI pick a random style for you!"
-          >
-            Random
-          </button>
-          
-          <button 
-            onClick={handleClear}
-            disabled={isLoading}
-          >
-            Clear
-          </button>
-        </div>
-      </div>
-
-      {/* 错误信息显示 */}
-      {error && (
-        <div className="error-message">
-          <span>⚠️ {error}</span>
-        </div>
-      )}
-
-      {/* 复制状态提示 */}
-      {copyStatus && (
-        <div className="copy-status">
-          ✅ {copyStatus}
-        </div>
-      )}
-
-      {/* 分享状态提示 */}
-      {shareStatus && (
-        <div className="share-status">
-          🎉 {shareStatus}
-        </div>
-      )}
-
-      {/* 结果显示区域 */}
-      {(hasOutput || isLoading) && (
-        <div className="result-section">
-          {isLoading ? (
-            <div className="loading-indicator">
-              <div className="progress-container">
-                <div className="progress-bar-bg">
-                  <div 
-                    ref={progressBarRef}
-                    className="progress-bar-fill"
-                  />
-                </div>
-                <p ref={progressTextRef} className="progress-text">
-                  AI is transforming your text, please wait...
-                </p>
+      <div className="main-content-wrapper">
+        {/* 左侧：样式选择区域 */}
+        <div className="left-panel style-panel">
+          {/* 模式切换 */}
+          <div className="mode-selector">
+            <div className="explore-tabs">
+              <div className="tab-buttons">
+                <button
+                  className={`explore-tab ${conversionMode === CONVERSION_MODE.STYLE ? 'active' : ''}`}
+                  onClick={() => updateConversionMode(CONVERSION_MODE.STYLE)}
+                  disabled={isLoading}
+                >
+                  Style Mode
+                </button>
+                <button
+                  className={`explore-tab ${conversionMode === CONVERSION_MODE.PURPOSE ? 'active' : ''}`}
+                  onClick={() => updateConversionMode(CONVERSION_MODE.PURPOSE)}
+                  disabled={isLoading}
+                >
+                  Purpose Mode
+                </button>
               </div>
+              {conversionMode === CONVERSION_MODE.STYLE && (
+                <button
+                  className="manage-icon-button"
+                  onClick={() => {
+                    // 直接调用StyleSelector内置的管理功能
+                    if (styleSelectorRef.current) {
+                      styleSelectorRef.current.openManager();
+                    }
+                  }}
+                  disabled={isLoading}
+                  title="Manage Styles"
+                >
+                  <img src={ManageIcon} alt="Manage Styles" className="manage-icon" />
+                </button>
+              )}
             </div>
+          </div>
+
+          {/* 根据模式显示不同的选择器 */}
+          {conversionMode === CONVERSION_MODE.STYLE ? (
+            <StyleSelector
+              ref={styleSelectorRef}
+              selectedStyle={selectedStyle}
+              selectedVariant={selectedVariant}
+              stylesWithVariants={stylesWithVariants}
+              isLoadingVariants={isLoadingVariants}
+              onStyleChange={updateSelectedStyle}
+              onVariantChange={updateSelectedVariant}
+              disabled={isLoading}
+              showManageButton={false}
+              showTitle={false}
+            />
           ) : (
-            <div className="output-section">
-              <div className="result-header">
-                <h3>Result:</h3>
-                {/* 显示语言检测信息（仅在启用多语言功能时） */}
-                {isLanguageFeatureEnabled && detectedLanguage && (
-                  <div className="language-info">
-                    <span className="detected-language">
-                      Detected input language: {detectedLanguage.toUpperCase()}
-                    </span>
-                  </div>
-                )}
+            <div className="purpose-recipient-selector">
+              <div className="purpose-selector">
+                <h3>Expression Purpose:</h3>
+                <select
+                  value={selectedPurpose}
+                  onChange={(e) => updateSelectedPurpose(e.target.value)}
+                  disabled={isLoading}
+                >
+                  {Object.entries(PURPOSE_CONFIG).map(([key, purpose]) => (
+                    <option key={key} value={key}>
+                      {purpose.displayName} - {purpose.description}
+                    </option>
+                  ))}
+                </select>
               </div>
-              
-              <div className="result-container">
-                <div className="text-content">
-                  {output}
-                </div>
-                <div className="result-actions">
-                  <button 
-                    onClick={() => handleCopy(output, 'Result')}
-                    disabled={isLoading}
-                  >
-                    Copy Result
-                  </button>
-                  <button 
-                    onClick={handleShare}
-                    disabled={isLoading || isSharing}
-                    className="share-button"
-                  >
-                    {isSharing ? 'Sharing...' : 'Share to Explore'}
-                  </button>
-                </div>
+
+              <div className="recipient-selector">
+                <h3>Target Recipient:</h3>
+                <select
+                  value={selectedRecipient}
+                  onChange={(e) => updateSelectedRecipient(e.target.value)}
+                  disabled={isLoading}
+                >
+                  {Object.entries(RECIPIENT_CONFIG).map(([key, recipient]) => (
+                    <option key={key} value={key}>
+                      {recipient.displayName} - {recipient.description}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           )}
+
         </div>
-      )}
+
+        {/* 右侧：输入输出区域 */}
+        <div className="right-panel content-panel">
+          {/* 输入区域 */}
+          <div className="input-section">
+            <h3>What are you trying to say?</h3>
+            <div className="input-wrapper">
+              <textarea
+                value={inputText}
+                onChange={(e) => updateInputText(e.target.value)}
+                placeholder="Describe your situation or what's on your mind..."
+                maxLength={TEXT_LIMITS.MAX_INPUT_LENGTH}
+                disabled={isLoading}
+                className={error ? 'error' : ''}
+              />
+              <div className="input-info">
+                <span className="char-count">
+                  {inputText.length}/{TEXT_LIMITS.MAX_INPUT_LENGTH}
+                </span>
+                {inputText.length > TEXT_LIMITS.MAX_INPUT_LENGTH - 50 && (
+                  <span className="char-warning">
+                    {TEXT_LIMITS.MAX_INPUT_LENGTH - inputText.length} characters remaining
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 语言选择器 */}
+            <LanguageSelector
+              selectedLanguage={outputLanguage}
+              onLanguageChange={updateOutputLanguage}
+              disabled={isLoading}
+            />
+
+            <div className="action-buttons">
+              <button
+                onClick={handleDisguise}
+                disabled={!inputText.trim() || isLoading}
+                className="primary-button"
+              >
+                {isLoading ? 'Finding the right words...' : 'Transform Text'}
+              </button>
+
+              <button
+                onClick={handleRandomDisguise}
+                disabled={!inputText.trim() || isLoading}
+                className="random-button"
+                title="Need inspiration? Let us pick a style for you!"
+              >
+                Try Something Random
+              </button>
+
+              <button
+                onClick={handleClear}
+                disabled={isLoading}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          {/* 错误信息显示 */}
+          {error && (
+            <div className="error-message">
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* 复制状态提示 */}
+          {copyStatus && (
+            <div className="copy-status">
+              {copyStatus}
+            </div>
+          )}
+
+          {/* 分享状态提示 */}
+          {shareStatus && (
+            <div className="share-status">
+              {shareStatus}
+            </div>
+          )}
+
+          {/* 结果显示区域 */}
+          {(hasOutput || isLoading) && (
+            <div className="result-section">
+              {isLoading ? (
+                <div className="loading-indicator">
+                  <div className="progress-container">
+                    <div className="progress-bar-bg">
+                      <div
+                        ref={progressBarRef}
+                        className="progress-bar-fill"
+                      />
+                    </div>
+                    <p ref={progressTextRef} className="progress-text">
+                      Finding the perfect words for you...
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="output-section">
+                  <div className="result-header">
+                    <h3>Your Expression:</h3>
+                    {isLanguageFeatureEnabled && detectedLanguage && (
+                      <div className="language-info">
+                        <span className="detected-language">
+                          Detected input language: {detectedLanguage.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="result-container">
+                    <div className="text-content">
+                      {output}
+                    </div>
+                    <div className="result-actions">
+                      <button
+                        onClick={() => handleCopy(output, 'Expression')}
+                        disabled={isLoading}
+                      >
+                        Copy Expression
+                      </button>
+                      <button
+                        onClick={handleShare}
+                        disabled={isLoading || isSharing}
+                        className="share-button"
+                      >
+                        {isSharing ? 'Sharing...' : 'Help Others in Similar Situations'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
