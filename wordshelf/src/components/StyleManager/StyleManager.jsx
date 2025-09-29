@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth.js'
 import { LoginPrompt } from '../Auth/index.js'
 import StyleEditor from './StyleEditor.jsx'
 import { getPublicStylesForExplore } from '../../services/styleService.js'
+import eventBus, { EVENTS } from '../../utils/eventBus.js'
 import '../../styles/StyleManager.css'
 import '../../styles/Modal.css'
 
@@ -151,7 +152,7 @@ function StyleManager({ onClose }) {
       
       setShowEditor(false)
       setEditingStyle(null)
-      
+
       // 使用静默刷新，避免重新加载，延长时间确保Firebase同步
       setTimeout(() => silentReloadStyles(), 3000)
     } catch (error) {
@@ -173,7 +174,7 @@ function StyleManager({ onClose }) {
     
     try {
       await handleDeleteStyle(styleId)
-      
+
       // 使用静默刷新，避免重新加载，延长时间确保Firebase同步
       setTimeout(() => silentReloadStyles(), 3000)
     } catch (error) {
@@ -263,6 +264,8 @@ function StyleManager({ onClose }) {
       // handleCopyStyle已经实现乐观更新，无需额外操作
       if (result) {
         console.log('风格复制成功')
+        // 复制成功后跳转到My Styles标签页
+        setActiveTab('private')
       }
     } catch (error) {
       console.error('复制风格失败:', error)

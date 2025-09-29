@@ -10,6 +10,7 @@ import { createShare } from '../services/shareService.js'
 import { getPublicStylesWithVariants } from '../services/styleService.js'
 import { generateVariantPrompt } from '../utils/variantUtils.js'
 import { addHistoryRecord } from '../services/historyService.js'
+import eventBus, { EVENTS } from '../utils/eventBus.js'
 
 /**
  * 伪装功能的自定义 Hook
@@ -20,7 +21,7 @@ export function useDisguise() {
   const { userId, isAuthenticated, userName, userEmail } = useAuth()
   
   // 使用风格管理 Hook，传递 userId
-  const { styles, hasStyles } = useStyles(userId)
+  const { styles, hasStyles, loadStyles, removePublicStyleFromAccount } = useStyles(userId)
   
   // 管理带变体的风格数据
   const [stylesWithVariants, setStylesWithVariants] = useState([])
@@ -190,6 +191,22 @@ export function useDisguise() {
       }
     }
   }, [hasStyles, stylesWithVariants, selectedStyle])
+
+  // 监听样式更新事件，强制刷新样式数据
+  useEffect(() => {
+    const unsubscribe = eventBus.on(EVENTS.STYLES_UPDATED, (data) => {
+      // 只有当userId匹配时才刷新
+      if (data.userId === userId) {
+        console.log('useDisguise: 检测到样式更新事件，强制刷新样式数据')
+        // 直接调用loadStyles来刷新
+        if (loadStyles) {
+          loadStyles()
+        }
+      }
+    })
+
+    return unsubscribe
+  }, [userId, loadStyles])
 
   /**
    * 执行文本伪装转换
@@ -511,7 +528,10 @@ export function useDisguise() {
     
     // 语言相关方法
     updateOutputLanguage,
-    
+
+    // 样式管理方法
+    removePublicStyleFromAccount,
+
     // 计算属性
     hasOutput: Boolean(output),
     hasOriginal: Boolean(originalText),

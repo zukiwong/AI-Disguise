@@ -42,13 +42,36 @@ export function useStyles(userId = null) {
     try {
       // 使用新的简化函数一次性加载所有带变体的风格数据
       const allStylesWithVariants = await getUserStylesWithVariants(userId)
-      setStyles(allStylesWithVariants)
+
+      // 数据完整性检查：过滤掉可能的无效样式
+      const validStyles = []
+      const invalidStyles = []
+
+      allStylesWithVariants.forEach(style => {
+        if (style && style.id && style.displayName) {
+          validStyles.push(style)
+        } else {
+          invalidStyles.push(style)
+          console.log('发现无效样式:', {
+            id: style?.id,
+            displayName: style?.displayName,
+            createdBy: style?.createdBy,
+            hasAllFields: !!(style && style.id && style.displayName)
+          })
+        }
+      })
+
+      if (invalidStyles.length > 0) {
+        console.log('总共过滤了', invalidStyles.length, '个无效样式')
+      }
+
+      setStyles(validStyles)
 
       // 分别设置公共和用户风格（从合并的结果中分离）
-      const publicStylesData = allStylesWithVariants.filter(style =>
+      const publicStylesData = validStyles.filter(style =>
         style.isPublic || (style.createdBy === 'system' && style.isPublic !== false)
       )
-      const userStylesData = allStylesWithVariants.filter(style =>
+      const userStylesData = validStyles.filter(style =>
         !style.isPublic && style.createdBy === userId
       )
 
@@ -62,14 +85,6 @@ export function useStyles(userId = null) {
       } else {
         setAddedStyleIds([])
       }
-
-      // 发送样式更新事件
-      eventBus.emit(EVENTS.STYLES_UPDATED, {
-        styles: allStylesWithVariants,
-        publicStyles: publicStylesData,
-        userStyles: userStylesData,
-        userId
-      })
 
     } catch (err) {
       console.error('加载风格失败:', err)
@@ -314,13 +329,11 @@ export function useStyles(userId = null) {
 
   // 静默重新加载（不显示loading状态）
   const silentReloadStyles = useCallback(async () => {
-    console.log('silentReloadStyles: 开始静默重新加载')
     setError('')
     
     try {
       // 使用新的简化函数一次性加载所有带变体的风格数据
       const allStylesWithVariants = await getUserStylesWithVariants(userId)
-      console.log('silentReloadStyles: 获取到所有带变体风格:', allStylesWithVariants.length)
       setStyles(allStylesWithVariants)
       
       // 分别设置公共和用户风格（从合并的结果中分离）
@@ -331,14 +344,12 @@ export function useStyles(userId = null) {
         !style.isPublic && style.createdBy === userId
       )
       
-      console.log('silentReloadStyles: 获取到公共风格:', publicStylesData.length)
       setPublicStyles(publicStylesData)
       setUserStyles(userStylesData)
       
       if (userId) {
         // 加载用户添加到账户的风格ID列表
         const addedIds = await getUserAddedStyles(userId)
-        console.log('silentReloadStyles: 从数据库获取的addedIds:', addedIds)
         setAddedStyleIds(addedIds)
       } else {
         setAddedStyleIds([])
@@ -444,28 +455,127 @@ export function useStyles(userId = null) {
     setError('')
 
     try {
-      // 保存要移除的风格数据，以便回滚
-      const styleToRemove = publicStyles.find(style => style.id === styleId)
-      
-      // 乐观更新：同时从addedStyleIds、publicStyles和styles中移除
-      setAddedStyleIds(prev => prev.filter(id => id !== styleId))
-      setPublicStyles(prev => prev.filter(style => style.id !== styleId))
+      // 保存要移除的风格数据，以便回滚（从所有可能的列表中查找）
+      const styleToRemove = styles.find(style => style.id === styleId) ||
+                           publicStyles.find(style => style.id === styleId) ||
+                           userStyles.find(style => style.id === styleId)
+
+
+      // 如果找不到样式，可能是数据同步问题，尝试重新加载然后再删除
+      if (!styleToRemove) {
+        console.error('找不到要删除的样式，尝试重新加载数据后再删除')
+
+        // 重新加载数据并直接获取最新数据
+        const freshAllStyles = await getUserStylesWithVariants(userId)
+
+        // 从最新数据中查找目标样式
+        const reloadedStyleToRemove = freshAllStyles.find(style => style.id === styleId)
+
+        if (reloadedStyleToRemove) {
+
+          // 更新本地状态以保持同步
+          setStyles(freshAllStyles)
+
+          // 分别设置公共和用户风格
+          const publicStylesData = freshAllStyles.filter(style =>
+            style.isPublic || (style.createdBy === 'system' && style.isPublic !== false)
+          )
+          const userStylesData = freshAllStyles.filter(style =>
+            !style.isPublic && style.createdBy === userId
+          )
+          setPublicStyles(publicStylesData)
+          setUserStyles(userStylesData)
+
+          // 判断样式类型并执行相应的删除逻辑
+          const isUserPrivateStyle = reloadedStyleToRemove.createdBy === userId && !reloadedStyleToRemove.isPublic
+
+          if (isUserPrivateStyle) {
+            const result = await handleDeleteStyle(styleId)
+            if (result.success || result === true) {
+              setTimeout(() => silentReloadStyles(), 1000)
+              return true
+            }
+            return false
+          } else {
+            setError('只能删除自己创建的私人风格')
+            return false
+          }
+        } else {
+          console.error('重新加载后仍然找不到样式，停止删除流程')
+          setError('找不到指定的风格')
+          return false
+        }
+      }
+
+      // 判断样式类型和采用的移除策略
+      const isSystemStyle = styleToRemove.createdBy === 'system'
+      const isUserPrivateStyle = styleToRemove.createdBy === userId && !styleToRemove.isPublic
+      const isAddedPublicStyle = addedStyleIds.includes(styleId)
+
+
+      // 乐观更新：从相关列表中移除
       setStyles(prev => prev.filter(style => style.id !== styleId))
-      
-      // 后台异步从账户移除
-      const { removeStyleFromUserAccount } = await import('../services/authService.js')
-      const result = await removeStyleFromUserAccount(userId, styleId)
-      
-      if (result.success) {
-        // 成功后延长静默同步延迟，给Firebase充足同步时间
-        setTimeout(() => silentReloadStyles(), 3000)
+      if (styleToRemove?.isPublic) {
+        setPublicStyles(prev => prev.filter(style => style.id !== styleId))
+      } else {
+        setUserStyles(prev => prev.filter(style => style.id !== styleId))
+      }
+      if (isAddedPublicStyle) {
+        setAddedStyleIds(prev => prev.filter(id => id !== styleId))
+      }
+
+      let result
+
+      if (isUserPrivateStyle) {
+        // 私人样式：彻底删除
+        result = await handleDeleteStyle(styleId)
+      } else if (isAddedPublicStyle) {
+        // 添加的公共样式：从账户移除
+        console.log('从账户移除公共样式:', styleId)
+        const { removeStyleFromUserAccount } = await import('../services/authService.js')
+        result = await removeStyleFromUserAccount(userId, styleId)
+      } else if (isSystemStyle) {
+        // 系统样式：添加到隐藏列表
+        const { hideStyleFromUser } = await import('../services/authService.js')
+        result = await hideStyleFromUser(userId, styleId)
+      } else {
+        console.error('未知样式类型，无法处理')
+        result = { success: false, error: '未知样式类型' }
+      }
+
+      console.log('移除操作结果:', result)
+
+      if (result.success || result === true) {
+
+        // 立即从本地状态中移除样式，让用户看到删除动画
+        const filterStylesArray = (stylesArray) =>
+          stylesArray.filter(style => style.id !== styleId)
+
+        setStyles(filterStylesArray)
+        setPublicStyles(filterStylesArray)
+        setUserStyles(filterStylesArray)
+
+        // 如果是已添加的公共样式，也要从addedStyleIds中移除
+        if (isAddedPublicStyle) {
+          setAddedStyleIds(prev => prev.filter(id => id !== styleId))
+        }
+
+        // 延迟静默重新加载以确保数据库状态同步
+        setTimeout(() => {
+          silentReloadStyles()
+        }, 3000)
         return true
       } else {
+        console.error('移除失败，回滚本地状态')
         // 失败时回滚所有本地状态
-        setAddedStyleIds(prev => [...prev, styleId])
-        if (styleToRemove) {
+        setStyles(prev => [...prev, styleToRemove])
+        if (styleToRemove?.isPublic) {
           setPublicStyles(prev => [...prev, styleToRemove])
-          setStyles(prev => [...prev, styleToRemove])
+        } else {
+          setUserStyles(prev => [...prev, styleToRemove])
+        }
+        if (isAddedPublicStyle) {
+          setAddedStyleIds(prev => [...prev, styleId])
         }
         setError('移除风格失败')
         return false
@@ -484,39 +594,8 @@ export function useStyles(userId = null) {
     }
   }, [userId, publicStyles, silentReloadStyles])
 
-  // 监听全局样式更新事件
-  useEffect(() => {
-    const unsubscribe = eventBus.on(EVENTS.STYLE_CREATED, (data) => {
-      // 如果是相同用户创建的样式，同步更新本地状态（避免重复添加）
-      if (data.userId === userId) {
-
-        setStyles(prev => {
-          if (prev.find(s => s.id === data.style.id)) {
-            return prev // 已存在，不重复添加
-          }
-          return [...prev, data.style]
-        })
-
-        if (data.style.isPublic) {
-          setPublicStyles(prev => {
-            if (prev.find(s => s.id === data.style.id)) {
-              return prev
-            }
-            return [...prev, data.style]
-          })
-        } else {
-          setUserStyles(prev => {
-            if (prev.find(s => s.id === data.style.id)) {
-              return prev
-            }
-            return [...prev, data.style]
-          })
-        }
-      }
-    })
-
-    return unsubscribe
-  }, [userId])
+  // 移除事件监听，避免无限循环
+  // useStyles作为数据源不应该监听自己的更新事件
 
   // 组件挂载时自动加载风格，并在用户ID变化时重新加载
   useEffect(() => {

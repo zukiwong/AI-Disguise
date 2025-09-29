@@ -6,6 +6,7 @@ import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import StyleManager from './StyleManager.jsx'
 import gsap from 'gsap'
+import eventBus, { EVENTS } from '../../utils/eventBus.js'
 import {
   DndContext,
   closestCenter,
@@ -31,6 +32,7 @@ const StyleSelector = forwardRef(function StyleSelector({
   selectedVariant = null, // 新增变体选择状态
   stylesWithVariants: propStylesWithVariants, // 从 props 接收样式数据
   isLoadingVariants: propIsLoadingVariants = false, // 从 props 接收加载状态
+  removePublicStyleFromAccount: propRemovePublicStyleFromAccount, // 从 props 接收删除方法
   onStyleChange,
   onVariantChange, // 新增变体变化回调
   disabled = false,
@@ -47,7 +49,7 @@ const StyleSelector = forwardRef(function StyleSelector({
   const isLoading = propIsLoadingVariants || internalStylesResult.isLoading
   const error = internalStylesResult.error
   const hasStyles = stylesWithVariants.length > 0
-  const removePublicStyleFromAccount = internalStylesResult.removePublicStyleFromAccount
+  const removePublicStyleFromAccount = propRemovePublicStyleFromAccount || internalStylesResult.removePublicStyleFromAccount
 
   
   const [showStyleManager, setShowStyleManager] = useState(false)
@@ -270,7 +272,8 @@ const StyleSelector = forwardRef(function StyleSelector({
   // 关闭风格管理器
   const handleCloseManager = () => {
     setShowStyleManager(false)
-    // 移除重新加载，依赖乐观更新保持数据一致性
+    // 触发样式更新事件，通知其他组件刷新
+    eventBus.emit(EVENTS.STYLES_UPDATED, { userId })
   }
 
   // 暴露给父组件的方法

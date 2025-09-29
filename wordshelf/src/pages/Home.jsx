@@ -23,6 +23,7 @@ function Home() {
     selectedRecipient,
     stylesWithVariants, // 获取带变体的样式数据
     isLoadingVariants, // 获取变体加载状态
+    removePublicStyleFromAccount, // 样式删除方法
     updateInputText,
     updateSelectedStyle,
     updateSelectedVariant, // 新增变体更新方法
@@ -317,6 +318,7 @@ function Home() {
                 selectedVariant={selectedVariant}
                 stylesWithVariants={stylesWithVariants}
                 isLoadingVariants={isLoadingVariants}
+                removePublicStyleFromAccount={removePublicStyleFromAccount}
                 onStyleChange={updateSelectedStyle}
                 onVariantChange={updateSelectedVariant}
                 disabled={isLoading}
