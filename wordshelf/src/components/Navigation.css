@@ -51,7 +51,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1rem;
 }
 
 .theme-toggle:hover {
@@ -129,6 +128,14 @@
 .nav-right {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+/* 始终显示的登录/用户区域 */
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* 紧凑状态：只显示汉堡图标 */
@@ -143,7 +150,6 @@
 /* 展开状态：显示导航链接和汉堡图标 */
 .immersive-nav.expanded .hamburger-menu {
   display: flex;
-  margin-left: 12px; /* 在导航链接右侧留一点间距 */
 }
 
 .immersive-nav.expanded .nav-links {

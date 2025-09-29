@@ -165,18 +165,10 @@ function Navigation() {
               >
                 History
               </Link>
+            </div>
 
-              {isAuthenticated ? (
-                <UserAvatar showName={true} />
-              ) : (
-                <button
-                  className="nav-signin-btn"
-                  onClick={handleSignInClick}
-                >
-                  Sign In
-                </button>
-              )}
-
+            {/* 始终显示的登录/用户区域 */}
+            <div className="nav-auth">
               {/* 主题切换按钮 */}
               <button
                 className="theme-toggle"
@@ -189,6 +181,17 @@ function Navigation() {
                   className="theme-icon"
                 />
               </button>
+
+              {isAuthenticated ? (
+                <UserAvatar showName={true} />
+              ) : (
+                <button
+                  className="nav-signin-btn"
+                  onClick={handleSignInClick}
+                >
+                  Sign In
+                </button>
+              )}
             </div>
 
             {/* 汉堡菜单图标 */}
