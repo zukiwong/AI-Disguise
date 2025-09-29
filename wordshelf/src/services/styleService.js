@@ -496,7 +496,7 @@ export const copyStyleToPrivate = async (userId, publicStyleId) => {
     // 创建私人风格副本
     const privateStyleData = {
       name: publicStyleData.name + '_copy',
-      displayName: publicStyleData.displayName + ' (副本)',
+      displayName: publicStyleData.displayName + ' (Copy)',
       description: publicStyleData.description,
       promptTemplate: publicStyleData.promptTemplate || '',
       isPublic: false,

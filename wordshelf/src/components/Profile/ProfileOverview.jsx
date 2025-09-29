@@ -323,11 +323,11 @@ function ProfileOverview() {
       <div className="profile-quick-actions">
         <h3 className="quick-actions-title">Quick Actions</h3>
         <div className="quick-actions-grid">
-          <button className="quick-action-button" onClick={() => navigate('/')}>
+          <button className="quick-action-button" onClick={() => navigate('/?openStyleManager=true')}>
             <span className="action-icon">
               <img src={HomeIcon} alt="Home" className="quick-action-icon-svg" />
             </span>
-            <span className="action-label">Create New Disguise</span>
+            <span className="action-label">Create New Style</span>
           </button>
           
           <button className="quick-action-button" onClick={() => navigate('/history')}>

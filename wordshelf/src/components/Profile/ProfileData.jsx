@@ -7,13 +7,11 @@ import { useHistoryManager } from '../../hooks/useHistoryManager.js'
 import { clearAllHistory } from '../../services/historyService.js'
 import {
   exportPersonalReport,
-  exportSmartDataPack,
   exportFavoriteCollection
 } from '../../services/exportService.js'
 
 // 导入图标
 import ChartReportIcon from '../../assets/icons/chart-report.svg'
-import DataPackIcon from '../../assets/icons/data-pack.svg'
 import StarCollectionIcon from '../../assets/icons/star-collection.svg'
 
 function ProfileData() {
@@ -68,47 +66,6 @@ function ProfileData() {
     }
   }
 
-  // 智能数据包导出（包含AI分析的PDF格式）
-  const exportSmartDataPackHandler = async () => {
-    if (historyRecords.length === 0) {
-      alert('No data available to export. Please create some transformations first.')
-      return
-    }
-
-    setIsExporting(true)
-    setExportProgress(0)
-    setExportStatus('Preparing smart analysis...')
-
-    try {
-      const userProfile = { userId, userEmail }
-
-      await exportSmartDataPack(
-        historyRecords,
-        userProfile,
-        userTags,
-        (progress) => {
-          setExportProgress(progress)
-          if (progress <= 30) setExportStatus('Analyzing usage data...')
-          else if (progress <= 60) setExportStatus('AI generating insights...')
-          else setExportStatus('Creating analysis report...')
-        }
-      )
-
-      setExportStatus('Smart analysis report exported successfully!')
-      setTimeout(() => {
-        setExportStatus('')
-        setExportProgress(0)
-      }, 2000)
-
-    } catch (error) {
-      console.error('Export smart analysis failed:', error)
-      alert(`Export failed: ${error.message}`)
-      setExportStatus('')
-      setExportProgress(0)
-    } finally {
-      setIsExporting(false)
-    }
-  }
 
   // 收藏集合导出（HTML格式）
   const exportFavoriteCollectionHandler = async () => {
@@ -251,27 +208,6 @@ function ProfileData() {
             </button>
           </div>
 
-          <div className="export-option">
-            <div className="export-icon">
-              <img src={DataPackIcon} alt="Data Pack" className="export-icon-svg" />
-            </div>
-            <div className="export-content">
-              <h4>Smart Analysis Pack</h4>
-              <p>AI-powered PDF report with personalized insights and recommendations</p>
-              <div className="export-features">
-                <span>• AI personality insights</span>
-                <span>• Smart recommendations</span>
-                <span>• Visual data charts</span>
-              </div>
-            </div>
-            <button
-              className="action-button tertiary"
-              onClick={exportSmartDataPackHandler}
-              disabled={isExporting || historyRecords.length === 0}
-            >
-              {isExporting ? 'Analyzing...' : 'Generate Analysis'}
-            </button>
-          </div>
 
           <div className="export-option">
             <div className="export-icon">

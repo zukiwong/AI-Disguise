@@ -49,6 +49,14 @@ function ProfileContent() {
   // 获取收藏的历史记录
   const favoriteRecords = historyRecords.filter(record => record.isFavorited)
 
+  // 根据风格ID获取风格显示名称
+  const getStyleDisplayName = (styleId) => {
+    if (!styleId) return 'Custom'
+
+    const style = styles.find(s => s.id === styleId)
+    return style ? style.displayName : styleId
+  }
+
   // 获取用户私有风格
   const userStyles = styles.filter(style => style.createdBy === userId && !style.isPublic)
 
@@ -84,6 +92,13 @@ function ProfileContent() {
     }
   }
 
+  // 处理使用风格
+  const handleUseStyle = (styleId) => {
+    // 跳转到首页并预选该风格
+    localStorage.setItem('preselectedStyle', styleId)
+    navigate('/')
+  }
+
   if (isLoading) {
     return (
       <div className="profile-content-loading">
@@ -116,29 +131,31 @@ function ProfileContent() {
           <div className="content-section">
             <div className="section-header">
               <h3>My Custom Styles</h3>
-              <button 
-                className="create-button"
-                onClick={() => navigate('/')}
-              >
-                + Create New Style
-              </button>
             </div>
             
             {userStyles.length > 0 ? (
               <div className="styles-grid">
                 {userStyles.map(style => (
                   <div key={style.id} className="style-card">
-                    <div className="style-card-header">
-                      <h4 className="style-card-title">{style.displayName}</h4>
-                      <span className="style-card-badge private">Private</span>
+                    <div className="style-card-content">
+                      <div className="style-card-header">
+                        <h4 className="style-card-title">{style.displayName}</h4>
+                        <span className="style-card-badge private">Private</span>
+                      </div>
+                      <p className="style-card-description">{style.description}</p>
+                      <div className="style-card-meta">
+                        <span>Created {formatDate(style.createdAt)}</span>
+                      </div>
                     </div>
-                    <p className="style-card-description">{style.description}</p>
-                    <div className="style-card-meta">
-                      <span>Created {formatDate(style.createdAt)}</span>
-                    </div>
-                    <div className="style-card-actions">
-                      <button className="action-button secondary">Edit</button>
-                      <button className="action-button primary">Use</button>
+                    <div className="style-card-bottom">
+                      <div className="style-card-actions">
+                        <button
+                          className="action-button primary"
+                          onClick={() => handleUseStyle(style.id)}
+                        >
+                          Use
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -240,7 +257,7 @@ function ProfileContent() {
                   <div key={record.id} className="favorite-card">
                     <div className="favorite-header">
                       <span className="favorite-style">
-                        {record.style || 'Custom'}
+                        {getStyleDisplayName(record.style)}
                       </span>
                       <span className="favorite-date">{formatDate(record.createdAt)}</span>
                     </div>

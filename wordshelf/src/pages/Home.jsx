@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useDisguise } from '../hooks/useDisguise.js'
 import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
 import LanguageSelector from '../components/LanguageSelector.jsx'
@@ -8,6 +9,8 @@ import '../styles/Explore.css'
 import ManageIcon from '../assets/icons/manage.svg'
 
 function Home() {
+  const location = useLocation()
+
   // 使用自定义 Hook 管理伪装功能
   const {
     inputText,
@@ -60,18 +63,17 @@ function Home() {
   // 控制是否显示输入界面（true=输入状态，false=输出状态）
   const [showInputMode, setShowInputMode] = useState(true)
 
-  // 检查并应用来自历史记录的预填充数据和预选风格
+  // 检查并应用来自历史记录的预填充数据
   useEffect(() => {
     const prefillData = localStorage.getItem('prefillFromHistory')
-    const preselectedStyle = localStorage.getItem('preselectedStyle')
-    
+
     if (prefillData) {
       try {
         const data = JSON.parse(prefillData)
-        
+
         // 清除预填充数据，避免重复应用
         localStorage.removeItem('prefillFromHistory')
-        
+
         // 应用预填充数据
         if (data.inputText) updateInputText(data.inputText)
         if (data.conversionMode) updateConversionMode(data.conversionMode)
@@ -80,29 +82,61 @@ function Home() {
         if (data.purpose) updateSelectedPurpose(data.purpose)
         if (data.recipient) updateSelectedRecipient(data.recipient)
         if (data.outputLanguage) updateOutputLanguage(data.outputLanguage)
-        
+
       } catch (error) {
         console.error('应用预填充数据失败:', error)
         localStorage.removeItem('prefillFromHistory')
       }
     }
-    
-    // 处理从未登录历史页面预选的风格
-    if (preselectedStyle) {
-      localStorage.removeItem('preselectedStyle') // 清除预选数据，避免重复应用
-      updateConversionMode(CONVERSION_MODE.STYLE) // 切换到风格模式
-      updateSelectedStyle(preselectedStyle) // 应用预选风格
-      
-      // 滚动到输入区域，引导用户输入文本
-      setTimeout(() => {
-        const textarea = document.querySelector('textarea')
-        if (textarea) {
-          textarea.focus()
-          textarea.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }, 100)
+  }, [updateInputText, updateConversionMode, updateSelectedStyle, updateSelectedVariant, updateSelectedPurpose, updateSelectedRecipient, updateOutputLanguage])
+
+  // 处理预选风格 - 等待styles加载完成
+  useEffect(() => {
+    const preselectedStyle = localStorage.getItem('preselectedStyle')
+
+    if (preselectedStyle && stylesWithVariants.length > 0) {
+      // 检查预选的风格是否存在于当前的风格列表中
+      const styleExists = stylesWithVariants.find(s => s.id === preselectedStyle)
+
+      if (styleExists) {
+        localStorage.removeItem('preselectedStyle') // 清除预选数据，避免重复应用
+        updateConversionMode(CONVERSION_MODE.STYLE) // 切换到风格模式
+        updateSelectedStyle(preselectedStyle) // 应用预选风格
+
+        // 滚动到输入区域，引导用户输入文本
+        setTimeout(() => {
+          const textarea = document.querySelector('textarea')
+          if (textarea) {
+            textarea.focus()
+            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }, 300) // 增加延迟确保UI更新完成
+      }
     }
-  }, [])
+  }, [stylesWithVariants, updateConversionMode, updateSelectedStyle, CONVERSION_MODE.STYLE])
+
+  // 处理URL参数，自动打开StyleManager
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    if (searchParams.get('openStyleManager') === 'true') {
+      // 确保StyleSelector已经渲染并且为风格模式
+      if (conversionMode !== CONVERSION_MODE.STYLE) {
+        updateConversionMode(CONVERSION_MODE.STYLE)
+      }
+
+      // 延迟执行以确保StyleSelector已经挂载
+      setTimeout(() => {
+        if (styleSelectorRef.current) {
+          styleSelectorRef.current.openManager()
+        }
+      }, 300)
+
+      // 清除URL参数以避免重复触发
+      const newUrl = new URL(window.location)
+      newUrl.searchParams.delete('openStyleManager')
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [location.search, conversionMode, updateConversionMode])
 
   // 处理复制操作
   const handleCopy = async (text, type) => {

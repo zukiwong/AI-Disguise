@@ -1,7 +1,7 @@
 // 风格选择器组件
 // 数据驱动的风格选择界面
 
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react'
 import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import StyleManager from './StyleManager.jsx'
@@ -40,6 +40,7 @@ const StyleSelector = forwardRef(function StyleSelector({
   showTitle = true // 新增：是否显示标题
 }, ref) {
   const { userId, isAuthenticated } = useAuth()
+  const styleListRef = useRef(null)
   
   // 简化逻辑：优先使用从 props 传入的数据，否则使用内部 Hook
   const internalStylesResult = useStyles(userId)
@@ -277,9 +278,44 @@ const StyleSelector = forwardRef(function StyleSelector({
   }
 
   // 暴露给父组件的方法
+  // 滚动到选中的风格项
+  const scrollToSelectedStyle = (styleId, smooth = true) => {
+    if (!styleListRef.current || !styleId) return
+
+    const selectedElement = styleListRef.current.querySelector(`[data-style-id="${styleId}"]`)
+    if (!selectedElement) return
+
+    if (smooth) {
+      selectedElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      })
+    } else {
+      selectedElement.scrollIntoView({
+        behavior: 'auto',
+        block: 'center',
+        inline: 'nearest'
+      })
+    }
+  }
+
+  // 监听selectedStyle变化，自动滚动到选中项
+  useEffect(() => {
+    if (selectedStyle && sortedStyles.length > 0) {
+      // 稍微延迟以确保DOM更新完成
+      setTimeout(() => {
+        scrollToSelectedStyle(selectedStyle, true)
+      }, 100)
+    }
+  }, [selectedStyle, sortedStyles.length])
+
   useImperativeHandle(ref, () => ({
     openManager: () => {
       setShowStyleManager(true)
+    },
+    scrollToSelected: () => {
+      scrollToSelectedStyle(selectedStyle, true)
     }
   }))
   
@@ -330,7 +366,7 @@ const StyleSelector = forwardRef(function StyleSelector({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="style-list">
+          <div className="style-list" ref={styleListRef}>
             <SortableContext 
               items={sortedStyles.map(s => s.id)}
               strategy={verticalListSortingStrategy}
@@ -416,10 +452,11 @@ function SortableStyleItem({
       style={dragStyle}
       {...attributes}
     >
-      <div 
+      <div
         className={`style-item ${isStyleSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''}`}
+        data-style-id={style.id}
         onClick={() => handleStyleSelect(style.id)}
-        style={{ 
+        style={{
           cursor: disabled ? 'not-allowed' : 'pointer',
           pointerEvents: disabled ? 'none' : 'auto',
           userSelect: 'none'
