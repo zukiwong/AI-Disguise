@@ -397,9 +397,17 @@ export const getAllAvailableStyles = async (userId = null) => {
 // 创建新风格
 export const createStyle = async (styleData) => {
   try {
+    console.log('🔥 createStyle 开始执行，原始数据:', styleData)
+
     const stylesRef = collection(db, COLLECTIONS.STYLES)
     const processedData = createStyleData(styleData)
+
+    console.log('🔥 处理后的数据:', processedData)
+    console.log('🔥 准备写入Firestore...')
+
     const docRef = await addDoc(stylesRef, processedData)
+
+    console.log('🔥 写入成功，文档ID:', docRef.id)
     
     // 创建客户端安全的返回数据，避免 serverTimestamp 问题
     const result = {
@@ -413,10 +421,13 @@ export const createStyle = async (styleData) => {
       createdAt: new Date() // 使用当前时间而不是 serverTimestamp
     }
     
+    console.log('🔥 createStyle 成功完成:', result)
     return result
   } catch (error) {
-    console.error('创建风格失败:', error)
-    throw new Error('创建风格失败')
+    console.error('🔥 创建风格失败，错误详情:', error)
+    console.error('🔥 错误代码:', error.code)
+    console.error('🔥 错误消息:', error.message)
+    throw new Error(`创建风格失败: ${error.message}`)
   }
 }
 

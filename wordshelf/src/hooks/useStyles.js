@@ -12,6 +12,7 @@ import {
   saveStylesToLocalStorage
 } from '../services/styleService.js'
 import { hideStyleFromUser, getUserAddedStyles } from '../services/authService.js'
+import eventBus, { EVENTS } from '../utils/eventBus.js'
 
 /**
  * 风格管理 Hook
@@ -37,23 +38,23 @@ export function useStyles(userId = null) {
   const loadStyles = useCallback(async () => {
     setIsLoading(true)
     setError('')
-    
+
     try {
       // 使用新的简化函数一次性加载所有带变体的风格数据
       const allStylesWithVariants = await getUserStylesWithVariants(userId)
       setStyles(allStylesWithVariants)
-      
+
       // 分别设置公共和用户风格（从合并的结果中分离）
-      const publicStylesData = allStylesWithVariants.filter(style => 
+      const publicStylesData = allStylesWithVariants.filter(style =>
         style.isPublic || (style.createdBy === 'system' && style.isPublic !== false)
       )
-      const userStylesData = allStylesWithVariants.filter(style => 
+      const userStylesData = allStylesWithVariants.filter(style =>
         !style.isPublic && style.createdBy === userId
       )
-      
+
       setPublicStyles(publicStylesData)
       setUserStyles(userStylesData)
-      
+
       if (userId) {
         // 加载用户添加到账户的风格ID列表
         const addedIds = await getUserAddedStyles(userId)
@@ -61,11 +62,19 @@ export function useStyles(userId = null) {
       } else {
         setAddedStyleIds([])
       }
-      
+
+      // 发送样式更新事件
+      eventBus.emit(EVENTS.STYLES_UPDATED, {
+        styles: allStylesWithVariants,
+        publicStyles: publicStylesData,
+        userStyles: userStylesData,
+        userId
+      })
+
     } catch (err) {
       console.error('加载风格失败:', err)
       setError('加载风格失败，使用本地缓存')
-      
+
       // 降级到本地存储
       const localStyles = getStylesFromLocalStorage()
       setStyles(localStyles)
@@ -78,24 +87,45 @@ export function useStyles(userId = null) {
   const handleCreateStyle = useCallback(async (styleData) => {
     setIsLoading(true)
     setError('')
-    
+
     try {
+      // 验证用户登录状态
+      if (!userId) {
+        throw new Error('用户未登录或用户ID获取失败')
+      }
+
       const newStyle = {
         ...styleData,
-        createdBy: userId || 'anonymous'
+        createdBy: userId
       }
-      
+
+      console.log('创建风格数据:', newStyle)
+      console.log('当前用户ID:', userId)
+
       // 尝试保存到 Firestore
       try {
         const createdStyle = await createStyle(newStyle)
-        
+
+        // 如果是公共风格，需要将其添加到用户的账户中
+        if (newStyle.isPublic) {
+          const { addStyleToUserAccount } = await import('../services/authService.js')
+          await addStyleToUserAccount(userId, createdStyle.id)
+          console.log('🔥 公共风格已添加到用户账户:', createdStyle.id)
+        }
+
         setStyles(prev => [...prev, createdStyle])
-        
+
         if (newStyle.isPublic) {
           setPublicStyles(prev => [...prev, createdStyle])
         } else {
           setUserStyles(prev => [...prev, createdStyle])
         }
+
+        // 发送样式创建事件
+        eventBus.emit(EVENTS.STYLE_CREATED, {
+          style: createdStyle,
+          userId
+        })
         
       } catch (firestoreError) {
         console.error('Firestore 创建失败，使用本地存储:', firestoreError)
@@ -456,6 +486,41 @@ export function useStyles(userId = null) {
       return false
     }
   }, [userId, publicStyles, silentReloadStyles])
+
+  // 监听全局样式更新事件
+  useEffect(() => {
+    const unsubscribe = eventBus.on(EVENTS.STYLE_CREATED, (data) => {
+      // 如果是相同用户创建的样式，同步更新本地状态（避免重复添加）
+      if (data.userId === userId) {
+        console.log('🔥 收到样式创建事件，同步更新本地状态:', data.style.displayName)
+
+        setStyles(prev => {
+          if (prev.find(s => s.id === data.style.id)) {
+            return prev // 已存在，不重复添加
+          }
+          return [...prev, data.style]
+        })
+
+        if (data.style.isPublic) {
+          setPublicStyles(prev => {
+            if (prev.find(s => s.id === data.style.id)) {
+              return prev
+            }
+            return [...prev, data.style]
+          })
+        } else {
+          setUserStyles(prev => {
+            if (prev.find(s => s.id === data.style.id)) {
+              return prev
+            }
+            return [...prev, data.style]
+          })
+        }
+      }
+    })
+
+    return unsubscribe
+  }, [userId])
 
   // 组件挂载时自动加载风格，并在用户ID变化时重新加载
   useEffect(() => {
