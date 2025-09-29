@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useHistoryManager } from '../../hooks/useHistoryManager.js'
+import { useStyles } from '../../hooks/useStyles.js'
 import { clearAllHistory } from '../../services/historyService.js'
 import {
   exportPersonalReport,
@@ -15,8 +16,9 @@ import ChartReportIcon from '../../assets/icons/chart-report.svg'
 import StarCollectionIcon from '../../assets/icons/star-collection.svg'
 
 function ProfileData() {
-  const { userId, userEmail } = useAuth()
+  const { userId } = useAuth()
   const { historyRecords, userTags, refresh } = useHistoryManager()
+  const { styles } = useStyles(userId)
   
   // 状态管理
   const [isExporting, setIsExporting] = useState(false)
@@ -37,17 +39,15 @@ function ProfileData() {
     setExportStatus('Generating personal report...')
 
     try {
-      const userProfile = { userId, userEmail }
-
       await exportPersonalReport(
         historyRecords,
-        userProfile,
         userTags,
         (progress) => {
           setExportProgress(progress)
           if (progress <= 60) setExportStatus('Processing usage data...')
           else setExportStatus('Creating PDF report...')
-        }
+        },
+        styles  // 传递样式数据
       )
 
       setExportStatus('Personal report exported successfully!')
@@ -81,16 +81,14 @@ function ProfileData() {
     setExportStatus('Generating favorite collection...')
 
     try {
-      const userProfile = { userId, userEmail }
-
       await exportFavoriteCollection(
         historyRecords,
-        userProfile,
         (progress) => {
           setExportProgress(progress)
           if (progress <= 50) setExportStatus('Organizing favorite content...')
           else setExportStatus('Creating beautiful document...')
-        }
+        },
+        styles  // 传递样式数据
       )
 
       setExportStatus('Favorite collection exported successfully!')
@@ -192,11 +190,11 @@ function ProfileData() {
             </div>
             <div className="export-content">
               <h4>Personal Report</h4>
-              <p>Clean PDF with your basic usage statistics and patterns</p>
+              <p>PDF report with your usage statistics and insights</p>
               <div className="export-features">
-                <span>• Usage statistics</span>
-                <span>• Activity patterns</span>
-                <span>• Top transformations</span>
+                <span>• Complete usage statistics</span>
+                <span>• Activity trends & patterns</span>
+                <span>• Style preferences analysis</span>
               </div>
             </div>
             <button

@@ -10,38 +10,132 @@ Chart.register(...registerables)
 /**
  * 获取样式显示名称
  * @param {string} styleId - 样式ID
+ * @param {Array} availableStyles - 可选：当前可用的样式数组
  * @returns {string} - 显示名称
  */
-function getStyleDisplayName(styleId) {
-  if (!styleId) return null
+function getStyleDisplayName(styleId, availableStyles = null) {
+  if (!styleId) return 'Unknown Style'
 
-  // Try to get from localStorage first (for custom styles)
+  // 如果传入了样式数组，优先从中查找
+  if (availableStyles && Array.isArray(availableStyles)) {
+    const foundStyle = availableStyles.find(style => style && style.id === styleId)
+    if (foundStyle && foundStyle.displayName) {
+      return foundStyle.displayName
+    }
+  }
+
+  // 尝试从localStorage缓存中获取
   try {
-    const customStyles = JSON.parse(localStorage.getItem('customStyles') || '[]')
-    const customStyle = customStyles.find(style => style.id === styleId)
-    if (customStyle) return customStyle.displayName
+    // 尝试获取各种可能存储样式数据的localStorage key
+    const possibleKeys = ['customStyles', 'styles', 'allStyles', 'userStyles']
+    for (const key of possibleKeys) {
+      const cachedData = localStorage.getItem(key)
+      if (cachedData) {
+        try {
+          const parsed = JSON.parse(cachedData)
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const foundStyle = parsed.find(style => style && style.id === styleId)
+            if (foundStyle && foundStyle.displayName) {
+              console.log(`找到样式: ${styleId} -> ${foundStyle.displayName}`)
+              return foundStyle.displayName
+            }
+          }
+        } catch (parseError) {
+          console.warn(`解析${key}失败:`, parseError)
+        }
+      }
+    }
+
+    // 特殊情况：尝试从window.appState中获取（如果应用在全局存储了状态）
+    if (typeof window !== 'undefined' && window.appState && window.appState.styles) {
+      const foundStyle = window.appState.styles.find(style => style && style.id === styleId)
+      if (foundStyle && foundStyle.displayName) {
+        return foundStyle.displayName
+      }
+    }
   } catch (error) {
-    console.warn('Failed to parse custom styles from localStorage')
+    console.warn('获取缓存样式数据失败:', error)
   }
 
-  // Fallback to built-in styles
-  const builtInStyles = {
-    'chat': 'Chat Style',
-    'poem': 'Poetic Style',
-    'social': 'Social Style',
-    'story': 'Story Style'
+  // 基础系统样式配置（从config.js同步）
+  const SYSTEM_STYLES = {
+    chat: 'Chat Style',
+    poem: 'Poetic Style',
+    social: 'Social Style',
+    story: 'Story Style'
   }
 
-  return builtInStyles[styleId] || styleId
+  // 扩展样式映射（基于历史数据）
+  const EXTENDED_STYLES = {
+    // 基础系统样式
+    ...SYSTEM_STYLES,
+
+    // 常见用途样式
+    formal: 'Formal Style',
+    casual: 'Casual Style',
+    professional: 'Professional Style',
+    friendly: 'Friendly Style',
+    academic: 'Academic Style',
+    business: 'Business Style',
+
+    // 情感表达样式
+    excited: 'Excited Style',
+    calm: 'Calm Style',
+    confident: 'Confident Style',
+    humble: 'Humble Style',
+    encouraging: 'Encouraging Style',
+
+    // 特殊场景样式
+    interview: 'Interview Style',
+    presentation: 'Presentation Style',
+    email: 'Email Style',
+    message: 'Message Style',
+    report: 'Report Style',
+
+    // 创意样式
+    creative: 'Creative Style',
+    artistic: 'Artistic Style',
+    humorous: 'Humorous Style',
+    witty: 'Witty Style',
+
+    // 技术样式
+    technical: 'Technical Style',
+    explanatory: 'Explanatory Style',
+    instructional: 'Instructional Style',
+
+    // 社交样式
+    diplomatic: 'Diplomatic Style',
+    persuasive: 'Persuasive Style',
+    supportive: 'Supportive Style',
+
+    // 其他常见样式
+    concise: 'Concise Style',
+    detailed: 'Detailed Style',
+    conversational: 'Conversational Style',
+    neutral: 'Neutral Style'
+  }
+
+  // 检查是否在扩展映射中
+  if (EXTENDED_STYLES[styleId]) {
+    return EXTENDED_STYLES[styleId]
+  }
+
+  // 如果是长ID格式的自定义样式，返回更友好的格式
+  if (styleId.length > 10 && /^[A-Za-z0-9]{10,}$/.test(styleId)) {
+    return 'Custom Style'
+  }
+
+  // 最后的fallback
+  return `Style: ${styleId}`
 }
 
 /**
  * 生成基础统计报告PDF
  * @param {Object} processedData - 处理后的数据
- * @param {Object} userProfile - 用户资料
+ * @param {Array} availableStyles - 可选：当前可用的样式数组
  * @returns {Promise<Blob>} - PDF文件Blob
  */
-export async function generateBasicStatsReport(processedData, userProfile) {
+export async function generateBasicStatsReport(processedData, availableStyles = null) {
   const pdf = new jsPDF('p', 'mm', 'a4')
 
   // Set better font for consistency
@@ -50,13 +144,13 @@ export async function generateBasicStatsReport(processedData, userProfile) {
   let yPosition = 20
 
   // 1. 标题页
-  yPosition = addBasicReportHeader(pdf, yPosition, userProfile)
+  yPosition = addBasicReportHeader(pdf, yPosition)
 
   // 2. 基础统计
   yPosition = addBasicStatisticsSection(pdf, yPosition, processedData)
 
   // 3. 使用趋势
-  yPosition = addBasicTrendsSection(pdf, yPosition, processedData)
+  yPosition = addBasicTrendsSection(pdf, yPosition, processedData, availableStyles)
 
   // 4. 页脚
   addBasicReportFooter(pdf)
@@ -64,61 +158,20 @@ export async function generateBasicStatsReport(processedData, userProfile) {
   return pdf.output('blob')
 }
 
-/**
- * 生成智能分析报告PDF
- * @param {Object} processedData - 处理后的数据
- * @param {Object} aiInsights - AI分析洞察
- * @param {Object} userProfile - 用户资料
- * @returns {Promise<Blob>} - PDF文件Blob
- */
-export async function generateSmartAnalysisReport(processedData, aiInsights, userProfile) {
-  const pdf = new jsPDF('p', 'mm', 'a4')
-
-  // Set consistent font
-  pdf.setFont('helvetica')
-
-  let yPosition = 20
-
-  // 1. 标题页
-  yPosition = addSmartReportHeader(pdf, yPosition, userProfile)
-
-  // 2. AI洞察分析
-  yPosition = await addAIInsightsSection(pdf, yPosition, aiInsights)
-
-  // 3. 数据统计图表
-  yPosition = await addChartsSection(pdf, yPosition, processedData)
-
-  // 4. 详细统计
-  yPosition = addStatisticsSection(pdf, yPosition, processedData)
-
-  // 5. 使用趋势
-  yPosition = addTrendsSection(pdf, yPosition, processedData)
-
-  // 6. 页脚
-  addSmartReportFooter(pdf)
-
-  return pdf.output('blob')
-}
 
 /**
  * 添加基础报告标题
  * @param {jsPDF} pdf - PDF实例
  * @param {number} yPosition - Y坐标
- * @param {Object} userProfile - 用户资料
  * @returns {number} - 新的Y坐标
  */
-function addBasicReportHeader(pdf, yPosition, userProfile) {
-  // Logo区域
-  pdf.setFontSize(16)
-  pdf.setTextColor(46, 125, 50) // WordShelf绿色
-  pdf.text('WordShelf', 20, yPosition)
-
-  yPosition += 25
-
-  // 主标题
-  pdf.setFontSize(24)
-  pdf.setTextColor(46, 125, 50) // WordShelf绿色
+function addBasicReportHeader(pdf, yPosition) {
+  // 主标题 - 更大更醒目
+  pdf.setFontSize(28)
+  pdf.setTextColor(46, 125, 50) // 主题绿色
   pdf.text('Personal Report', 105, yPosition, { align: 'center' })
+
+  yPosition += 5
 
   yPosition += 15
 
@@ -177,10 +230,11 @@ function addBasicStatisticsSection(pdf, yPosition, processedData) {
  * @param {jsPDF} pdf - PDF实例
  * @param {number} yPosition - Y坐标
  * @param {Object} processedData - 数据
+ * @param {Array} availableStyles - 可选：当前可用的样式数组
  * @returns {number} - 新的Y坐标
  */
-function addBasicTrendsSection(pdf, yPosition, processedData) {
-  const { timePatterns, usagePatterns } = processedData
+function addBasicTrendsSection(pdf, yPosition, processedData, availableStyles = null) {
+  const { timePatterns, styleAnalysis } = processedData
 
   // 检查是否需要新页面
   if (yPosition > 200) {
@@ -194,13 +248,18 @@ function addBasicTrendsSection(pdf, yPosition, processedData) {
   pdf.text('Usage Patterns', 20, yPosition)
   yPosition += 15
 
-  // 使用模式分析
+  // 时间偏好
   yPosition = addEnglishTextSection(pdf, yPosition, 'Time Preference',
     `You are a ${getEnglishTimePattern(timePatterns.peakUsagePattern)} user, most active on ${getEnglishDayName(timePatterns.mostActiveDay)} at ${timePatterns.mostActiveHour}:00.`)
 
-  // 偏好模式
-  yPosition = addEnglishTextSection(pdf, yPosition, 'Preferred Mode',
-    `You prefer using ${usagePatterns.preferredMode === 'style' ? 'Style Mode' : 'Purpose Mode'} for text transformations.`)
+  // 最常用风格（改进版）
+  const mostUsedStyle = styleAnalysis.mostUsedStyle
+  const useCount = styleAnalysis.styleDistribution[mostUsedStyle]
+  const totalUses = Object.values(styleAnalysis.styleDistribution).reduce((a, b) => a + b, 0)
+  const percentage = Math.round((useCount / totalUses) * 100)
+
+  yPosition = addEnglishTextSection(pdf, yPosition, 'Most Used Style',
+    `"${getStyleDisplayName(mostUsedStyle, availableStyles)}" - used ${useCount} times (${percentage}% of all transformations).`)
 
   return yPosition
 }
@@ -285,412 +344,15 @@ function addEnglishTextSection(pdf, yPosition, title, content) {
   return yPosition
 }
 
-/**
- * 添加智能报告头部
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {Object} userProfile - 用户资料
- * @returns {number} - 新的Y坐标
- */
-function addSmartReportHeader(pdf, yPosition, userProfile) {
-  // Logo区域
-  pdf.setFontSize(16)
-  pdf.setTextColor(46, 125, 50) // WordShelf绿色
-  pdf.text('WordShelf', 20, yPosition)
 
-  yPosition += 25
 
-  // 主标题
-  pdf.setFontSize(24)
-  pdf.setTextColor(46, 125, 50) // WordShelf绿色
-  pdf.text('Smart Analysis Report', 105, yPosition, { align: 'center' })
 
-  yPosition += 15
 
-  // 副标题
-  pdf.setFontSize(12)
-  pdf.setTextColor(100, 100, 100)
-  const currentDate = new Date().toLocaleDateString('en-US')
-  pdf.text(`Generated on: ${currentDate}`, 105, yPosition, { align: 'center' })
 
-  yPosition += 20
 
-  // 分隔线
-  pdf.setDrawColor(200, 200, 200)
-  pdf.line(20, yPosition, 190, yPosition)
 
-  return yPosition + 15
-}
 
-/**
- * 添加AI洞察分析部分
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {Object} aiInsights - AI分析结果
- * @returns {Promise<number>} - 新的Y坐标
- */
-async function addAIInsightsSection(pdf, yPosition, aiInsights) {
-  // 章节标题
-  pdf.setFontSize(16)
-  pdf.setTextColor(0, 0, 0)
-  pdf.text('AI Smart Insights', 20, yPosition)
-  yPosition += 10
 
-  // 成就等级徽章
-  yPosition = addAchievementBadge(pdf, yPosition, aiInsights.achievementLevel)
-
-  // 个性分析
-  yPosition = addEnglishTextSection(pdf, yPosition, 'Personality Traits', aiInsights.personalityInsights)
-
-  // 使用习惯
-  yPosition = addEnglishTextSection(pdf, yPosition, 'Usage Habits', aiInsights.usageHabits)
-
-  // 发现的优势
-  yPosition = addEnglishTextSection(pdf, yPosition, 'Discovered Strengths', aiInsights.strengths)
-
-  // 个性化建议
-  yPosition = addEnglishListSection(pdf, yPosition, 'Personalized Recommendations', aiInsights.recommendations)
-
-  // 有趣发现
-  if (aiInsights.interestingPatterns && aiInsights.interestingPatterns.length > 0) {
-    yPosition = addEnglishListSection(pdf, yPosition, 'Interesting Patterns', aiInsights.interestingPatterns)
-  }
-
-  return yPosition + 10
-}
-
-/**
- * 添加成就等级徽章
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {string} level - 等级
- * @returns {number} - 新的Y坐标
- */
-function addAchievementBadge(pdf, yPosition, level) {
-  const badgeColors = {
-    'beginner': [76, 175, 80],
-    'intermediate': [33, 150, 243],
-    'advanced': [255, 152, 0],
-    'expert': [156, 39, 176]
-  }
-
-  const color = badgeColors[level] || [76, 175, 80]
-
-  // 绘制徽章背景
-  pdf.setFillColor(...color)
-  pdf.roundedRect(20, yPosition - 5, 50, 12, 3, 3, 'F')
-
-  // 徽章文字
-  pdf.setFontSize(10)
-  pdf.setTextColor(255, 255, 255)
-  pdf.text(`${level.toUpperCase()} USER`, 45, yPosition + 2, { align: 'center' })
-
-  // 重置颜色
-  pdf.setTextColor(0, 0, 0)
-
-  return yPosition + 15
-}
-
-/**
- * 添加英文列表章节
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {string} title - 标题
- * @param {Array} items - 列表项
- * @returns {number} - 新的Y坐标
- */
-function addEnglishListSection(pdf, yPosition, title, items) {
-  // 检查是否需要新页面
-  if (yPosition > 240) {
-    pdf.addPage()
-    yPosition = 20
-  }
-
-  // 小标题
-  pdf.setFontSize(12)
-  pdf.setTextColor(46, 125, 50)
-  pdf.text(`• ${title}`, 20, yPosition)
-  yPosition += 8
-
-  // 列表项
-  pdf.setFontSize(10)
-  pdf.setTextColor(60, 60, 60)
-
-  items.forEach((item, index) => {
-    if (yPosition > 260) {
-      pdf.addPage()
-      yPosition = 20
-    }
-
-    const lines = pdf.splitTextToSize(`${index + 1}. ${item}`, 140)
-    pdf.text(lines, 30, yPosition)
-    yPosition += lines.length * 5 + 2
-  })
-
-  return yPosition + 5
-}
-
-/**
- * 添加文本章节
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {string} title - 标题
- * @param {string} content - 内容
- * @returns {number} - 新的Y坐标
- */
-function addTextSection(pdf, yPosition, title, content) {
-  // 检查是否需要新页面
-  if (yPosition > 250) {
-    pdf.addPage()
-    yPosition = 20
-  }
-
-  // 小标题
-  pdf.setFontSize(12)
-  pdf.setTextColor(46, 125, 50)
-  pdf.text(`● ${title}`, 20, yPosition)
-  yPosition += 8
-
-  // 内容
-  pdf.setFontSize(10)
-  pdf.setTextColor(60, 60, 60)
-  const lines = pdf.splitTextToSize(content, 150)
-  pdf.text(lines, 25, yPosition)
-  yPosition += lines.length * 5 + 5
-
-  return yPosition
-}
-
-/**
- * 添加列表章节
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {string} title - 标题
- * @param {Array} items - 列表项
- * @returns {number} - 新的Y坐标
- */
-function addListSection(pdf, yPosition, title, items) {
-  // 检查是否需要新页面
-  if (yPosition > 240) {
-    pdf.addPage()
-    yPosition = 20
-  }
-
-  // 小标题
-  pdf.setFontSize(12)
-  pdf.setTextColor(46, 125, 50)
-  pdf.text(`● ${title}`, 20, yPosition)
-  yPosition += 8
-
-  // 列表项
-  pdf.setFontSize(10)
-  pdf.setTextColor(60, 60, 60)
-
-  items.forEach((item, index) => {
-    if (yPosition > 260) {
-      pdf.addPage()
-      yPosition = 20
-    }
-
-    const lines = pdf.splitTextToSize(`${index + 1}. ${item}`, 140)
-    pdf.text(lines, 30, yPosition)
-    yPosition += lines.length * 5 + 2
-  })
-
-  return yPosition + 5
-}
-
-/**
- * 添加图表部分
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {Object} processedData - 数据
- * @returns {Promise<number>} - 新的Y坐标
- */
-async function addChartsSection(pdf, yPosition, processedData) {
-  // 新页面用于图表
-  pdf.addPage()
-  yPosition = 20
-
-  // 章节标题
-  pdf.setFontSize(16)
-  pdf.setTextColor(0, 0, 0)
-  pdf.text('Data Visualization', 20, yPosition)
-  yPosition += 15
-
-  // 风格使用分布饼图
-  if (processedData.styleAnalysis.styleDistribution) {
-    const chartCanvas = await createStyleDistributionChart(processedData.styleAnalysis.styleDistribution)
-    if (chartCanvas) {
-      const chartImage = chartCanvas.toDataURL('image/png')
-      pdf.addImage(chartImage, 'PNG', 20, yPosition, 80, 60)
-
-      // 图表标题
-      pdf.setFontSize(10)
-      pdf.text('Style Usage Distribution', 60, yPosition + 65, { align: 'center' })
-    }
-  }
-
-  // 时间使用模式条形图
-  if (processedData.timePatterns.hourlyDistribution) {
-    const timeChartCanvas = await createHourlyUsageChart(processedData.timePatterns.hourlyDistribution)
-    if (timeChartCanvas) {
-      const timeChartImage = timeChartCanvas.toDataURL('image/png')
-      pdf.addImage(timeChartImage, 'PNG', 110, yPosition, 80, 60)
-
-      // 图表标题
-      pdf.setFontSize(10)
-      pdf.text('Hourly Usage Distribution', 150, yPosition + 65, { align: 'center' })
-    }
-  }
-
-  return yPosition + 80
-}
-
-/**
- * 创建风格分布饼图
- * @param {Object} styleDistribution - 风格分布数据
- * @returns {Promise<HTMLCanvasElement>} - Canvas元素
- */
-async function createStyleDistributionChart(styleDistribution) {
-  try {
-    const canvas = document.createElement('canvas')
-    canvas.width = 300
-    canvas.height = 300
-    const ctx = canvas.getContext('2d')
-
-    const data = Object.entries(styleDistribution).map(([style, count]) => ({
-      label: style,
-      value: count
-    }))
-
-    if (data.length === 0) return null
-
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: data.map(d => d.label),
-        datasets: [{
-          data: data.map(d => d.value),
-          backgroundColor: [
-            '#4CAF50', '#2196F3', '#FF9800', '#9C27B0',
-            '#F44336', '#607D8B', '#795548', '#009688'
-          ]
-        }]
-      },
-      options: {
-        responsive: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: { font: { size: 12 } }
-          }
-        }
-      }
-    })
-
-    // 等待图表渲染
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    return canvas
-  } catch (error) {
-    console.error('创建风格分布图失败:', error)
-    return null
-  }
-}
-
-/**
- * 创建时间使用分布条形图
- * @param {Object} hourlyDistribution - 小时分布数据
- * @returns {Promise<HTMLCanvasElement>} - Canvas元素
- */
-async function createHourlyUsageChart(hourlyDistribution) {
-  try {
-    const canvas = document.createElement('canvas')
-    canvas.width = 300
-    canvas.height = 300
-    const ctx = canvas.getContext('2d')
-
-    const hours = Array.from({ length: 24 }, (_, i) => i)
-    const data = hours.map(hour => hourlyDistribution[hour] || 0)
-
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: hours.map(h => `${h}:00`),
-        datasets: [{
-          label: '使用次数',
-          data: data,
-          backgroundColor: '#4CAF50',
-          borderColor: '#2E7D32',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: {
-            ticks: { font: { size: 8 } }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { font: { size: 10 } }
-          }
-        }
-      }
-    })
-
-    // 等待图表渲染
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    return canvas
-  } catch (error) {
-    console.error('创建时间分布图失败:', error)
-    return null
-  }
-}
-
-/**
- * 添加统计信息部分
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {Object} processedData - 数据
- * @returns {number} - 新的Y坐标
- */
-function addStatisticsSection(pdf, yPosition, processedData) {
-  const { basicStats, styleAnalysis, languageAnalysis } = processedData
-
-  // 新页面
-  pdf.addPage()
-  yPosition = 20
-
-  // 章节标题
-  pdf.setFontSize(16)
-  pdf.setTextColor(0, 0, 0)
-  pdf.text('Detailed Statistics', 20, yPosition)
-  yPosition += 15
-
-  // 基础统计
-  const stats = [
-    ['总转换次数', basicStats.totalTransformations],
-    ['收藏数量', basicStats.favoritesCount],
-    ['收藏率', `${basicStats.favoriteRate}%`],
-    ['活跃天数', `${basicStats.activeDays}天`],
-    ['平均每日使用', `${basicStats.averagePerDay}次`],
-    ['平均文本长度', `${basicStats.averageTextLength}字符`],
-    ['使用的风格数量', styleAnalysis.uniqueStylesUsed],
-    ['主要输入语言', languageAnalysis.primaryInputLanguage],
-    ['主要输出语言', languageAnalysis.primaryOutputLanguage]
-  ]
-
-  // 创建统计表格
-  yPosition = addStatsTable(pdf, yPosition, stats)
-
-  return yPosition
-}
 
 /**
  * 添加统计表格
@@ -727,137 +389,23 @@ function addStatsTable(pdf, yPosition, stats) {
   return yPosition + stats.length * rowHeight + 10
 }
 
-/**
- * 添加趋势部分
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {Object} processedData - 数据
- * @returns {number} - 新的Y坐标
- */
-function addTrendsSection(pdf, yPosition, processedData) {
-  const { timePatterns, topTransformations } = processedData
 
-  // 使用模式分析
-  yPosition = addEnglishTextSection(pdf, yPosition, 'Time Preference',
-    `You are a ${getEnglishTimePattern(timePatterns.peakUsagePattern)} user, most active on ${getEnglishDayName(timePatterns.mostActiveDay)} at ${timePatterns.mostActiveHour}:00.`)
 
-  // Top转换展示
-  if (topTransformations.length > 0) {
-    yPosition = addTopTransformationsSection(pdf, yPosition, topTransformations.slice(0, 5))
-  }
 
-  return yPosition
-}
-
-/**
- * 添加智能报告页脚
- * @param {jsPDF} pdf - PDF实例
- */
-function addSmartReportFooter(pdf) {
-  const pageCount = pdf.internal.getNumberOfPages()
-
-  for (let i = 1; i <= pageCount; i++) {
-    pdf.setPage(i)
-
-    // 页码
-    pdf.setFontSize(8)
-    pdf.setTextColor(150, 150, 150)
-    pdf.text(`${i} / ${pageCount}`, 105, 290, { align: 'center' })
-
-    // 品牌信息
-    pdf.text('Generated by WordShelf - AI Smart Text Expression Assistant', 105, 285, { align: 'center' })
-  }
-}
-
-/**
- * 添加热门转换部分
- * @param {jsPDF} pdf - PDF实例
- * @param {number} yPosition - Y坐标
- * @param {Array} topTransformations - 热门转换
- * @returns {number} - 新的Y坐标
- */
-function addTopTransformationsSection(pdf, yPosition, topTransformations) {
-  // 检查是否需要新页面
-  if (yPosition > 200) {
-    pdf.addPage()
-    yPosition = 20
-  }
-
-  // 小标题
-  pdf.setFontSize(12)
-  pdf.setTextColor(46, 125, 50)
-  pdf.text('● Top Transformations', 20, yPosition)
-  yPosition += 10
-
-  pdf.setFontSize(9)
-
-  topTransformations.forEach((transformation, index) => {
-    if (yPosition > 260) {
-      pdf.addPage()
-      yPosition = 20
-    }
-
-    // 排名
-    pdf.setTextColor(46, 125, 50)
-    pdf.text(`${index + 1}.`, 25, yPosition)
-
-    // 原文（截取）
-    pdf.setTextColor(80, 80, 80)
-    const originalText = transformation.original.length > 50
-      ? transformation.original.substring(0, 50) + '...'
-      : transformation.original
-    pdf.text(`Original: ${originalText}`, 30, yPosition)
-    yPosition += 4
-
-    // 转换结果（截取）
-    const disguisedText = transformation.disguised.length > 50
-      ? transformation.disguised.substring(0, 50) + '...'
-      : transformation.disguised
-    pdf.text(`Result: ${disguisedText}`, 30, yPosition)
-    yPosition += 4
-
-    // 统计信息
-    pdf.setTextColor(120, 120, 120)
-    pdf.text(`Used ${transformation.usageCount} times ${transformation.isFavorited ? '★' : ''}`, 30, yPosition)
-    yPosition += 8
-  })
-
-  return yPosition
-}
-
-/**
- * 添加报告页脚
- * @param {jsPDF} pdf - PDF实例
- */
-function addReportFooter(pdf) {
-  const pageCount = pdf.internal.getNumberOfPages()
-
-  for (let i = 1; i <= pageCount; i++) {
-    pdf.setPage(i)
-
-    // 页码
-    pdf.setFontSize(8)
-    pdf.setTextColor(150, 150, 150)
-    pdf.text(`${i} / ${pageCount}`, 105, 290, { align: 'center' })
-
-    // 品牌信息
-    pdf.text('Generated by WordShelf - 智能文本表达助手', 105, 285, { align: 'center' })
-  }
-}
 
 /**
  * 生成收藏集合HTML
  * @param {Array} favoriteRecords - 收藏记录
- * @param {Object} userProfile - 用户资料
+ * @param {Array} availableStyles - 可选：当前可用的样式数组
  * @returns {string} - HTML内容
  */
-export function generateFavoriteHTML(favoriteRecords, userProfile) {
+export function generateFavoriteHTML(favoriteRecords, availableStyles = null) {
   const currentDate = new Date().toLocaleDateString('en-US')
 
   // Pre-process records to include display names
   const processedRecords = favoriteRecords.map(record => ({
     ...record,
-    styleDisplayName: getStyleDisplayName(record.style)
+    styleDisplayName: getStyleDisplayName(record.style, availableStyles)
   }))
 
   return `
@@ -1035,9 +583,10 @@ export function downloadFile(blob, filename) {
   URL.revokeObjectURL(url)
 }
 
+
+
 export const fileGenerationService = {
   generateBasicStatsReport,
-  generateSmartAnalysisReport,
   generateFavoriteHTML,
   downloadFile
 }
