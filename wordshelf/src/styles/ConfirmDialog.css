@@ -1,0 +1,118 @@
+/* 确认对话框样式 */
+
+.confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* 比普通弹窗更高的层级 */
+}
+
+.confirm-dialog {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 0;
+  min-width: 400px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.confirm-header {
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.confirm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  padding-bottom: 15px;
+}
+
+.confirm-body {
+  padding: 20px;
+}
+
+.confirm-message {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.confirm-footer {
+  padding: 15px 20px 20px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.confirm-button {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  min-width: 80px;
+}
+
+.confirm-button.secondary {
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.confirm-button.secondary:hover {
+  background-color: #999;
+  color: var(--text-primary);
+}
+
+.confirm-button.primary {
+  background-color: #000;
+  color: white;
+}
+
+.confirm-button.primary:hover {
+  background-color: #333;
+}
+
+.confirm-button.danger {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.confirm-button.danger:hover {
+  background-color: #1b5e20;
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .confirm-button.secondary {
+    background-color: #444;
+    color: #ccc;
+  }
+
+  .confirm-button.secondary:hover {
+    background-color: #555;
+    color: white;
+  }
+
+  .confirm-button.primary {
+    background-color: #333;
+    color: white;
+  }
+
+  .confirm-button.primary:hover {
+    background-color: #555;
+  }
+}

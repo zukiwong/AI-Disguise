@@ -6,6 +6,7 @@ import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
 import { LoginPrompt } from '../Auth/index.js'
 import StyleEditor from './StyleEditor.jsx'
+import ConfirmDialog from '../Common/ConfirmDialog.jsx'
 import { getPublicStylesForExplore } from '../../services/styleService.js'
 import eventBus, { EVENTS } from '../../utils/eventBus.js'
 import '../../styles/StyleManager.css'
@@ -50,6 +51,10 @@ function StyleManager({ onClose }) {
   const [addingStyleIds, setAddingStyleIds] = useState(new Set())
   // 移除风格状态追踪
   const [removingStyleIds, setRemovingStyleIds] = useState(new Set())
+
+  // 确认对话框状态
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState(null)
 
   // 加载完整的公共风格库用于搜索
   useEffect(() => {
@@ -167,19 +172,29 @@ function StyleManager({ onClose }) {
   }
 
   // 删除风格
-  const handleDelete = async (styleId) => {
-    if (!window.confirm('Are you sure you want to delete this style?')) {
-      return
-    }
-    
+  const handleDelete = (styleId) => {
+    setPendingDeleteId(styleId)
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDeleteId) return
+
     try {
-      await handleDeleteStyle(styleId)
+      await handleDeleteStyle(pendingDeleteId)
 
       // 使用静默刷新，避免重新加载，延长时间确保Firebase同步
       setTimeout(() => silentReloadStyles(), 3000)
     } catch (error) {
       console.error('删除风格失败:', error)
+    } finally {
+      setPendingDeleteId(null)
     }
+  }
+
+  const handleCancelDelete = () => {
+    setShowConfirmDialog(false)
+    setPendingDeleteId(null)
   }
 
 
@@ -611,6 +626,18 @@ function StyleManager({ onClose }) {
               isLoading={isLoading}
             />
           )}
+
+          {/* 确认删除对话框 */}
+          <ConfirmDialog
+            isOpen={showConfirmDialog}
+            title="Delete Style"
+            message="Are you sure you want to delete this style? This action cannot be undone."
+            confirmText="Delete"
+            cancelText="Cancel"
+            type="danger"
+            onConfirm={handleConfirmDelete}
+            onCancel={handleCancelDelete}
+          />
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import HistoryItem from './HistoryItem.jsx'
 import HistoryFilters from './HistoryFilters.jsx'
 import UnauthenticatedHistoryView from './UnauthenticatedHistoryView.jsx'
 import EmptyHistoryView from './EmptyHistoryView.jsx'
+import ConfirmDialog from '../Common/ConfirmDialog.jsx'
 import '../../styles/History.css'
 
 function HistoryList() {
@@ -42,6 +43,10 @@ function HistoryList() {
   const [itemsPerPage] = useState(20)
   const [viewMode, setViewMode] = useState('list') // 'list' or 'card'
 
+  // 确认删除对话框状态
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [pendingDeleteRecordId, setPendingDeleteRecordId] = useState(null)
+
   // 搜索和筛选后的记录
   const filteredRecords = useMemo(() => {
     return searchHistoryRecords(historyRecords, searchQuery, filters)
@@ -62,16 +67,26 @@ function HistoryList() {
   }
 
   // 处理删除记录
-  const handleDeleteRecord = async (recordId) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) {
-      return
-    }
+  const handleDeleteRecord = (recordId) => {
+    setPendingDeleteRecordId(recordId)
+    setShowDeleteConfirm(true)
+  }
+
+  const handleConfirmDeleteRecord = async () => {
+    if (!pendingDeleteRecordId) return
 
     try {
-      await deleteRecord(recordId)
+      await deleteRecord(pendingDeleteRecordId)
     } catch (err) {
       console.error('删除记录失败:', err)
+    } finally {
+      setPendingDeleteRecordId(null)
     }
+  }
+
+  const handleCancelDeleteRecord = () => {
+    setShowDeleteConfirm(false)
+    setPendingDeleteRecordId(null)
   }
 
   // 处理重新使用
@@ -242,6 +257,18 @@ function HistoryList() {
           </button>
         </div>
       )}
+
+      {/* 确认删除对话框 */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Record"
+        message="Are you sure you want to delete this record? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={handleConfirmDeleteRecord}
+        onCancel={handleCancelDeleteRecord}
+      />
     </div>
   )
 }
