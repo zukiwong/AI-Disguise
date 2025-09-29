@@ -3,15 +3,33 @@
 
 import { useState, useMemo } from 'react'
 import { CONVERSION_MODE } from '../../services/config.js'
+import { useDisguise } from '../../hooks/useDisguise.js'
 
-function HistoryFilters({ 
-  searchQuery, 
-  filters, 
-  onSearchChange, 
-  onFiltersChange, 
-  historyRecords = [] 
+function HistoryFilters({
+  searchQuery,
+  filters,
+  onSearchChange,
+  onFiltersChange,
+  historyRecords = []
 }) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+
+  // 获取风格数据用于显示名称
+  const { stylesWithVariants } = useDisguise()
+
+  // 获取风格显示名称
+  const getStyleDisplayName = (styleId) => {
+    if (!stylesWithVariants || stylesWithVariants.length === 0) {
+      return styleId || 'Custom Style'
+    }
+
+    const currentStyle = stylesWithVariants.find(style => style.id === styleId)
+    if (currentStyle) {
+      return currentStyle.displayName || currentStyle.name || 'Custom Style'
+    }
+
+    return styleId || 'Custom Style'
+  }
 
   // 从历史记录中提取可用的筛选选项
   const availableOptions = useMemo(() => {
@@ -213,7 +231,7 @@ function HistoryFilters({
                 <option value="">All Styles</option>
                 {availableOptions.styles.map(style => (
                   <option key={style} value={style}>
-                    {style}
+                    {getStyleDisplayName(style)}
                   </option>
                 ))}
               </select>
@@ -303,7 +321,7 @@ function HistoryFilters({
             ))}
             {filters.style && (
               <span className="active-filter">
-                Style: {filters.style}
+                Style: {getStyleDisplayName(filters.style)}
                 <button onClick={() => onFiltersChange({ ...filters, style: '' })}>✕</button>
               </span>
             )}
