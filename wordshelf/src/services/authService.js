@@ -329,16 +329,54 @@ export const getUserAddedStyles = async (userId) => {
   try {
     const userRef = doc(db, COLLECTIONS.USERS, userId)
     const userDoc = await getDoc(userRef)
-    
+
     if (userDoc.exists()) {
       const userData = userDoc.data()
       return userData.addedStyles || []
     }
-    
+
     return []
   } catch (error) {
     console.error('获取用户添加风格失败:', error)
     return []
+  }
+}
+
+// 获取用户样式排序
+export const getUserStyleOrder = async (userId) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+    const userDoc = await getDoc(userRef)
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data()
+      return userData.styleOrder || []
+    }
+
+    return []
+  } catch (error) {
+    console.error('获取用户样式排序失败:', error)
+    return []
+  }
+}
+
+// 保存用户样式排序
+export const saveUserStyleOrder = async (userId, orderedStyleIds) => {
+  try {
+    const userRef = doc(db, COLLECTIONS.USERS, userId)
+
+    await updateDoc(userRef, {
+      styleOrder: orderedStyleIds,
+      updatedAt: serverTimestamp()
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('保存用户样式排序失败:', error)
+    return {
+      success: false,
+      error: error.message
+    }
   }
 }
 

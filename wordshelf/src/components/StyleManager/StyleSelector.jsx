@@ -68,11 +68,66 @@ const StyleSelector = forwardRef(function StyleSelector({
   
   // 本地排序状态
   const [sortedStyles, setSortedStyles] = useState([])
-  
+
+  // 获取用户的样式排序设置
+  const getUserStyleOrder = async () => {
+    if (!userId) return []
+
+    try {
+      const { getUserStyleOrder } = await import('../../services/authService.js')
+      return await getUserStyleOrder(userId)
+    } catch (error) {
+      console.error('获取用户样式排序失败:', error)
+      return []
+    }
+  }
+
+  // 保存用户的样式排序设置
+  const saveUserStyleOrder = async (orderedStyleIds) => {
+    if (!userId) return
+
+    try {
+      const { saveUserStyleOrder } = await import('../../services/authService.js')
+      await saveUserStyleOrder(userId, orderedStyleIds)
+    } catch (error) {
+      console.error('保存用户样式排序失败:', error)
+    }
+  }
+
+  // 应用自定义排序
+  const applyCustomOrder = async (styles) => {
+    const storedOrder = await getUserStyleOrder()
+    if (storedOrder.length === 0) {
+      return styles
+    }
+
+    // 按存储的顺序排列样式
+    const orderedStyles = []
+    const remainingStyles = [...styles]
+
+    // 先添加按用户顺序排列的样式
+    storedOrder.forEach(styleId => {
+      const index = remainingStyles.findIndex(s => s.id === styleId)
+      if (index !== -1) {
+        orderedStyles.push(remainingStyles.splice(index, 1)[0])
+      }
+    })
+
+    // 添加新样式（不在用户排序中的）
+    orderedStyles.push(...remainingStyles)
+
+    return orderedStyles
+  }
+
   // 当 stylesWithVariants 变化时更新本地排序状态
   useEffect(() => {
-    setSortedStyles(stylesWithVariants)
-  }, [stylesWithVariants])
+    const loadOrderedStyles = async () => {
+      const orderedStyles = await applyCustomOrder(stylesWithVariants)
+      setSortedStyles(orderedStyles)
+    }
+
+    loadOrderedStyles()
+  }, [stylesWithVariants, userId])
 
   // 处理风格选择和展开/收起
   const handleStyleSelect = (styleId, variantId = null) => {
@@ -128,7 +183,13 @@ const StyleSelector = forwardRef(function StyleSelector({
     setSortedStyles((items) => {
       const oldIndex = items.findIndex(item => item.id === active.id)
       const newIndex = items.findIndex(item => item.id === over.id)
-      return arrayMove(items, oldIndex, newIndex)
+      const newOrder = arrayMove(items, oldIndex, newIndex)
+
+      // 保存新排序到Firebase
+      const orderedStyleIds = newOrder.map(style => style.id)
+      saveUserStyleOrder(orderedStyleIds)
+
+      return newOrder
     })
   }
   

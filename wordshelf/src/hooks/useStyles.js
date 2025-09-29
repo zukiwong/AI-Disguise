@@ -99,8 +99,6 @@ export function useStyles(userId = null) {
         createdBy: userId
       }
 
-      console.log('创建风格数据:', newStyle)
-      console.log('当前用户ID:', userId)
 
       // 尝试保存到 Firestore
       try {
@@ -110,7 +108,6 @@ export function useStyles(userId = null) {
         if (newStyle.isPublic) {
           const { addStyleToUserAccount } = await import('../services/authService.js')
           await addStyleToUserAccount(userId, createdStyle.id)
-          console.log('🔥 公共风格已添加到用户账户:', createdStyle.id)
         }
 
         setStyles(prev => [...prev, createdStyle])
@@ -492,7 +489,6 @@ export function useStyles(userId = null) {
     const unsubscribe = eventBus.on(EVENTS.STYLE_CREATED, (data) => {
       // 如果是相同用户创建的样式，同步更新本地状态（避免重复添加）
       if (data.userId === userId) {
-        console.log('🔥 收到样式创建事件，同步更新本地状态:', data.style.displayName)
 
         setStyles(prev => {
           if (prev.find(s => s.id === data.style.id)) {
