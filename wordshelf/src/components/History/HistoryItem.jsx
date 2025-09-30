@@ -10,6 +10,8 @@ import { gsap } from 'gsap'
 
 // 导入图标
 import CopyIcon from '../../assets/icons/copy.svg'
+import StarCollectionIcon from '../../assets/icons/star-collection.svg'
+import StarIcon from '../../assets/icons/star.svg'
 
 function HistoryItem({ 
   record, 
@@ -382,7 +384,24 @@ function HistoryItem({
             }}
             title={record.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {record.isFavorited ? '★' : '☆'}
+            {record.isFavorited ? (
+              <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="star-collection-icon favorited">
+                <g clipPath="url(#clip0_41_106)">
+                  <path d="M30.9375 12.4112C30.6785 11.6819 30.0089 11.151 29.2052 11.0352L21.3728 9.90819L17.9686 3.06873C17.6122 2.35044 16.8434 1.89209 16.0002 1.89209C15.1588 1.89209 14.39 2.35044 14.0327 3.06873L10.6286 9.90819L2.79621 11.0352C1.98975 11.151 1.3238 11.6819 1.06384 12.4112C0.803893 13.1406 1.00139 13.9433 1.56997 14.4908L7.30809 20.0369L5.97712 27.7288C5.84304 28.5031 6.19023 29.2802 6.86813 29.7349C7.24381 29.982 7.68288 30.1078 8.12101 30.1078C8.48202 30.1078 8.84484 30.0224 9.17089 29.8552L16.0003 26.408L22.8296 29.8552C23.1567 30.0224 23.5204 30.1078 23.8804 30.1078C24.3186 30.1078 24.7586 29.9819 25.1342 29.7349C25.8112 29.2802 26.1584 28.5031 26.0215 27.7288L24.6924 20.0369L30.4324 14.4908C31.001 13.9434 31.1938 13.1406 30.9375 12.4112Z" fill="#2E7D32"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_41_106">
+                    <rect width="32" height="32" fill="white"/>
+                  </clipPath>
+                </defs>
+              </svg>
+            ) : (
+              <img
+                src={StarCollectionIcon}
+                alt="Add to favorites"
+                className="star-collection-icon"
+              />
+            )}
           </button>
           
         </div>

@@ -420,13 +420,37 @@
 }
 
 .favorite-button:hover {
-  background-color: rgba(255, 107, 53, 0.1);
+  background-color: rgba(46, 125, 50, 0.1);
   transform: scale(1.1);
 }
 
 .favorite-button:not(.favorited) {
   opacity: 0.6;
 }
+
+/* 星星收藏图标样式 */
+.star-collection-icon {
+  width: 18px;
+  height: 18px;
+  transition: all 0.2s ease;
+}
+
+/* 未收藏状态：空心绿色边框 */
+.favorite-button:not(.favorited) .star-collection-icon {
+  filter: brightness(0) saturate(100%) invert(29%) sepia(56%) saturate(1488%) hue-rotate(88deg) brightness(96%) contrast(89%);
+  opacity: 0.7;
+}
+
+/* 收藏状态的SVG图标已经是绿色实心的 */
+.star-collection-icon.favorited {
+  opacity: 1;
+}
+
+.favorite-button:hover .star-collection-icon {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
 
 .expand-indicator {
   font-size: 12px;

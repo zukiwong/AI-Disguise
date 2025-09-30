@@ -233,14 +233,14 @@ function HistoryFilters({
           className={`filter-button ${filters.favoriteOnly ? 'active' : ''}`}
           onClick={handleFavoriteToggle}
         >
-          ★ Favorites {filters.favoriteOnly && `(${historyRecords.filter(r => r.isFavorited).length})`}
+          Favorites {filters.favoriteOnly && `(${historyRecords.filter(r => r.isFavorited).length})`}
         </button>
 
         <button
           className={`filter-button ${showAdvancedFilters ? 'active' : ''}`}
           onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
         >
-          🔧 Filters {hasActiveFilters && '●'}
+          Filters {hasActiveFilters && '●'}
         </button>
 
         {hasActiveFilters && (
