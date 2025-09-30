@@ -497,9 +497,6 @@ function StyleManager({ onClose }) {
                                 <span className="public-badge"> (Community)</span>
                               </div>
                               <div className="style-description">{style.description}</div>
-                              <div className="style-meta">
-                                Created by: {style.createdBy || 'Unknown'}
-                              </div>
                             </div>
                             
                             {/* 未登录状态下不显示任何操作按钮 */}
@@ -548,9 +545,6 @@ function StyleManager({ onClose }) {
                                 {!style.isPublic && <span className="private-badge"> (Private)</span>}
                               </div>
                               <div className="style-description">{style.description}</div>
-                              <div className="style-meta">
-                                Created by: {style.createdBy || 'Unknown'}
-                              </div>
                             </div>
                             
                             {/* 未登录状态下不显示任何操作按钮 */}

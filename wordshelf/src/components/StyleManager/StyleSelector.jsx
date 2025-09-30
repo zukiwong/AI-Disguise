@@ -162,6 +162,7 @@ const StyleSelector = forwardRef(function StyleSelector({
   // 处理变体选择
   const handleVariantSelect = (styleId, variantId) => {
     if (disabled) return
+
     // 直接选择风格和变体，不触发展开/收起逻辑
     onStyleChange(styleId)
     if (onVariantChange) {
@@ -491,17 +492,19 @@ function SortableStyleItem({
             <div className="variant-tags variant-preview">
               {/* 默认标签 */}
               <button
-                className={`variant-tag ${isStyleSelected && !selectedVariant ? 'active' : ''}`}
+                className={`variant-tag ${isStyleSelected && (!selectedVariant || selectedVariant === 'default') ? 'active' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation()
-                  handleVariantSelect(style.id, null)
+                  // 查找是否有ID为'default'的变体，如果有就使用它，否则使用null
+                  const defaultVariant = style.variants?.find(v => v.id === 'default')
+                  handleVariantSelect(style.id, defaultVariant ? defaultVariant.id : null)
                 }}
               >
                 Default
               </button>
               
               {/* 变体标签 */}
-              {style.variants.slice(0, 2).map((variant) => (
+              {style.variants.filter(v => v.id !== 'default').slice(0, 2).map((variant) => (
                 <button
                   key={variant.id}
                   className={`variant-tag ${isStyleSelected && selectedVariant === variant.id ? 'active' : ''}`}
@@ -515,12 +518,12 @@ function SortableStyleItem({
               ))}
               
               {/* 更多变体按钮 */}
-              {style.variants.length > 2 && (
+              {style.variants.filter(v => v.id !== 'default').length > 2 && (
                 <button
                   className="variant-tag view-all"
                   onClick={(e) => toggleVariants(style.id, e)}
                 >
-                  +{style.variants.length - 2} more
+                  +{style.variants.filter(v => v.id !== 'default').length - 2} more
                 </button>
               )}
             </div>
@@ -556,9 +559,13 @@ function SortableStyleItem({
       {hasVariants && isExpanded && (
         <div className="variant-list">
           {/* 默认变体 */}
-          <div 
-            className={`variant-item ${isStyleSelected && !selectedVariant ? 'selected' : ''}`}
-            onClick={() => handleVariantSelect(style.id, null)}
+          <div
+            className={`variant-item ${isStyleSelected && (!selectedVariant || selectedVariant === 'default') ? 'selected' : ''}`}
+            onClick={() => {
+              // 查找是否有ID为'default'的变体，如果有就使用它，否则使用null
+              const defaultVariant = style.variants?.find(v => v.id === 'default')
+              handleVariantSelect(style.id, defaultVariant ? defaultVariant.id : null)
+            }}
           >
             <div className="variant-info">
               <div className="variant-name">Default</div>
@@ -566,9 +573,9 @@ function SortableStyleItem({
             </div>
           </div>
           
-          {/* 风格变体 */}
-          {style.variants.map((variant) => (
-            <div 
+          {/* 风格变体 - 排除默认变体 */}
+          {style.variants.filter(v => v.id !== 'default').map((variant) => (
+            <div
               key={variant.id}
               className={`variant-item ${isStyleSelected && selectedVariant === variant.id ? 'selected' : ''}`}
               onClick={() => handleVariantSelect(style.id, variant.id)}

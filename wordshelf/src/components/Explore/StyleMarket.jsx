@@ -25,7 +25,9 @@ import {
 import {
   CSS,
 } from '@dnd-kit/utilities'
+import ConfirmDialog from '../Common/ConfirmDialog.jsx'
 import '../../styles/Explore.css'
+import '../../styles/Modal.css'
 
 // 开发环境下导入变体添加工具
 if (import.meta.env.DEV) {
@@ -48,8 +50,18 @@ function StyleMarket() {
   const [isLoading, setIsLoading] = useState(true)
   
   const [searchTerm, setSearchTerm] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [filteredStyles, setFilteredStyles] = useState([])
+  const [sortBy, setSortBy] = useState('newest')
+
+  // 确认对话框状态
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [confirmDialogConfig, setConfirmDialogConfig] = useState({
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
+    type: 'info',
+    onConfirm: null
+  })
 
   // 加载探索页公共风格数据  
   useEffect(() => {
@@ -57,7 +69,11 @@ function StyleMarket() {
       setIsLoading(true)
       try {
         const styles = await getPublicStylesWithVariants(userId)
-        setPublicStyles(styles)
+        // 数据去重，防止重复的style ID
+        const uniqueStyles = styles.filter((style, index, self) =>
+          index === self.findIndex(s => s.id === style.id)
+        )
+        setPublicStyles(uniqueStyles)
       } catch (error) {
         console.error('加载探索页风格失败:', error)
         setPublicStyles([])
@@ -73,7 +89,7 @@ function StyleMarket() {
   const [officialStyles, setOfficialStyles] = useState([])
   const [communityStyles, setCommunityStyles] = useState([])
   
-  // 过滤和分组风格
+  // 过滤、排序和分组风格
   useEffect(() => {
     let filtered = publicStyles
 
@@ -85,24 +101,74 @@ function StyleMarket() {
       )
     }
 
-    // 分类过滤
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(style => style.category === categoryFilter)
-    }
+    // 排序功能
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          // 按创建时间降序（最新的在前）
+          return new Date(b.createdAt?.toDate?.() || b.createdAt || 0) - new Date(a.createdAt?.toDate?.() || a.createdAt || 0)
+        case 'oldest':
+          // 按创建时间升序（最老的在前）
+          return new Date(a.createdAt?.toDate?.() || a.createdAt || 0) - new Date(b.createdAt?.toDate?.() || b.createdAt || 0)
+        case 'popular':
+          // 按使用次数降序（最热门的在前）
+          return (b.usageCount || 0) - (a.usageCount || 0)
+        case 'alphabetical':
+          // 按字母顺序
+          return a.displayName.localeCompare(b.displayName)
+        case 'random':
+          // 随机排序
+          return Math.random() - 0.5
+        default:
+          return 0
+      }
+    })
 
     // 分离公共样式（系统创建）和社区样式（用户创建）
     const official = filtered.filter(style => style.createdBy === 'system')
     const community = filtered.filter(style => style.createdBy !== 'system')
 
-    setOfficialStyles(official)
-    setCommunityStyles(community)
-    setFilteredStyles(filtered) // 保持兼容性
-  }, [publicStyles, searchTerm, categoryFilter])
+    // 额外的去重保护，防止任何潜在的重复
+    const uniqueOfficial = official.filter((style, index, self) =>
+      index === self.findIndex(s => s.id === style.id)
+    )
+    const uniqueCommunity = community.filter((style, index, self) =>
+      index === self.findIndex(s => s.id === style.id)
+    )
+
+    setOfficialStyles(uniqueOfficial)
+    setCommunityStyles(uniqueCommunity)
+  }, [publicStyles, searchTerm, sortBy])
+
+  // 显示确认对话框的辅助函数
+  const showConfirm = (config) => {
+    setConfirmDialogConfig(config)
+    setShowConfirmDialog(true)
+  }
+
+  // 隐藏确认对话框
+  const hideConfirm = () => {
+    setShowConfirmDialog(false)
+    setConfirmDialogConfig({
+      title: '',
+      message: '',
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      type: 'info',
+      onConfirm: null
+    })
+  }
 
   const handleUseStyle = (styleId, variantId = null, requiresAuth = false) => {
     // 检查权限：社区样式需要登录
     if (requiresAuth && !isAuthenticated) {
-      alert('Please login first to use community styles')
+      showConfirm({
+        title: 'Login Required',
+        message: 'Please login first to use community styles',
+        confirmText: 'OK',
+        type: 'info',
+        onConfirm: hideConfirm
+      })
       return
     }
     
@@ -131,27 +197,30 @@ function StyleMarket() {
     }
   }
 
-  const handleFavoriteStyle = (styleId) => {
-    if (!isAuthenticated) {
-      // TODO: 显示登录提示
-      console.log('Login required for favorites')
-      return
-    }
-    // TODO: 实现收藏功能
-    console.log('Favorite style:', styleId)
-  }
 
   // 处理添加风格到个人列表
   const handleAddToMyList = async (styleId) => {
     if (!isAuthenticated) {
-      alert('Please login first to add styles to your personal list')
+      showConfirm({
+        title: 'Login Required',
+        message: 'Please login first to add styles to your personal list',
+        confirmText: 'OK',
+        type: 'info',
+        onConfirm: hideConfirm
+      })
       return
     }
 
     try {
       // 检查是否已经添加过
       if (addedStyleIds.includes(styleId)) {
-        alert('This style has already been added to your personal list')
+        showConfirm({
+          title: 'Already Added',
+          message: 'This style has already been added to your personal list',
+          confirmText: 'OK',
+          type: 'info',
+          onConfirm: hideConfirm
+        })
         return
       }
 
@@ -162,15 +231,33 @@ function StyleMarket() {
       const success = await addPublicStyleToAccount(styleId)
       
       console.log('添加结果:', success)
-      
+
       if (success) {
-        alert('Style added to your personal list successfully!')
+        showConfirm({
+          title: 'Success',
+          message: 'Style added to your personal list successfully!',
+          confirmText: 'OK',
+          type: 'success',
+          onConfirm: hideConfirm
+        })
       } else {
-        alert('Failed to add style, please try again')
+        showConfirm({
+          title: 'Failed',
+          message: 'Failed to add style, please try again',
+          confirmText: 'OK',
+          type: 'danger',
+          onConfirm: hideConfirm
+        })
       }
     } catch (error) {
       console.error('添加风格失败:', error)
-      alert('Failed to add style, please try again')
+      showConfirm({
+        title: 'Error',
+        message: 'Failed to add style, please try again',
+        confirmText: 'OK',
+        type: 'danger',
+        onConfirm: hideConfirm
+      })
     }
   }
 
@@ -216,13 +303,14 @@ function StyleMarket() {
         
         <select
           className="filter-select"
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
         >
-          <option value="all">All Categories</option>
-          <option value="creative">Creative</option>
-          <option value="professional">Professional</option>
-          <option value="casual">Casual</option>
+          <option value="newest">Newest First</option>
+          <option value="popular">Most Popular</option>
+          <option value="alphabetical">A to Z</option>
+          <option value="oldest">Oldest First</option>
+          <option value="random">Random Order</option>
         </select>
         
       </div>
@@ -242,16 +330,16 @@ function StyleMarket() {
           <div className="style-grid">
             {officialStyles.map((style) => (
               <StyleCard
-                key={style.id}
+                key={`official-${style.id}`}
                 style={style}
                 onUse={(styleId, variantId) => handleUseStyle(styleId, variantId, false)} // 公共样式不需要登录
-                onFavorite={handleFavoriteStyle}
                 onAddToMyList={handleAddToMyList}
-                canFavorite={isAuthenticated}
                 canAddToList={isAuthenticated}
                 isAddedToList={addedStyleIds.includes(style.id)}
                 onVariantAdded={updateStyleVariants}
                 requiresAuth={false} // 标记为不需要认证
+                showConfirm={showConfirm}
+                hideConfirm={hideConfirm}
               />
             ))}
           </div>
@@ -273,48 +361,43 @@ function StyleMarket() {
           <div className="style-grid">
             {communityStyles.map((style) => (
               <StyleCard
-                key={style.id}
+                key={`community-${style.id}`}
                 style={style}
                 onUse={(styleId, variantId) => handleUseStyle(styleId, variantId, true)} // 社区样式需要登录
-                onFavorite={handleFavoriteStyle}
                 onAddToMyList={handleAddToMyList}
-                canFavorite={isAuthenticated}
                 canAddToList={isAuthenticated}
                 isAddedToList={addedStyleIds.includes(style.id)}
                 onVariantAdded={updateStyleVariants}
                 requiresAuth={true} // 标记为需要认证
+                showConfirm={showConfirm}
+                hideConfirm={hideConfirm}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* 确认对话框 */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title={confirmDialogConfig.title}
+        message={confirmDialogConfig.message}
+        confirmText={confirmDialogConfig.confirmText}
+        cancelText={confirmDialogConfig.cancelText}
+        type={confirmDialogConfig.type}
+        onConfirm={confirmDialogConfig.onConfirm}
+        onCancel={hideConfirm}
+      />
     </div>
   )
 }
 
-// 爱心图标组件
-function HeartIcon({ filled, className }) {
-  return (
-    <svg 
-      className={className}
-      width="16" 
-      height="16" 
-      viewBox="0 0 24 24" 
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor" 
-      strokeWidth="2"
-    >
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-    </svg>
-  )
-}
 
 // 风格卡片组件（支持变体）
-function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAddToList, isAddedToList, onVariantAdded, requiresAuth = false }) {
+function StyleCard({ style, onUse, onAddToMyList, canAddToList, isAddedToList, onVariantAdded, requiresAuth = false, showConfirm, hideConfirm }) {
   const { isAuthenticated } = useAuth() // 获取用户认证状态
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [showVariantModal, setShowVariantModal] = useState(false)
-  const [isFavorited, setIsFavorited] = useState(false) // 临时状态，后续可连接真实数据
   
   const isOfficial = style.createdBy === 'system'
   const hasVariants = style.hasVariants && style.variants && style.variants.length > 0
@@ -337,7 +420,13 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
   const handleUseStyle = () => {
     // 检查权限：社区样式需要登录
     if (requiresAuth && !isAuthenticated) {
-      alert('Please login first to use community styles')
+      showConfirm({
+        title: 'Login Required',
+        message: 'Please login first to use community styles',
+        confirmText: 'OK',
+        type: 'info',
+        onConfirm: hideConfirm
+      })
       return
     }
     
@@ -353,13 +442,6 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
   // 检查是否可以使用
   const canUse = !requiresAuth || isAuthenticated
 
-  const handleFavoriteClick = (e) => {
-    e.stopPropagation() // 阻止事件冒泡
-    if (!canFavorite) return
-    
-    setIsFavorited(!isFavorited)
-    onFavorite(style.id)
-  }
 
   const handleCardClick = () => {
     // 点击卡片空白处打开变体窗口
@@ -428,46 +510,53 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
         {/* 固定在底部的按钮区域 */}
         <div className="style-card-bottom">
           <div className="style-card-actions">
-            <button
-              className={`style-action-button ${!canUse ? 'disabled' : ''}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                handleUseStyle()
-              }}
-              disabled={!canUse}
-              title={!canUse ? 'Login required to use community styles' : ''}
-            >
-              {!canUse ? 'Login Required' : 'Use Style'}
-            </button>
-            
-            {/* 添加到个人列表按钮 - 只显示给社区风格 */}
-            {canAddToList && !isOfficial && (
+            {/* 官方风格显示Use Style按钮 */}
+            {isOfficial && (
               <button
-                className={`style-action-button add-to-list-button ${isAddedToList ? 'added' : ''}`}
+                className="style-action-button"
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (!isAddedToList) {
+                  handleUseStyle()
+                }}
+              >
+                Use Style
+              </button>
+            )}
+
+            {/* 社区风格只显示Add按钮，已添加时变灰色带打勾 */}
+            {!isOfficial && (
+              <button
+                className={`style-action-button ${isAddedToList ? 'added disabled' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (!isAddedToList && canAddToList) {
                     onAddToMyList(style.id)
                   }
                 }}
-                disabled={isAddedToList}
-                title={isAddedToList ? 'Already in your personal list' : 'Add to your personal list'}
+                disabled={isAddedToList || !canAddToList}
+                title={
+                  !canAddToList
+                    ? 'Login required to add styles'
+                    : isAddedToList
+                      ? 'Already in your personal list'
+                      : 'Add to your personal list'
+                }
+                style={{
+                  backgroundColor: isAddedToList ? '#e0e0e0' : '',
+                  color: isAddedToList ? '#666' : '',
+                  cursor: isAddedToList ? 'default' : 'pointer'
+                }}
               >
-                {isAddedToList ? '✓ Added' : '+ Add to My List'}
+                {!canAddToList
+                  ? 'Login Required'
+                  : isAddedToList
+                    ? '✓ Added'
+                    : '+ Add to My List'
+                }
               </button>
             )}
           </div>
           
-          {/* 收藏按钮移到右下角 */}
-          {canFavorite && (
-            <button
-              className={`favorite-button ${isFavorited ? 'favorited' : ''}`}
-              onClick={handleFavoriteClick}
-              title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              <HeartIcon filled={isFavorited} />
-            </button>
-          )}
         </div>
       </div>
       
@@ -479,6 +568,8 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
           onUse={onUse}
           onVariantAdded={onVariantAdded}
           requiresAuth={requiresAuth}
+          showConfirm={showConfirm}
+          hideConfirm={hideConfirm}
         />
       )}
     </>
@@ -486,7 +577,7 @@ function StyleCard({ style, onUse, onFavorite, onAddToMyList, canFavorite, canAd
 }
 
 // 可拖拽的表格行组件
-function SortableVariantRow({ variant, style, onUse, onClose, isDragDisabled, requiresAuth = false }) {
+function SortableVariantRow({ variant, style, onUse, onClose, isDragDisabled, requiresAuth = false, showConfirm, hideConfirm }) {
   const { isAuthenticated } = useAuth() // 获取用户认证状态
   const {
     attributes,
@@ -511,10 +602,16 @@ function SortableVariantRow({ variant, style, onUse, onClose, isDragDisabled, re
   
   const handleUse = () => {
     if (requiresAuth && !isAuthenticated) {
-      alert('Please login first to use community styles')
+      showConfirm({
+        title: 'Login Required',
+        message: 'Please login first to use community styles',
+        confirmText: 'OK',
+        type: 'info',
+        onConfirm: hideConfirm
+      })
       return
     }
-    onUse(style.id, variant.isDefault ? null : variant.id)
+    onUse(style.id, variant.id)
     onClose()
   }
 
@@ -560,7 +657,7 @@ function SortableVariantRow({ variant, style, onUse, onClose, isDragDisabled, re
 }
 
 // 变体详情模态框组件
-function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = false }) {
+function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = false, showConfirm, hideConfirm }) {
   const { isAuthenticated, userId } = useAuth()
   
   // 添加变体的表单状态
@@ -596,12 +693,17 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
       createdBy: variant.createdBy === 'system' ? 'WordShelf' : variant.createdBy,
       isDefault: false
     }))
-    
+
+    // 变体去重，防止重复的variant ID
+    const uniqueVariants = normalVariants.filter((variant, index, self) =>
+      index === self.findIndex(v => v.id === variant.id)
+    )
+
     // 按使用次数降序排序普通变体
-    normalVariants.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
-    
+    uniqueVariants.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0))
+
     // Default 始终在顶部，其他按使用次数排序
-    return [defaultVariant, ...normalVariants]
+    return [defaultVariant, ...uniqueVariants]
   })
   
   // 处理拖拽结束
@@ -643,7 +745,13 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
   // 处理添加新变体
   const handleAddVariant = () => {
     if (!isAuthenticated) {
-      alert('Please login first to add variants')
+      showConfirm({
+        title: 'Login Required',
+        message: 'Please login first to add variants',
+        confirmText: 'OK',
+        type: 'info',
+        onConfirm: hideConfirm
+      })
       return
     }
     setIsAddingVariant(true)
@@ -658,7 +766,13 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
   // 提交新变体
   const handleSubmitVariant = async () => {
     if (!newVariant.name.trim() || !newVariant.description.trim()) {
-      alert('Please fill in variant name and description')
+      showConfirm({
+        title: 'Missing Information',
+        message: 'Please fill in variant name and description',
+        confirmText: 'OK',
+        type: 'warning',
+        onConfirm: hideConfirm
+      })
       return
     }
     
@@ -675,7 +789,13 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
       })
       
       // 成功后只刷新当前窗口数据，不刷新整个页面
-      alert('Variant added successfully!')
+      showConfirm({
+        title: 'Success',
+        message: 'Variant added successfully!',
+        confirmText: 'OK',
+        type: 'success',
+        onConfirm: hideConfirm
+      })
       
       // 通知父组件更新主状态
       if (onVariantAdded) {
@@ -703,7 +823,13 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
       
     } catch (error) {
       console.error('添加变体失败:', error)
-      alert('Failed to add variant, please try again')
+      showConfirm({
+        title: 'Error',
+        message: 'Failed to add variant, please try again',
+        confirmText: 'OK',
+        type: 'danger',
+        onConfirm: hideConfirm
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -747,6 +873,8 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
                         onClose={onClose}
                         isDragDisabled={variant.isDefault}
                         requiresAuth={requiresAuth}
+                        showConfirm={showConfirm}
+                        hideConfirm={hideConfirm}
                       />
                     ))}
                   </SortableContext>

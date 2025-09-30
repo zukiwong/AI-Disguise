@@ -90,6 +90,50 @@ function Home() {
     }
   }, [updateInputText, updateConversionMode, updateSelectedStyle, updateSelectedVariant, updateSelectedPurpose, updateSelectedRecipient, updateOutputLanguage])
 
+  // 检查并应用来自探索页的风格选择
+  useEffect(() => {
+    const selectedStyleData = localStorage.getItem('selectedStyleFromExplore')
+
+    if (selectedStyleData && stylesWithVariants.length > 0) {
+      try {
+        const data = JSON.parse(selectedStyleData)
+
+        // 清除选择数据，避免重复应用
+        localStorage.removeItem('selectedStyleFromExplore')
+
+        // 应用选择的风格和变体
+        if (data.styleId) {
+          // 确保风格存在于当前用户的风格列表中
+          const styleExists = stylesWithVariants.find(s => s.id === data.styleId)
+
+          if (styleExists) {
+            updateConversionMode(CONVERSION_MODE.STYLE) // 切换到风格模式
+            updateSelectedStyle(data.styleId) // 应用选择的风格
+
+            // 如果有变体ID，也应用变体
+            if (data.variantId) {
+              updateSelectedVariant(data.variantId)
+            }
+
+            // 滚动到输入区域，引导用户输入文本
+            setTimeout(() => {
+              const textarea = document.querySelector('textarea')
+              if (textarea) {
+                textarea.focus()
+                textarea.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }
+            }, 300)
+          } else {
+            console.log('选择的风格不在用户的风格列表中:', data.styleId)
+          }
+        }
+      } catch (error) {
+        console.error('应用探索页选择失败:', error)
+        localStorage.removeItem('selectedStyleFromExplore')
+      }
+    }
+  }, [stylesWithVariants, updateConversionMode, updateSelectedStyle, updateSelectedVariant, CONVERSION_MODE.STYLE])
+
   // 处理预选风格 - 等待styles加载完成
   useEffect(() => {
     const preselectedStyle = localStorage.getItem('preselectedStyle')
