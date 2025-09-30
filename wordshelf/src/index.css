@@ -504,6 +504,10 @@ body.dark .left-panel.style-panel.has-scroll::after {
   flex-wrap: wrap;
 }
 
+.action-buttons button:not(.primary-button) {
+  flex: 1; /* 其他按钮平分剩余空间 */
+}
+
 .primary-button {
   background-color: #4CAF50;
   color: white;
@@ -513,6 +517,7 @@ body.dark .left-panel.style-panel.has-scroll::after {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  flex: 2; /* 让主按钮占据更多空间 */
 }
 
 .primary-button:hover:not(:disabled) {
@@ -796,6 +801,46 @@ body.dark .left-panel.style-panel.has-scroll::after {
   background-image: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 10L12 15L17 10H7Z" fill="%234CAF50"/></svg>') !important;
 }
 
+/* 中等屏幕优化 - 针对MacBook等笔记本屏幕 */
+@media (max-height: 900px) {
+  .home-container {
+    height: auto;
+    min-height: calc(100vh - 108px); /* 允许内容超出视口时滚动 */
+    overflow: visible;
+  }
+
+  .two-column-layout .main-content-wrapper {
+    overflow: visible;
+  }
+
+  .right-panel.content-panel {
+    overflow: visible;
+  }
+
+  .right-panel .input-section {
+    flex: none;
+  }
+
+  .right-panel .result-section {
+    flex: none;
+    overflow: visible;
+  }
+
+  /* 中等屏幕下适当减小输入框高度 */
+  .input-section textarea {
+    min-height: 200px;
+  }
+
+  /* 中等屏幕按钮稍微紧凑 */
+  .primary-button {
+    padding: 11px 22px; /* 稍微减小 */
+  }
+
+  .action-buttons button:not(.primary-button) {
+    padding: 9px 18px; /* 稍微减小 */
+  }
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .home-container {
@@ -841,6 +886,23 @@ body.dark .left-panel.style-panel.has-scroll::after {
 
   .action-buttons button {
     width: 100%;
+  }
+
+  /* 移动端按钮尺寸优化 */
+  .primary-button {
+    padding: 10px 20px; /* 从12px 24px减小到10px 20px */
+    font-size: 14px; /* 减小字体 */
+  }
+
+  .action-buttons button:not(.primary-button) {
+    padding: 8px 16px; /* 其他按钮更紧凑 */
+    font-size: 14px;
+  }
+
+  /* 移动端输入框优化 */
+  .input-section textarea {
+    min-height: 150px; /* 移动端进一步减小输入框高度 */
+    padding: 12px; /* 适当减小内边距 */
   }
 
   /* 移动端下拉框调整 */

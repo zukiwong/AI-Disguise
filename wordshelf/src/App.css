@@ -28,6 +28,19 @@
   overflow: hidden; /* 首页不滚动，固定一屏高度 */
 }
 
+/* 中等屏幕高度优化 - 针对MacBook等笔记本屏幕 */
+@media (max-height: 900px) {
+  .app.home-page {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .main-content.home-page {
+    overflow: visible;
+  }
+}
+
 /* 响应式适配 */
 @media (max-width: 768px) {
   .app {

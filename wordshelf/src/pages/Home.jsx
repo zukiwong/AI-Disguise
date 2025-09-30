@@ -435,7 +435,7 @@ function Home() {
                   disabled={!inputText.trim() || isLoading}
                   className="primary-button"
                 >
-                  {isLoading ? 'Finding the right words...' : 'Transform Text'}
+                  {isLoading ? 'Finding the right words...' : 'Transform'}
                 </button>
 
                 <button
@@ -444,7 +444,7 @@ function Home() {
                   className="random-button"
                   title="Need inspiration? Let us pick a style for you!"
                 >
-                  Try Something Random
+                  Random
                 </button>
 
                 <button
