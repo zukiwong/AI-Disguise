@@ -4,6 +4,8 @@
 import { useState, useMemo } from 'react'
 import { CONVERSION_MODE } from '../../services/config.js'
 import { useDisguise } from '../../hooks/useDisguise.js'
+import { useStyles } from '../../hooks/useStyles.js'
+import { useAuth } from '../../hooks/useAuth.js'
 
 function HistoryFilters({
   searchQuery,
@@ -14,40 +16,34 @@ function HistoryFilters({
 }) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
-  // 获取风格数据用于显示名称
+  // 获取用户信息和风格数据
+  const { userId } = useAuth()
   const { stylesWithVariants } = useDisguise()
+  const { styles: allStyles } = useStyles(userId)
 
-  // 获取风格显示名称
-  const getStyleDisplayName = (styleId) => {
-    if (!stylesWithVariants || stylesWithVariants.length === 0) {
-      return styleId || 'Custom Style'
-    }
-
-    const currentStyle = stylesWithVariants.find(style => style.id === styleId)
-    if (currentStyle) {
-      return currentStyle.displayName || currentStyle.name || 'Custom Style'
-    }
-
-    return styleId || 'Custom Style'
-  }
-
-  // 从历史记录中提取可用的筛选选项
+  // 从历史记录中提取可用的筛选选项和风格名称映射
   const availableOptions = useMemo(() => {
     const tags = new Set()
     const styles = new Set()
     const conversionModes = new Set()
+    const styleDisplayNameMap = new Map() // 风格ID到显示名称的映射
 
     historyRecords.forEach(record => {
       // 收集标签
       if (record.tags) {
         record.tags.forEach(tag => tags.add(tag))
       }
-      
+
       // 收集风格
       if (record.style) {
         styles.add(record.style)
+
+        // 如果历史记录中有styleDisplayName，保存映射关系
+        if (record.styleDisplayName) {
+          styleDisplayNameMap.set(record.style, record.styleDisplayName)
+        }
       }
-      
+
       // 收集转换模式
       if (record.conversionMode) {
         conversionModes.add(record.conversionMode)
@@ -57,9 +53,68 @@ function HistoryFilters({
     return {
       tags: Array.from(tags).sort(),
       styles: Array.from(styles).sort(),
-      conversionModes: Array.from(conversionModes).sort()
+      conversionModes: Array.from(conversionModes).sort(),
+      styleDisplayNameMap // 新增：风格显示名称映射
     }
   }, [historyRecords])
+
+  // 获取风格显示名称，优先使用历史记录中保存的名称
+  const getStyleDisplayName = (styleId) => {
+    if (!styleId) return 'Unknown Style'
+
+    // 1. 优先从历史记录的映射中查找（最可靠，即使风格被删除也有名称）
+    if (availableOptions.styleDisplayNameMap.has(styleId)) {
+      return availableOptions.styleDisplayNameMap.get(styleId)
+    }
+
+    // 2. 从allStyles（包含所有用户风格）中查找
+    if (allStyles && allStyles.length > 0) {
+      const currentStyle = allStyles.find(style => style.id === styleId)
+      if (currentStyle) {
+        const displayName = currentStyle.displayName || currentStyle.name
+        if (displayName) {
+          return displayName
+        }
+      }
+    }
+
+    // 3. 从stylesWithVariants中查找
+    if (stylesWithVariants && stylesWithVariants.length > 0) {
+      const currentStyle = stylesWithVariants.find(style => style.id === styleId)
+      if (currentStyle) {
+        const displayName = currentStyle.displayName || currentStyle.name
+        if (displayName) {
+          return displayName
+        }
+      }
+    }
+
+    // 4. 基础系统样式配置
+    const SYSTEM_STYLES = {
+      chat: 'Chat Style',
+      poem: 'Poetic Style',
+      social: 'Social Style',
+      story: 'Story Style',
+      formal: 'Formal Style',
+      casual: 'Casual Style',
+      professional: 'Professional Style',
+      friendly: 'Friendly Style',
+      academic: 'Academic Style',
+      business: 'Business Style'
+    }
+
+    if (SYSTEM_STYLES[styleId]) {
+      return SYSTEM_STYLES[styleId]
+    }
+
+    // 5. 如果是已删除的自定义风格，显示为已删除状态
+    if (styleId.length > 10 && /^[A-Za-z0-9]{10,}$/.test(styleId)) {
+      return 'Deleted Custom Style'
+    }
+
+    // 最后的fallback
+    return styleId
+  }
 
   // 处理搜索输入
   const handleSearchChange = (event) => {

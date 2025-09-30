@@ -272,13 +272,29 @@ export function useDisguise() {
       // 设置输出结果
       setOutput(result)
       
+      // 获取风格和变体的显示名称
+      let styleDisplayName = null
+      let variantDisplayName = null
+
+      if (conversionMode === CONVERSION_MODE.STYLE && selectedStyle) {
+        const currentStyle = stylesWithVariants.find(style => style.id === selectedStyle)
+        styleDisplayName = currentStyle?.displayName || currentStyle?.name || 'Custom Style'
+
+        if (selectedVariant) {
+          const variant = currentStyle?.variants?.find(v => v.id === selectedVariant)
+          variantDisplayName = variant?.name || 'Custom Variant'
+        }
+      }
+
       // 准备历史记录数据
       const historyRecordData = {
         original: inputText,
         disguised: result,
         conversionMode: conversionMode,
         style: conversionMode === CONVERSION_MODE.STYLE ? selectedStyle : null,
+        styleDisplayName: styleDisplayName, // 保存风格显示名称
         variant: conversionMode === CONVERSION_MODE.STYLE ? selectedVariant : null,
+        variantDisplayName: variantDisplayName, // 保存变体显示名称
         purpose: conversionMode === CONVERSION_MODE.PURPOSE ? selectedPurpose : null,
         recipient: conversionMode === CONVERSION_MODE.PURPOSE ? selectedRecipient : null,
         outputLanguage: outputLanguage,

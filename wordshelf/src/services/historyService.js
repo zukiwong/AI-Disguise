@@ -12,7 +12,9 @@ export const createHistoryRecord = ({
   disguised,
   conversionMode,
   style = null,
+  styleDisplayName = null, // 新增：保存风格的显示名称
   variant = null,
+  variantDisplayName = null, // 新增：保存变体的显示名称
   purpose = null,
   recipient = null,
   outputLanguage,
@@ -28,7 +30,9 @@ export const createHistoryRecord = ({
     disguised,
     conversionMode,
     style,
+    styleDisplayName, // 保存风格显示名称，即使风格被删除也能正确显示
     variant,
+    variantDisplayName, // 保存变体显示名称
     purpose,
     recipient,
     outputLanguage,
