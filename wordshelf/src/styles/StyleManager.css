@@ -735,8 +735,8 @@ body.dark .variant-item:hover {
 }
 
 body.dark .variant-item.selected {
-  background-color: rgba(76, 175, 80, 0.15);
-  border-color: #4CAF50;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: #666;
 }
 
 body.dark .variant-name {
@@ -749,4 +749,69 @@ body.dark .variant-description {
 
 body.dark .variant-usage {
   color: var(--text-secondary);
+}
+
+/* 黑夜模式下的 secondary 按钮样式 */
+body.dark .action-button.secondary {
+  background-color: white;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+body.dark .action-button.secondary:hover {
+  background-color: #f5f5f5;
+  color: #000;
+}
+
+/* 黑夜模式下的 danger 按钮样式 */
+body.dark .action-button.danger {
+  background-color: white;
+  color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
+body.dark .action-button.danger:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* 黑夜模式下的 remove 按钮样式（区别于danger按钮） */
+body.dark .action-button.remove {
+  background-color: white;
+  color: #6c757d;
+  border: 1px solid #6c757d;
+}
+
+body.dark .action-button.remove:hover {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* 黑夜模式下的 edit 按钮样式（与remove保持一致） */
+body.dark .action-button:not(.danger):not(.copy):not(.success):not(.secondary):not(.remove):not(.hide) {
+  background-color: white;
+  color: #6c757d;
+  border: 1px solid #6c757d;
+}
+
+body.dark .action-button:not(.danger):not(.copy):not(.success):not(.secondary):not(.remove):not(.hide):hover {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* 黑夜模式下的 copy 按钮样式 */
+body.dark .action-button.copy {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+
+body.dark .action-button.copy:hover {
+  background-color: rgba(76, 175, 80, 0.3);
+  color: white;
+}
+
+/* 黑夜模式下的 private 标记样式 */
+body.dark .private-badge {
+  color: #28a745;
 }

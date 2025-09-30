@@ -592,7 +592,7 @@ function Home() {
                         onClick={() => handleCopy(output, 'Expression')}
                         disabled={isLoading}
                       >
-                        Copy Expression
+                        Copy
                       </button>
                       <button
                         onClick={handleShare}

@@ -129,16 +129,17 @@
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 20px;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .user-avatar-button:hover {
-  background-color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
 }
 
 .user-avatar-image {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #ddd;
@@ -151,8 +152,8 @@
 }
 
 .user-avatar-placeholder {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: #000;
   color: white;
@@ -188,11 +189,12 @@
   cursor: pointer;
   font-size: 14px;
   color: #333;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .user-menu-item:hover {
-  background-color: #f5f5f5;
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: translateX(2px);
 }
 
 /* 移除单独的圆角设置，由父容器的 overflow: hidden 处理 */
@@ -240,4 +242,40 @@
 
 .login-prompt-button:hover {
   background-color: #333;
+}
+
+/* 黑夜模式下的用户头像和菜单样式 */
+body.dark .user-avatar-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+body.dark .user-menu-item {
+  color: var(--text-primary);
+  background-color: var(--card-bg);
+}
+
+body.dark .user-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
+}
+
+body.dark .user-menu-divider {
+  background-color: var(--border-color);
+}
+
+body.dark .user-avatar-placeholder {
+  background-color: var(--text-secondary);
+  color: var(--card-bg);
+}
+
+body.dark .user-avatar-image {
+  border-color: var(--border-color);
+}
+
+/* 黑夜模式下的下拉菜单容器样式 */
+body.dark .user-menu {
+  background: #2d2d2d;
+  border: 1px solid #555;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }

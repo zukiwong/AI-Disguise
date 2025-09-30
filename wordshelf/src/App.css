@@ -292,3 +292,30 @@ button {
   }
 }
 
+/* =============================================================================
+   黑夜模式样式
+   ============================================================================= */
+
+/* 黑夜模式下的 textarea 样式 */
+body.dark textarea {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+body.dark textarea:focus {
+  border-color: #4caf50;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* 黑夜模式下的结果操作按钮 */
+body.dark .result-actions button:first-child {
+  background-color: var(--text-primary);
+  color: var(--card-bg);
+}
+
+body.dark .result-actions button:first-child:hover:not(:disabled) {
+  background-color: var(--text-secondary);
+}
+

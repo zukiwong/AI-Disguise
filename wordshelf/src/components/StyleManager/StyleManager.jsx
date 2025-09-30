@@ -561,8 +561,8 @@ function StyleManager({ onClose }) {
                                     >
                                       Copy
                                     </button>
-                                    <button 
-                                      className="action-button danger"
+                                    <button
+                                      className="action-button remove"
                                       onClick={() => handleRemoveFromAccount(style.id)}
                                       disabled={isLoading || removingStyleIds.has(style.id)}
                                       title="从账户移除"
@@ -625,7 +625,7 @@ function StyleManager({ onClose }) {
           <ConfirmDialog
             isOpen={showConfirmDialog}
             title="Delete Style"
-            message="Are you sure you want to delete this style? This action cannot be undone."
+            message="Are you sure you want to permanently delete this style? This will completely remove it from your account and cannot be undone."
             confirmText="Delete"
             cancelText="Cancel"
             type="danger"

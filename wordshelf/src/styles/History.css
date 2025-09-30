@@ -15,20 +15,20 @@
 .history-title {
   font-size: 28px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
 .history-subtitle {
   font-size: 16px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
 /* 搜索和筛选 */
 .history-filters {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
@@ -48,16 +48,17 @@
   width: 100%;
   padding: 12px 16px;
   padding-right: 40px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
-  background-color: white;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
   transition: border-color 0.2s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #000;
+  border-color: var(--text-primary);
 }
 
 .clear-search-button {
@@ -66,7 +67,7 @@
   background: none;
   border: none;
   font-size: 16px;
-  color: #999;
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 0;
   width: 20px;
@@ -78,7 +79,7 @@
 }
 
 .clear-search-button:hover {
-  color: #666;
+  color: var(--text-primary);
 }
 
 /* 快速筛选按钮 */
@@ -90,9 +91,9 @@
 }
 
 .filter-button {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 6px 14px;
   cursor: pointer;
@@ -102,14 +103,14 @@
 }
 
 .filter-button:hover {
-  background-color: #e9e9e9;
-  border-color: #ccc;
+  background-color: var(--hover-bg);
+  border-color: var(--text-secondary);
 }
 
 .filter-button.active {
-  background-color: #000;
-  color: white;
-  border-color: #000;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
+  border-color: var(--text-primary);
 }
 
 .filter-button.clear {
@@ -125,7 +126,7 @@
 /* 高级筛选面板 */
 .advanced-filters {
   padding-top: 15px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .filter-group {
@@ -135,16 +136,17 @@
 .filter-group-title {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .filter-select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
-  background: white;
+  background: var(--card-bg);
+  color: var(--text-primary);
   cursor: pointer;
   min-width: 150px;
 }
@@ -157,9 +159,9 @@
 }
 
 .tag-filter-button {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 4px 10px;
   font-size: 12px;
@@ -168,14 +170,14 @@
 }
 
 .tag-filter-button:hover {
-  background-color: #e9e9e9;
-  border-color: #ccc;
+  background-color: var(--hover-bg);
+  border-color: var(--text-secondary);
 }
 
 .tag-filter-button.active {
-  background-color: #000;
-  color: white;
-  border-color: #000;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
+  border-color: var(--text-primary);
 }
 
 /* 日期范围按钮 */
@@ -186,9 +188,9 @@
 }
 
 .date-button {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 6px 12px;
   font-size: 12px;
@@ -197,26 +199,26 @@
 }
 
 .date-button:hover {
-  background-color: #e9e9e9;
-  border-color: #ccc;
+  background-color: var(--hover-bg);
+  border-color: var(--text-secondary);
 }
 
 .date-button.active {
-  background-color: #000;
-  color: white;
-  border-color: #000;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
+  border-color: var(--text-primary);
 }
 
 /* 激活的筛选摘要 */
 .active-filters-summary {
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .summary-label {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   margin-right: 10px;
 }
 
@@ -228,9 +230,9 @@
 }
 
 .active-filter {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  border: 1px solid #1976d2;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 4px 8px;
   font-size: 12px;
@@ -266,13 +268,13 @@
   align-items: center;
   margin-bottom: 20px;
   padding: 15px;
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
 }
 
 .history-stats {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -282,9 +284,9 @@
 }
 
 .view-toggle-button {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   padding: 8px 12px;
   cursor: pointer;
   font-size: 16px;
@@ -301,13 +303,13 @@
 }
 
 .view-toggle-button:hover {
-  background-color: #e9e9e9;
+  background-color: var(--hover-bg);
 }
 
 .view-toggle-button.active {
-  background-color: #000;
+  background-color: var(--text-primary);
   color: white;
-  border-color: #000;
+  border-color: var(--text-primary);
 }
 
 /* 历史记录列表 */
@@ -325,8 +327,8 @@
 
 /* 历史记录项 */
 .history-item {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   transition: all 0.2s, transform 0.2s;
@@ -350,7 +352,7 @@
 .history-item:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
-  border-color: #ccc;
+  border-color: var(--text-secondary);
 }
 
 .history-item.expanded {
@@ -378,23 +380,26 @@
 }
 
 .conversion-mode {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .variant-badge {
-  background-color: #e3f2fd;
-  color: #1976d2;
-  padding: 2px 6px;
-  border-radius: 12px;
-  font-size: 11px;
+  color: #4caf50;
+  font-size: 15px;
   font-weight: 500;
+  font-family: 'Courier New', Monaco, monospace;
+}
+
+.variant-badge::before {
+  content: '#';
+  margin-right: 1px;
 }
 
 .timestamp {
   font-size: 12px;
-  color: #999;
+  color: var(--text-secondary);
 }
 
 .header-actions {
@@ -454,7 +459,7 @@
 
 .expand-indicator {
   font-size: 12px;
-  color: #999;
+  color: var(--text-secondary);
   /* 移除CSS transition，让GSAP完全控制动画 */
 }
 
@@ -474,13 +479,13 @@
 
 .text-label {
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
   min-width: 60px;
   flex-shrink: 0;
 }
 
 .text-content {
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 标签预览 */
@@ -492,9 +497,9 @@
 }
 
 .tag-item {
-  background-color: #f5f5f5;
-  color: #666;
-  border: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 11px;
@@ -505,7 +510,7 @@
 .history-item-details {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .full-content {
@@ -526,7 +531,7 @@
 .content-header h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -541,7 +546,7 @@
 }
 
 .copy-button:hover {
-  background-color: #f5f5f5;
+  background-color: var(--bg-secondary);
 }
 
 .copy-button:focus {
@@ -552,11 +557,11 @@
 .copy-icon-svg {
   width: 16px;
   height: 16px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .content-text {
-  background-color: #f9f9f9;
+  background-color: var(--bg-secondary);
   padding: 12px;
   border-radius: 4px;
   font-size: 14px;
@@ -566,16 +571,16 @@
 }
 
 .original-text {
-  border-left: 3px solid #ccc;
+  border-left: 3px solid var(--border-color);
 }
 
 .result-text {
-  border-left: 3px solid #000;
+  border-left: 3px solid var(--text-primary);
 }
 
 /* 元数据 */
 .record-metadata {
-  background-color: #f9f9f9;
+  background-color: var(--bg-secondary);
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 15px;
@@ -593,13 +598,13 @@
 
 .metadata-label {
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
   min-width: 80px;
   flex-shrink: 0;
 }
 
 .metadata-value {
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 标签管理 */
@@ -617,12 +622,12 @@
 .tags-header h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .manage-tags-button {
-  background-color: #000;
+  background-color: var(--text-primary);
   color: white;
   border: none;
   padding: 6px 12px;
@@ -633,7 +638,7 @@
 }
 
 .manage-tags-button:hover {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 .current-tags {
@@ -645,7 +650,7 @@
 
 /* 标签管理器 */
 .tag-manager {
-  background-color: #f9f9f9;
+  background-color: var(--bg-secondary);
   padding: 15px;
   border-radius: 4px;
 }
@@ -704,13 +709,13 @@
 .new-tag-input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 13px;
 }
 
 .add-tag-button {
-  background-color: #000;
+  background-color: var(--text-primary);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -721,7 +726,7 @@
 }
 
 .add-tag-button:hover:not(:disabled) {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 .add-tag-button:disabled {
@@ -736,7 +741,7 @@
 .suggested-tags-title {
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
@@ -805,7 +810,7 @@
 }
 
 .action-button {
-  background-color: #333;
+  background-color: var(--text-secondary);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -876,7 +881,7 @@
 .history-loading {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .loading-spinner {
@@ -898,7 +903,7 @@
 .history-empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-state-icon {
@@ -910,7 +915,7 @@
   font-size: 20px;
   font-weight: 500;
   margin-bottom: 10px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .empty-state-message {
@@ -931,7 +936,7 @@
 }
 
 .pagination-button {
-  background-color: #000;
+  background-color: var(--text-primary);
   color: white;
   border: none;
   padding: 10px 20px;
@@ -942,7 +947,7 @@
 }
 
 .pagination-button:hover:not(:disabled) {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 .pagination-button:disabled {
@@ -951,7 +956,7 @@
 }
 
 .pagination-info {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -1445,7 +1450,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .expandable-text-content {
@@ -1455,19 +1460,19 @@
   padding: 12px;
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
+  color: var(--text-primary);
   transition: all 0.2s ease;
   position: relative;
 }
 
 .expandable-text-content.expanded {
-  background: #fff;
+  background: var(--card-bg);
   border-color: #4caf50;
 }
 
 .expandable-text-content[style*="cursor: pointer"]:hover {
   border-color: #4caf50;
-  background: #f0f8f0;
+  background: var(--hover-bg);
 }
 
 .expand-hint {
@@ -1483,35 +1488,35 @@
 }
 
 .base-content {
-  border-left: 3px solid #666;
+  border-left: 3px solid var(--text-secondary);
   padding-left: 15px;
 }
 
 .additional-content {
-  border-left: 3px solid #888;
+  border-left: 3px solid var(--text-secondary);
   padding-left: 15px;
 }
 
-/* 基础内容中的转换结果 - 黑白灰主题 */
+/* 基础内容中的转换结果 */
 .base-content .expandable-text-section .expandable-text-content {
-  border-color: #666;
-  background: #f5f5f5;
+  border-color: var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .base-content .expandable-text-section .expandable-text-content.expanded {
-  background: #fff;
-  border-color: #333;
+  background: var(--card-bg);
+  border-color: var(--text-primary);
 }
 
-/* 展开内容中的原始文本 - 黑白灰主题 */
+/* 展开内容中的原始文本 */
 .additional-content .expandable-text-section .expandable-text-content {
-  border-color: #888;
-  background: #f8f8f8;
+  border-color: var(--border-color);
+  background: var(--bg-secondary);
 }
 
 .additional-content .expandable-text-section .expandable-text-content.expanded {
-  background: #fff;
-  border-color: #555;
+  background: var(--card-bg);
+  border-color: var(--text-secondary);
 }
 
 /* 技术详情区域 */
@@ -1526,7 +1531,7 @@
   margin: 0 0 12px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 响应式优化 - 可展开文本 */
@@ -1545,4 +1550,78 @@
     align-items: flex-start;
     gap: 8px;
   }
+}
+
+/* 黑夜模式特定样式调整 */
+body.dark .history-item {
+  box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+}
+
+body.dark .history-item:hover {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.15);
+  border-color: #666;
+}
+
+body.dark .history-item.expanded {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+/* 确保黑夜模式下的文本对比度 */
+body.dark .expandable-text-content {
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border-color: #555;
+}
+
+body.dark .expandable-text-content.expanded {
+  background: #333;
+  color: #fff;
+}
+
+/* 修复黑夜模式下view-controls按钮的对比度 */
+body.dark .view-toggle-button {
+  background-color: #2a2a2a;
+  color: #cccccc;
+  border-color: #444;
+}
+
+body.dark .view-toggle-button:hover {
+  background-color: #4a4a4a;
+  color: #ffffff;
+}
+
+body.dark .view-toggle-button.active {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border-color: #ffffff;
+}
+
+/* 修复黑夜模式下record-metadata面板的对比度 */
+body.dark .record-metadata {
+  background-color: #3a3a3a;
+  border: 1px solid #555;
+}
+
+body.dark .metadata-label {
+  color: #aaaaaa;
+}
+
+body.dark .metadata-value {
+  color: #ffffff;
+}
+
+/* 修复黑夜模式下manage-tags-button的白底白字问题 */
+body.dark .manage-tags-button {
+  background-color: #4a4a4a;
+  color: #ffffff;
+}
+
+body.dark .manage-tags-button:hover {
+  background-color: #5a5a5a;
+  color: #ffffff;
+}
+
+/* 黑夜模式下的variant-badge样式 */
+body.dark .variant-badge {
+  color: #81c784;
 }

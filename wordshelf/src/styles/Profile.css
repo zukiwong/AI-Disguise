@@ -15,13 +15,13 @@
 .profile-title {
   font-size: 28px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
 .profile-subtitle {
   font-size: 16px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -29,7 +29,7 @@
 .profile-auth-required {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .auth-required-icon {
@@ -41,7 +41,7 @@
   font-size: 24px;
   font-weight: 500;
   margin-bottom: 15px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .auth-required-message {
@@ -56,7 +56,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 30px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
 }
 
@@ -67,7 +67,7 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  color: #999;
+  color: var(--text-secondary);
   border-bottom: 2px solid transparent;
   transition: all 0.3s ease;
   display: flex;
@@ -78,7 +78,7 @@
 }
 
 .profile-tab:hover {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .profile-tab:hover::after {
@@ -88,7 +88,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #333;
+  background-color: var(--text-primary);
   transform: scaleX(1);
   transition: transform 0.3s ease;
 }
@@ -100,13 +100,13 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #333;
+  background-color: var(--text-primary);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
 
 .profile-tab.active {
-  color: #000;
+  color: var(--text-primary);
 }
 
 .profile-tab.active::after {
@@ -140,14 +140,14 @@
 .profile-content-loading {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #333;
+  border: 3px solid var(--border-color);
+  border-top: 3px solid var(--text-primary);
   border-radius: 50%;
   margin: 0 auto 15px;
   animation: spin 1s linear infinite;
@@ -170,8 +170,8 @@
 
 /* 用户信息卡片 */
 .profile-user-card {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 30px;
   display: flex;
@@ -195,8 +195,8 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,12 +234,12 @@
 }
 
 .meta-label {
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .meta-value {
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 统计卡片网格 */
@@ -250,8 +250,8 @@
 }
 
 .stat-card {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
@@ -296,33 +296,33 @@
 .lock-icon-svg {
   width: 48px;
   height: 48px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 空状态 SVG 图标样式 */
 .empty-state-icon-svg {
   width: 48px;
   height: 48px;
-  color: #999;
+  color: var(--text-secondary);
 }
 
 .stat-number {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 /* 使用偏好分析 */
 .profile-preferences {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -330,7 +330,7 @@
 .preferences-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -341,7 +341,7 @@
 }
 
 .preference-card {
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 6px;
   padding: 15px;
 }
@@ -349,14 +349,14 @@
 .preference-card h4 {
   font-size: 14px;
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .preference-value {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .mode-stats {
@@ -373,18 +373,18 @@
 }
 
 .mode-name {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .mode-count {
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 /* 成就徽章 */
 .profile-achievements {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -392,7 +392,7 @@
 .achievements-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -406,14 +406,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 15px;
   transition: background-color 0.2s;
 }
 
 .achievement-badge:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-bg);
 }
 
 .achievement-icon {
@@ -428,20 +428,20 @@
 .achievement-name {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .achievement-description {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 /* 快速操作 */
 .profile-quick-actions {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -449,7 +449,7 @@
 .quick-actions-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -464,8 +464,8 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   cursor: pointer;
@@ -474,8 +474,8 @@
 }
 
 .quick-action-button:hover {
-  background-color: #f0f0f0;
-  border-color: #ccc;
+  background-color: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-1px);
 }
 
@@ -486,7 +486,7 @@
 .action-label {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   text-align: center;
 }
 
@@ -524,8 +524,8 @@
 
 /* 设置区域 */
 .settings-section {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -533,7 +533,7 @@
 .settings-section-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -553,33 +553,35 @@
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .form-input,
 .form-select {
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
   transition: border-color 0.2s;
 }
 
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: #000;
+  border-color: var(--text-primary);
 }
 
 .form-input:disabled {
-  background-color: #f5f5f5;
-  color: #999;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
   cursor: not-allowed;
 }
 
 .form-help {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
   margin: 0;
 }
@@ -601,18 +603,18 @@
 .form-checkbox {
   width: 16px;
   height: 16px;
-  accent-color: #000;
+  accent-color: var(--text-primary);
 }
 
 .checkbox-text {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 /* 保存按钮 */
 .save-button {
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
   border: none;
   padding: 12px 24px;
   border-radius: 6px;
@@ -624,11 +626,11 @@
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 .save-button:disabled {
-  background-color: #ccc;
+  background-color: var(--border-color);
   cursor: not-allowed;
 }
 
@@ -648,8 +650,8 @@
 }
 
 .danger-action {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 20px;
   display: flex;
@@ -661,13 +663,13 @@
 .danger-action-info h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
 .danger-action-info p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
 }
@@ -709,7 +711,7 @@
   display: flex;
   gap: 2px;
   margin-bottom: 20px;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--border-color);
   overflow-x: auto;
 }
 
@@ -719,7 +721,7 @@
   padding: 12px 20px;
   cursor: pointer;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   border-bottom: 2px solid transparent;
   transition: all 0.2s;
   display: flex;
@@ -729,19 +731,19 @@
 }
 
 .content-tab:hover {
-  color: #333;
-  background-color: #f5f5f5;
+  color: var(--text-primary);
+  background-color: var(--hover-bg);
 }
 
 .content-tab.active {
-  color: #000;
-  border-bottom-color: #000;
-  background-color: white;
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+  background-color: var(--card-bg);
 }
 
 .tab-count {
-  background-color: #f0f0f0;
-  color: #666;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 12px;
@@ -749,8 +751,8 @@
 }
 
 .content-tab.active .tab-count {
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
 }
 
 /* 内容区域 */
@@ -759,8 +761,8 @@
 }
 
 .content-section {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -775,13 +777,13 @@
 .section-header h3 {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .create-button {
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
   border: none;
   padding: 10px 16px;
   border-radius: 6px;
@@ -792,7 +794,7 @@
 }
 
 .create-button:hover {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 /* 风格网格 */
@@ -803,8 +805,8 @@
 }
 
 .style-card {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   transition: box-shadow 0.2s, transform 0.2s;
@@ -828,7 +830,7 @@
 .style-card-title {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -846,7 +848,7 @@
 
 .style-card-description {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
   margin-bottom: 12px;
   height: 39.2px; /* 固定两行高度 (14px * 1.4 * 2) */
@@ -859,7 +861,7 @@
 
 .style-card-meta {
   font-size: 12px;
-  color: #999;
+  color: var(--text-secondary);
   margin-bottom: 15px;
 }
 
@@ -880,8 +882,8 @@
   align-items: center;
   gap: 10px;
   padding: 15px 20px 20px 20px;
-  border-top: 1px solid #f5f5f5;
-  background: white;
+  border-top: 1px solid var(--border-color);
+  background: var(--card-bg);
   height: 60px;
   box-sizing: border-box;
 }
@@ -894,8 +896,8 @@
 }
 
 .action-button {
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -905,7 +907,7 @@
 }
 
 .action-button:hover {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 .action-button.primary {
@@ -933,8 +935,8 @@
 }
 
 .share-card {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
 }
@@ -955,17 +957,17 @@
 .share-style {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .share-date {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .share-stats {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .like-count {
@@ -984,14 +986,14 @@
 
 .share-text strong {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 5px;
 }
 
 .share-text p {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.5;
   margin: 0;
 }
@@ -1009,8 +1011,8 @@
 }
 
 .favorite-card {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 15px;
 }
@@ -1025,12 +1027,12 @@
 .favorite-style {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .favorite-date {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .favorite-content {
@@ -1043,14 +1045,14 @@
 
 .favorite-text strong {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   display: block;
   margin-bottom: 4px;
 }
 
 .favorite-text p {
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   line-height: 1.4;
   margin: 0;
 }
@@ -1063,9 +1065,9 @@
 }
 
 .tag-badge {
-  background-color: #f0f0f0;
-  color: #666;
-  border: 1px solid #ddd;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 11px;
@@ -1090,8 +1092,8 @@
 }
 
 .tag-library-item {
-  background: #f0f0f0;
-  border: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -1102,16 +1104,16 @@
 .tag-name {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .tag-usage {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .tags-stats {
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 6px;
   padding: 15px;
   text-align: center;
@@ -1119,7 +1121,7 @@
 
 .tags-stats p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -1127,7 +1129,7 @@
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-state-icon {
@@ -1139,7 +1141,7 @@
   font-size: 20px;
   font-weight: 500;
   margin-bottom: 10px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .empty-state p {
@@ -1149,8 +1151,8 @@
 }
 
 .empty-state-button {
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
   border: none;
   padding: 12px 24px;
   border-radius: 6px;
@@ -1161,7 +1163,7 @@
 }
 
 .empty-state-button:hover {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 /* =============================================================================
@@ -1176,8 +1178,8 @@
 
 /* 数据概览 */
 .data-overview {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -1185,7 +1187,7 @@
 .data-overview h3 {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 20px;
 }
 
@@ -1197,7 +1199,7 @@
 
 .data-stat {
   text-align: center;
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 20px;
 }
@@ -1205,20 +1207,20 @@
 .data-stat .stat-number {
   font-size: 32px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
 .data-stat .stat-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 /* 数据区域 */
 .data-section {
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 25px;
 }
@@ -1226,13 +1228,13 @@
 .data-section-title {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 
 .data-section-description {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 20px;
 }
@@ -1244,8 +1246,8 @@
 }
 
 .data-action {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -1257,13 +1259,13 @@
 .action-info h4 {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
 .action-info p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
 }
@@ -1277,8 +1279,8 @@
 }
 
 .export-option {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -1288,8 +1290,8 @@
 }
 
 .export-option:hover {
-  background: #f5f5f5;
-  border-color: #ccc;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -1313,14 +1315,14 @@
 .export-content h4 {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
   text-align: center;
 }
 
 .export-content p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
   text-align: center;
   margin-bottom: 12px;
@@ -1335,7 +1337,7 @@
 
 .export-features span {
   font-size: 12px;
-  color: #888;
+  color: var(--text-secondary);
   line-height: 1.3;
   text-align: center;
 }
@@ -1365,8 +1367,8 @@
 }
 
 .data-action .action-button {
-  background-color: #000;
-  color: white;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -1378,11 +1380,11 @@
 }
 
 .data-action .action-button:hover:not(:disabled) {
-  background-color: #333;
+  background-color: var(--text-secondary);
 }
 
 .data-action .action-button:disabled {
-  background-color: #ccc;
+  background-color: var(--border-color);
   cursor: not-allowed;
 }
 
@@ -1405,7 +1407,7 @@
 
 /* 同步信息 */
 .sync-info {
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 6px;
   padding: 15px;
   margin-bottom: 20px;
@@ -1416,7 +1418,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
@@ -1426,12 +1428,12 @@
 
 .sync-last {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* 存储信息 */
 .storage-info {
-  background: #f9f9f9;
+  background: var(--bg-secondary);
   border-radius: 6px;
   padding: 15px;
   margin-bottom: 20px;
@@ -1450,18 +1452,18 @@
 }
 
 .storage-label {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .storage-value {
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 /* 数据通知 */
 .data-notice {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 15px;
   text-align: center;
@@ -1470,7 +1472,7 @@
 
 .data-notice p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -1485,13 +1487,13 @@
 
 /* 隐私信息区域 */
 .info-section {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .privacy-info ul {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
   padding-left: 20px;
@@ -1603,9 +1605,9 @@
 .export-progress {
   margin-top: 20px;
   padding: 20px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
 }
 
 .export-progress-bar {
@@ -1644,7 +1646,7 @@
 
 .export-progress-text {
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   margin: 0;
@@ -1660,4 +1662,142 @@
   .export-progress-text {
     font-size: 13px;
   }
+}
+
+/* =============================================================================
+   黑夜模式特定样式覆盖
+   ============================================================================= */
+
+/* 黑夜模式下的阴影效果 */
+body.dark .profile-user-card,
+body.dark .stat-card,
+body.dark .profile-preferences,
+body.dark .profile-achievements,
+body.dark .profile-quick-actions,
+body.dark .settings-section,
+body.dark .content-section,
+body.dark .style-card,
+body.dark .data-overview,
+body.dark .data-section {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 黑夜模式下的悬浮效果 */
+body.dark .stat-card:hover,
+body.dark .style-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark .export-option:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* 黑夜模式下的用户头像边框 */
+body.dark .user-card-image {
+  border-color: var(--border-color);
+}
+
+/* 黑夜模式下的表单元素 */
+body.dark .form-input:focus,
+body.dark .form-select:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* 黑夜模式下的保存消息 */
+body.dark .save-message.success {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+body.dark .save-message.error {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+/* 黑夜模式下的徽章样式 */
+body.dark .style-card-badge.private {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #2196f3;
+}
+
+/* 黑夜模式下的导出进度条 */
+body.dark .export-progress-bar {
+  background: rgba(76, 175, 80, 0.3);
+}
+
+/* 黑夜模式下的加载状态 */
+body.dark .loading-spinner {
+  border-color: var(--border-color);
+  border-top-color: var(--text-primary);
+}
+
+/* 黑夜模式下的 SVG 图标反白 */
+body.dark .stat-icon .icon-svg,
+body.dark .achievement-icon-svg,
+body.dark .export-icon-svg {
+  filter: invert(1) brightness(0.8);
+}
+
+/* 黑夜模式下的快速操作图标 - 保持绿色 */
+body.dark .quick-action-icon-svg {
+  color: #4caf50;
+}
+
+/* 黑夜模式下的卡片样式增强 - 填充样式效果 */
+body.dark .preference-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .achievement-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .achievement-badge:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* 黑夜模式下的 Data 页面卡片样式增强 */
+body.dark .data-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .data-action {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .export-option {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .export-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark .sync-info {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .storage-info {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
