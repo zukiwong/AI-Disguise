@@ -105,6 +105,12 @@
   width: auto;
   max-width: 130px; /* 减小最大宽度 */
   object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+/* 黑夜模式下logo反白 */
+body.dark .brand-logo {
+  filter: invert(1) brightness(0.9);
 }
 
 .nav-brand h2 {

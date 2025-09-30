@@ -146,7 +146,7 @@
 
 .user-avatar-name {
   font-size: 14px;
-  color: #333;
+  color: var(--text-color);
   font-weight: 500;
 }
 
