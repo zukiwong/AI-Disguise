@@ -63,7 +63,7 @@ npm run dev
 
 ## Security
 
-User API keys are Base64-encoded and stored securely with Firestore security rules. See [SECURITY.md](wordshelf/SECURITY.md) for details.
+User API keys are Base64-encoded and stored securely with Firestore security rules. See [SECURITY.md](SECURITY.md) for details.
 
 ## License
 
