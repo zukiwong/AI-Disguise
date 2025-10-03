@@ -25,9 +25,10 @@ function detectLanguage(text) {
  * @param {string} text - 输入文本
  * @param {string|Object} styleOrPurposeRecipient - 风格类型（字符串）或目的+对象（对象）
  * @param {string} outputLanguage - 输出语言（可选，默认为 'auto'）
+ * @param {Object} apiConfig - 用户的 API 配置（可选）
  * @returns {Promise<string>} - 转换后的文本
  */
-export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage = 'auto') {
+export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage = 'auto', apiConfig = null) {
   // 输入验证
   if (!text || typeof text !== 'string') {
     throw new Error('输入文本不能为空')
@@ -46,7 +47,8 @@ export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage
         text: text,
         mode: 'style',
         style: styleOrPurposeRecipient,
-        outputLanguage: outputLanguage
+        outputLanguage: outputLanguage,
+        apiConfig: apiConfig  // 传递 API 配置
       }
     } else if (typeof styleOrPurposeRecipient === 'object' && styleOrPurposeRecipient.id) {
       // 自定义风格模式（包含完整配置）
@@ -54,7 +56,8 @@ export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage
         text: text,
         mode: 'custom_style',
         styleConfig: styleOrPurposeRecipient,
-        outputLanguage: outputLanguage
+        outputLanguage: outputLanguage,
+        apiConfig: apiConfig  // 传递 API 配置
       }
     } else if (typeof styleOrPurposeRecipient === 'object' && styleOrPurposeRecipient.purpose && styleOrPurposeRecipient.recipient) {
       // 目的+对象模式
@@ -63,7 +66,8 @@ export async function disguiseText(text, styleOrPurposeRecipient, outputLanguage
         mode: 'purpose',
         purpose: styleOrPurposeRecipient.purpose,
         recipient: styleOrPurposeRecipient.recipient,
-        outputLanguage: outputLanguage
+        outputLanguage: outputLanguage,
+        apiConfig: apiConfig  // 传递 API 配置
       }
     } else {
       throw new Error('无效的风格或目的+对象参数')

@@ -3,11 +3,18 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth.js'
-import { 
-  getUserHistoryPreferences, 
-  updateHistoryPreferences 
+import {
+  getUserHistoryPreferences,
+  updateHistoryPreferences
 } from '../../services/historyService.js'
 import { updateUserProfile } from '../../services/authService.js'
+import {
+  getUserApiConfig,
+  switchApiMode,
+  deleteCustomApiKey,
+  AI_PROVIDERS
+} from '../../services/apiConfigService.js'
+import ApiConfigModal from './ApiConfigModal.jsx'
 
 function ProfileSettings() {
   const { userId, userName, userEmail } = useAuth()
@@ -31,23 +38,32 @@ function ProfileSettings() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
 
+  // API 配置状态
+  const [apiConfig, setApiConfig] = useState(null)
+  const [isApiModalOpen, setIsApiModalOpen] = useState(false)
+  const [isApiExpanded, setIsApiExpanded] = useState(false)
+
   // 加载用户设置
   useEffect(() => {
     const loadSettings = async () => {
       if (!userId) return
-      
+
       setIsLoading(true)
       try {
         // 加载历史记录偏好
         const historyPrefs = await getUserHistoryPreferences(userId)
         setPreferences(historyPrefs)
-        
+
         // 设置profile信息
         setProfileSettings(prev => ({
           ...prev,
           displayName: userName || userEmail.split('@')[0]
         }))
-        
+
+        // 加载 API 配置
+        const apiConf = await getUserApiConfig(userId)
+        setApiConfig(apiConf)
+
       } catch (error) {
         console.error('加载设置失败:', error)
       } finally {
@@ -110,6 +126,68 @@ function ProfileSettings() {
       ...prev,
       [key]: value
     }))
+  }
+
+  // 处理 API 模式切换
+  const handleApiModeSwitch = async (mode) => {
+    if (!userId) return
+
+    setIsSaving(true)
+    try {
+      await switchApiMode(userId, mode, apiConfig?.activeProvider)
+
+      // 重新加载配置
+      const updatedConfig = await getUserApiConfig(userId)
+      setApiConfig(updatedConfig)
+
+      setSaveMessage('API mode updated successfully!')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } catch (error) {
+      console.error('切换 API 模式失败:', error)
+      setSaveMessage('Failed to update API mode.')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 处理删除 API Key
+  const handleDeleteApiKey = async (provider) => {
+    if (!userId) return
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete your ${AI_PROVIDERS[provider].name} API key? You will switch back to free mode.`
+    )
+
+    if (!confirmDelete) return
+
+    setIsSaving(true)
+    try {
+      await deleteCustomApiKey(userId, provider)
+
+      // 重新加载配置
+      const updatedConfig = await getUserApiConfig(userId)
+      setApiConfig(updatedConfig)
+
+      setSaveMessage('API key deleted successfully!')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } catch (error) {
+      console.error('删除 API Key 失败:', error)
+      setSaveMessage('Failed to delete API key.')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // 处理配置成功
+  const handleApiConfigSuccess = async () => {
+    // 重新加载配置
+    const updatedConfig = await getUserApiConfig(userId)
+    setApiConfig(updatedConfig)
+
+    setSaveMessage('API key configured successfully!')
+    setTimeout(() => setSaveMessage(''), 3000)
   }
 
   if (isLoading) {
@@ -305,6 +383,105 @@ function ProfileSettings() {
           </div>
         </div>
       </div>
+
+      {/* API 配置 (可选) */}
+      <div className="settings-section api-config-section">
+        <div className="api-config-header" onClick={() => setIsApiExpanded(!isApiExpanded)}>
+          <h3 className="settings-section-title">API Configuration (Optional)</h3>
+          <button className="expand-button" type="button">
+            {isApiExpanded ? '−' : '+'}
+          </button>
+        </div>
+
+        {apiConfig && apiConfig.mode === 'free' && (
+          <p className="api-usage-hint">
+            Using free mode: {apiConfig.freeUsage.count}/{apiConfig.freeUsage.dailyLimit} conversions today
+          </p>
+        )}
+
+        {isApiExpanded && (
+          <div className="api-config-content">
+            <div className="api-mode-selector">
+              <label className="form-label">Current Mode</label>
+              <div className="mode-options">
+                <button
+                  className={`mode-option ${apiConfig?.mode === 'free' ? 'active' : ''}`}
+                  onClick={() => handleApiModeSwitch('free')}
+                  disabled={isSaving}
+                  type="button"
+                >
+                  <div className="mode-name">Free Mode (Default)</div>
+                  <div className="mode-desc">
+                    {apiConfig?.freeUsage.dailyLimit} conversions per day
+                  </div>
+                </button>
+
+                {apiConfig?.customApis && Object.keys(apiConfig.customApis).length > 0 && (
+                  <button
+                    className={`mode-option ${apiConfig?.mode === 'custom' ? 'active' : ''}`}
+                    onClick={() => handleApiModeSwitch('custom')}
+                    disabled={isSaving}
+                    type="button"
+                  >
+                    <div className="mode-name">
+                      Custom API ({AI_PROVIDERS[apiConfig.activeProvider]?.name || 'Unknown'})
+                    </div>
+                    <div className="mode-desc">Unlimited conversions</div>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {apiConfig?.customApis && Object.keys(apiConfig.customApis).length > 0 && (
+              <div className="configured-apis">
+                <label className="form-label">Configured API Keys</label>
+                {Object.entries(apiConfig.customApis).map(([provider, config]) => (
+                  <div key={provider} className="api-key-item">
+                    <div className="api-key-info">
+                      <div className="api-provider-name">
+                        {AI_PROVIDERS[provider]?.name || provider}
+                      </div>
+                      <div className="api-model-name">
+                        Model: {config.model}
+                      </div>
+                    </div>
+                    <button
+                      className="delete-api-button"
+                      onClick={() => handleDeleteApiKey(provider)}
+                      disabled={isSaving}
+                      type="button"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="api-config-description">
+              <p>
+                Want unlimited conversions? Configure your own API key for unlimited access.
+                We support multiple AI providers including Gemini, OpenAI, Claude, and DeepSeek.
+              </p>
+            </div>
+
+            <button
+              className="save-button"
+              onClick={() => setIsApiModalOpen(true)}
+              disabled={isSaving}
+            >
+              Configure API Keys
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* API 配置 Modal */}
+      <ApiConfigModal
+        isOpen={isApiModalOpen}
+        onClose={() => setIsApiModalOpen(false)}
+        onSuccess={handleApiConfigSuccess}
+      />
 
       {/* 危险区域 */}
       <div className="settings-section danger-section">

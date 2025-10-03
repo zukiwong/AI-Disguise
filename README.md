@@ -2,118 +2,71 @@
 
 *Find the right words, right away.*
 
-## Project Overview
-WordShelf is like a personal shelf for your everyday messages. Whether you need to explain something clearly, write a quick excuse, or handle an awkward moment without overthinking — just open WordShelf and pick the right words.
+**[Try WordShelf →](https://wordshelf.vercel.app)**
+
+## What is WordShelf?
+
+WordShelf is your personal communication assistant. Whether you need to explain something clearly, write a quick message, or handle an awkward moment, just open WordShelf and find the right words.
+
+## Screenshots
+
+![Homepage](wordshelf/docs/screenshots/homepage.png)
+![Text Transformation](wordshelf/docs/screenshots/transformation.png)
+![Variants](wordshelf/docs/screenshots/Variants.png)
 
 ## Features
 
-### With WordShelf, you can:
+###  Style Transformation
+Transform your text into different writing styles (Chat, Poetry, Social, Story) or tailor it based on purpose and audience.
 
-**Store your own responses**: Build a personal library you can always come back to.
-- Create custom writing styles and templates
-- Save frequently used phrases and responses
-- Build your personal communication toolkit
+###  Personal Library
+Save custom writing styles, templates, and frequently used phrases. Build your personal communication toolkit.
 
-**Explore shared shelves**: See how others handle real-life situations and borrow their ideas.
-- Browse community-shared responses
-- Discover new ways to express yourself
-- Learn from different communication styles
+###  Community Sharing
+Browse and share responses with the community. Discover new ways to express yourself.
 
-**Generate variants**: Create multiple versions of the same idea — consistent in meaning, different in tone.
-- Transform text into different writing styles (Chat, Poetry, Social, Story)
-- Tailor communication based on purpose and audience
-- Multiple purposes: Explain, Persuade, Comfort, Inform, Request, etc.
-- Various audiences: Friends, Boss, Children, Colleagues, Family, etc.
+###  Flexible API Options
+- **Free mode**: 20 conversions per day
+- **Custom mode**: Use your own API key (Gemini, OpenAI, Claude, DeepSeek)
+- No usage limits with your own key
 
-### User Experience
-- **Smart Suggestions**: AI-powered text transformation
-- **Real-time Progress**: GSAP-powered animations during transformation
-- **History Management**: Save and revisit your transformations
-- **User Authentication**: Login via Google or GitHub
-- **Community Features**: Share and explore public transformations
+###  Multi-language Support
+ English, Chinese (中文), Japanese (日本語), German (Deutsch), Spanish (Español) with automatic language detection.
 
-### Multi-language Support
-- **Input Languages**: Chinese, English, Japanese, German, Spanish
-- **Auto-detection**: Automatically recognizes input language
-- **Localized Interface**: English UI with multi-language processing
+###  History & Management
+Save and revisit your transformations with smart history management.
 
 ## Tech Stack
-- **Frontend**: React 19 + Vite + React Router DOM
+
+- **Frontend**: React + Vite + React Router DOM
 - **Backend**: Vercel Serverless Functions
-- **AI Engine**: Configurable AI service integration
-- **Animations**: GSAP (GreenSock Animation Platform)
-- **Database**: Firebase (Authentication, Firestore, Hosting)
-- **Styling**: CSS3 with modern design patterns
-- **Build Tools**: Vite with React plugin
-- **Deployment**: Vercel for seamless CI/CD
+- **AI**: Multi-provider support (Gemini, OpenAI, Claude, DeepSeek)
+- **Database**: Firebase (Auth, Firestore)
 
-WordShelf makes it easier to say the right thing, in the right way, every time.
+## Local Development
 
-## Live Demo
-**[Try WordShelf](https://wordshelf.vercel.app)**
-
-## Getting Started
-
-### Try Online (Easiest)
-
-**[Launch WordShelf →](https://wordshelf.vercel.app)**
-
-No setup required! WordShelf runs securely in your browser with all processing handled through encrypted API calls.
-
-### Deploy Your Own
-
-**Option 1: Quick Deploy**
-- One-click deploy to Vercel (fastest setup)
-- Perfect for personal use
-
-**Option 2: Fork & Deploy** 
-- Fork this repository to your GitHub
-- Import to Vercel from your fork
-- Benefits: track updates, customize freely
-- Required: Set your AI service API key in Vercel environment variables
-
-### Local Development
-
-**Requirements:** Node.js 18+, AI service API key
-
-**Setup:** Clone, install dependencies, configure `.env` with your API key, then `npm run dev`
-
-For enhanced features like user auth and history, configure Firebase integration.
-
-### Available Scripts
 ```bash
-# Development server
+# Clone the repository
+git clone 
+
+# Install dependencies
+cd wordshelf
+npm install
+
+# Configure environment
+cp .env.example .env
+# Add your API key to .env
+
+# Start development server
 npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint code
-npm run lint
 ```
 
-## Project Structure
-```
-wordshelf/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── pages/         # Main application pages
-│   ├── hooks/         # Custom React hooks
-│   ├── services/      # API and external services
-│   ├── styles/        # CSS stylesheets
-│   └── assets/        # Static assets
-├── api/               # Vercel serverless functions
-├── public/            # Public static files
-└── docs-private/      # Private documentation
-```
+## Security
+
+User API keys are Base64-encoded and stored securely with Firestore security rules. See [SECURITY.md](wordshelf/SECURITY.md) for details.
 
 ## License
-MIT License - see the [LICENSE](LICENSE) file for details.
+
+MIT License 
 
 
----
-Built with React and powered by AI  
-*Find the right words, right away.*

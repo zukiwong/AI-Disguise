@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   try {
     // 获取请求参数
-    const { text, mode, style, styleConfig, purpose, recipient, outputLanguage = 'auto' } = req.body
+    const { text, mode, style, styleConfig, purpose, recipient, outputLanguage = 'auto', apiConfig } = req.body
 
     // 参数验证
     if (!text || typeof text !== 'string') {
@@ -98,14 +98,42 @@ export default async function handler(req, res) {
       })
     }
 
-    // 从环境变量获取 API 密钥
-    const apiKey = process.env.GEMINI_API_KEY || import.meta.env?.VITE_GEMINI_API_KEY
-    if (!apiKey) {
-      console.error('GEMINI_API_KEY 环境变量未设置')
-      return res.status(500).json({
-        error: 'Configuration error',
-        message: 'API密钥未配置。请在.env文件中设置GEMINI_API_KEY=your_api_key，或者设置MOCK_API=true进行模拟测试。'
-      })
+    // 确定使用哪个 API
+    let aiProvider = 'gemini'  // 默认使用 Gemini
+    let userApiKey = null
+
+    if (apiConfig && apiConfig.mode === 'custom' && apiConfig.activeProvider) {
+      // 用户使用自定义 API Key
+      aiProvider = apiConfig.activeProvider
+      const customApi = apiConfig.customApis?.[aiProvider]
+
+      if (!customApi || !customApi.apiKey) {
+        return res.status(400).json({
+          error: 'Invalid API configuration',
+          message: `未找到 ${aiProvider} 的 API Key 配置`
+        })
+      }
+
+      // 解码 Base64 编码的 API Key
+      try {
+        userApiKey = Buffer.from(customApi.apiKey, 'base64').toString('utf-8')
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Invalid API Key format',
+          message: 'API Key 格式错误'
+        })
+      }
+    } else {
+      // 使用免费模式，从环境变量获取 API 密钥
+      const apiKey = process.env.GEMINI_API_KEY || import.meta.env?.VITE_GEMINI_API_KEY
+      if (!apiKey) {
+        console.error('GEMINI_API_KEY 环境变量未设置')
+        return res.status(500).json({
+          error: 'Configuration error',
+          message: 'API密钥未配置。请在.env文件中设置GEMINI_API_KEY=your_api_key，或者设置MOCK_API=true进行模拟测试。'
+        })
+      }
+      userApiKey = apiKey
     }
 
     // 构建 prompt
@@ -118,8 +146,24 @@ export default async function handler(req, res) {
       prompt = buildPrompt(text, { mode, purpose, recipient }, outputLanguage)
     }
 
-    // 调用 GEMINI API
-    const response = await callGeminiAPI(prompt, apiKey)
+    // 根据 AI 提供商调用相应的 API
+    let response
+    switch (aiProvider) {
+      case 'gemini':
+        response = await callGeminiAPI(prompt, userApiKey)
+        break
+      case 'openai':
+        response = await callOpenAIAPI(prompt, userApiKey)
+        break
+      case 'claude':
+        response = await callClaudeAPI(prompt, userApiKey)
+        break
+      case 'deepseek':
+        response = await callDeepSeekAPI(prompt, userApiKey)
+        break
+      default:
+        throw new Error(`不支持的 AI 提供商: ${aiProvider}`)
+    }
 
     // 返回成功响应
     res.status(200).json({
@@ -488,4 +532,146 @@ function cleanGeneratedText(text) {
   cleanedText = cleanedText.replace(/^[^:：]*[:：]\s*/, '')
   
   return cleanedText.trim()
+}
+
+/**
+ * 调用 OpenAI API
+ * @param {string} prompt - 完整的 prompt
+ * @param {string} apiKey - API 密钥
+ * @returns {Promise<string>} - 生成的文本
+ */
+async function callOpenAIAPI(prompt, apiKey) {
+  const baseUrl = 'https://api.openai.com/v1'
+  const model = 'gpt-4o-mini'
+
+  const requestData = {
+    model: model,
+    messages: [{
+      role: 'user',
+      content: prompt
+    }],
+    temperature: 0.7,
+    max_tokens: 1024
+  }
+
+  const response = await fetch(
+    `${baseUrl}/chat/completions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestData),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(`OpenAI API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
+  }
+
+  const data = await response.json()
+  const generatedText = data.choices?.[0]?.message?.content
+
+  if (!generatedText) {
+    throw new Error('OpenAI API 返回的数据格式异常')
+  }
+
+  return cleanGeneratedText(generatedText.trim())
+}
+
+/**
+ * 调用 Claude API
+ * @param {string} prompt - 完整的 prompt
+ * @param {string} apiKey - API 密钥
+ * @returns {Promise<string>} - 生成的文本
+ */
+async function callClaudeAPI(prompt, apiKey) {
+  const baseUrl = 'https://api.anthropic.com/v1'
+  const model = 'claude-3-5-haiku-20241022'
+
+  const requestData = {
+    model: model,
+    messages: [{
+      role: 'user',
+      content: prompt
+    }],
+    max_tokens: 1024,
+    temperature: 0.7
+  }
+
+  const response = await fetch(
+    `${baseUrl}/messages`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(requestData),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(`Claude API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
+  }
+
+  const data = await response.json()
+  const generatedText = data.content?.[0]?.text
+
+  if (!generatedText) {
+    throw new Error('Claude API 返回的数据格式异常')
+  }
+
+  return cleanGeneratedText(generatedText.trim())
+}
+
+/**
+ * 调用 DeepSeek API
+ * @param {string} prompt - 完整的 prompt
+ * @param {string} apiKey - API 密钥
+ * @returns {Promise<string>} - 生成的文本
+ */
+async function callDeepSeekAPI(prompt, apiKey) {
+  const baseUrl = 'https://api.deepseek.com/v1'
+  const model = 'deepseek-chat'
+
+  const requestData = {
+    model: model,
+    messages: [{
+      role: 'user',
+      content: prompt
+    }],
+    temperature: 0.7,
+    max_tokens: 1024
+  }
+
+  const response = await fetch(
+    `${baseUrl}/chat/completions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(requestData),
+    }
+  )
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(`DeepSeek API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
+  }
+
+  const data = await response.json()
+  const generatedText = data.choices?.[0]?.message?.content
+
+  if (!generatedText) {
+    throw new Error('DeepSeek API 返回的数据格式异常')
+  }
+
+  return cleanGeneratedText(generatedText.trim())
 }

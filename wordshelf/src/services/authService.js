@@ -142,6 +142,17 @@ const saveUserToFirestore = async (user) => {
           autoSaveTags: true,
           showTimestamp: true
         },
+        // API 配置字段
+        apiConfig: {
+          mode: 'free',
+          customApis: {},
+          activeProvider: null,
+          freeUsage: {
+            count: 0,
+            lastReset: new Date().toISOString().split('T')[0],
+            dailyLimit: 20
+          }
+        },
         createdAt: serverTimestamp(),
         lastLoginAt: serverTimestamp()
       }
