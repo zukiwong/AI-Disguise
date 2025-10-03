@@ -10,7 +10,7 @@ WordShelf is your personal communication assistant. Whether you need to explain 
 
 ## Screenshots
 
-![Homepage](wordshelf/docs/screenshots/homepage.png)
+![Homepage](wordshelf/docs/screenshots/Homepage.png)
 ![Text Transformation](wordshelf/docs/screenshots/transformation.png)
 ![Variants](wordshelf/docs/screenshots/Variants.png)
 
