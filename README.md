@@ -2,7 +2,7 @@
 
 **[Try AI Disguise →](https://ai-disguise.vercel.app)** | **[Install Chrome Extension](#chrome-extension)**
 
-> Transform your text with AI-powered style and tone adjustments. Available as a web app and Chrome extension.
+> Transform your text with AI powered style and tone adjustments. Available as a web app and Chrome extension.
 
 ## What is AI Disguise?
 
