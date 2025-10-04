@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth.js'
 import { useStyles } from '../../hooks/useStyles.js'
 import { getPublicStylesWithVariants } from '../../services/styleService.js'
 import { createVariant } from '../../services/variantService.js'
+import CustomSelect from '../CustomSelect'
 import {
   DndContext,
   closestCenter,
@@ -107,18 +108,14 @@ function StyleMarket() {
         case 'newest':
           // 按创建时间降序（最新的在前）
           return new Date(b.createdAt?.toDate?.() || b.createdAt || 0) - new Date(a.createdAt?.toDate?.() || a.createdAt || 0)
-        case 'oldest':
-          // 按创建时间升序（最老的在前）
-          return new Date(a.createdAt?.toDate?.() || a.createdAt || 0) - new Date(b.createdAt?.toDate?.() || b.createdAt || 0)
         case 'popular':
           // 按使用次数降序（最热门的在前）
-          return (b.usageCount || 0) - (a.usageCount || 0)
-        case 'alphabetical':
-          // 按字母顺序
-          return a.displayName.localeCompare(b.displayName)
-        case 'random':
-          // 随机排序
-          return Math.random() - 0.5
+          const usageCountDiff = (b.usageCount || 0) - (a.usageCount || 0)
+          // 如果使用次数相同，则按创建时间降序（最新的在前）
+          if (usageCountDiff === 0) {
+            return new Date(b.createdAt?.toDate?.() || b.createdAt || 0) - new Date(a.createdAt?.toDate?.() || a.createdAt || 0)
+          }
+          return usageCountDiff
         default:
           return 0
       }
@@ -301,17 +298,15 @@ function StyleMarket() {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         
-        <select
-          className="filter-select"
+        <CustomSelect
+          options={[
+            { value: 'newest', label: 'Newest First', description: 'Latest styles first' },
+            { value: 'popular', label: 'Most Popular', description: 'Most used styles' }
+          ]}
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="newest">Newest First</option>
-          <option value="popular">Most Popular</option>
-          <option value="alphabetical">A to Z</option>
-          <option value="oldest">Oldest First</option>
-          <option value="random">Random Order</option>
-        </select>
+          onChange={setSortBy}
+          placeholder="Sort by..."
+        />
         
       </div>
 

@@ -2,17 +2,18 @@
 // 负责风格数据的 CRUD 操作
 
 import { db, COLLECTIONS } from './firebase.js'
-import { 
-  collection, 
-  doc, 
-  getDocs, 
+import {
+  collection,
+  doc,
+  getDocs,
   getDoc,
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
   where,
-  serverTimestamp 
+  serverTimestamp,
+  increment
 } from 'firebase/firestore'
 import { getVariantsForMultipleStyles } from './variantService.js'
 
@@ -31,7 +32,8 @@ export const createStyleData = ({
   promptTemplate,
   isPublic: Boolean(isPublic), // 确保是布尔值
   createdBy,
-  createdAt: serverTimestamp()
+  createdAt: serverTimestamp(),
+  usageCount: 0 // 初始化使用次数
 })
 
 // 获取探索页的所有公共风格（开放浏览策略 - 不应用个人隐藏过滤）
@@ -82,17 +84,8 @@ export const getPublicStylesForExplore = async () => {
           if (bIndex !== -1) return 1
         }
         
-        // 对于非官方风格，按使用次数降序排序
-        const usageA = a.usageCount || 0
-        const usageB = b.usageCount || 0
-        if (usageB !== usageA) {
-          return usageB - usageA
-        }
-        
-        // 使用次数相同时按创建时间降序排序（最新的在前）
-        const timeA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0)
-        const timeB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0)
-        return timeB - timeA
+        // 对于社区风格，不在此处排序（返回0保持原顺序），由 StyleMarket 组件负责排序
+        return 0
       })
       
       // console.log('✅ 排序后的风格:', sortedStyles.length)
@@ -774,6 +767,24 @@ export const saveStylesToLocalStorage = (styles) => {
     return true
   } catch (error) {
     console.error('保存风格到本地存储失败:', error)
+    return false
+  }
+}
+
+/**
+ * 增加风格的使用次数
+ * @param {string} styleId - 风格ID
+ * @returns {Promise<boolean>} - 是否成功
+ */
+export const incrementUsageCount = async (styleId) => {
+  try {
+    const styleRef = doc(db, COLLECTIONS.STYLES, styleId)
+    await updateDoc(styleRef, {
+      usageCount: increment(1)
+    })
+    return true
+  } catch (error) {
+    console.error('增加使用次数失败:', error)
     return false
   }
 }

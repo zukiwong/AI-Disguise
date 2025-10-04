@@ -7,7 +7,7 @@ import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } f
 import { useStyles } from './useStyles.js'
 import { useAuth } from './useAuth.js'
 import { createShare } from '../services/shareService.js'
-import { getPublicStylesWithVariants } from '../services/styleService.js'
+import { getPublicStylesWithVariants, incrementUsageCount } from '../services/styleService.js'
 import { generateVariantPrompt } from '../utils/variantUtils.js'
 import { addHistoryRecord } from '../services/historyService.js'
 import eventBus, { EVENTS } from '../utils/eventBus.js'
@@ -271,7 +271,7 @@ export function useDisguise() {
       
       // 设置输出结果
       setOutput(result)
-      
+
       // 获取风格和变体的显示名称
       let styleDisplayName = null
       let variantDisplayName = null
@@ -284,6 +284,11 @@ export function useDisguise() {
           const variant = currentStyle?.variants?.find(v => v.id === selectedVariant)
           variantDisplayName = variant?.name || 'Custom Variant'
         }
+
+        // 增加风格使用次数（异步执行，不阻塞主流程）
+        incrementUsageCount(selectedStyle).catch(err => {
+          console.error('增加使用次数失败（不影响主功能）:', err)
+        })
       }
 
       // 准备历史记录数据

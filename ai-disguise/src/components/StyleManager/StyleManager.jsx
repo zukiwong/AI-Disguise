@@ -445,17 +445,17 @@ function StyleManager({ onClose }) {
                 {/* 搜索结果统计 */}
                 {activeTab === 'all' && allTabSearchTerm && (
                   <div className="search-results-info">
-                    找到 {getCommunitySearchResults().length} 个社区风格
+                    Found {getCommunitySearchResults().length} community {getCommunitySearchResults().length === 1 ? 'style' : 'styles'}
                   </div>
                 )}
                 {activeTab === 'public' && publicTabSearchTerm && (
                   <div className="search-results-info">
-                    找到 {filteredPublicStyles.length} 个公共风格
+                    Found {filteredPublicStyles.length} public {filteredPublicStyles.length === 1 ? 'style' : 'styles'}
                   </div>
                 )}
                 {activeTab === 'private' && privateTabSearchTerm && (
                   <div className="search-results-info">
-                    找到 {filteredPrivateStyles.length} 个私人风格
+                    Found {filteredPrivateStyles.length} private {filteredPrivateStyles.length === 1 ? 'style' : 'styles'}
                   </div>
                 )}
               </div>
@@ -487,7 +487,7 @@ function StyleManager({ onClose }) {
                   {/* All Tab的社区搜索结果 */}
                   {activeTab === 'all' && getCommunitySearchResults().length > 0 && (
                     <div className="community-search-results">
-                      <h4 style={{ margin: '20px 0 10px 0', color: '#666' }}>社区风格搜索结果</h4>
+                      <h4 style={{ margin: '20px 0 10px 0', color: '#666' }}>Community Search Results</h4>
                       <div className="style-list">
                         {getCommunitySearchResults().map((style) => (
                           <div key={`community-${style.id}`} className="style-item">
@@ -533,7 +533,7 @@ function StyleManager({ onClose }) {
                   ) : currentStyles.length > 0 && (
                     <div className="account-styles">
                       {activeTab === 'all' && getCommunitySearchResults().length > 0 && (
-                        <h4 style={{ margin: '30px 0 10px 0', color: '#666' }}>我的风格库</h4>
+                        <h4 style={{ margin: '30px 0 10px 0', color: '#666' }}>My Style Library</h4>
                       )}
                       <div className="style-list">
                         {currentStyles.map((style) => (

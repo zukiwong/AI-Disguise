@@ -1,7 +1,5 @@
 # AI Disguise
 
-*Find the right words, right away.*
-
 **[Try AI Disguise →](https://ai-disguiser.vercel.app)**
 
 ## What is AI Disguise?

@@ -828,6 +828,12 @@ body.dark .explore-tab.active::after {
   font-size: 14px;
 }
 
+/* 限制 CustomSelect 在 explore-filters 中的宽度 */
+.explore-filters .custom-select {
+  width: 200px;
+  flex-shrink: 0;
+}
+
 .explore-container .filter-select,
 .community-feed .filter-select,
 .explore-filters .filter-select,

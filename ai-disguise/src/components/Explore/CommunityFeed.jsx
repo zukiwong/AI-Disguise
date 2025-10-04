@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
 import { getPublicShares, toggleLike } from '../../services/shareService.js'
+import CustomSelect from '../CustomSelect'
 import '../../styles/Explore.css'
 
 function CommunityFeed() {
@@ -139,18 +140,22 @@ function CommunityFeed() {
     )
   }
 
+  // 排序选项配置
+  const sortOptions = [
+    { value: 'recent', label: 'Most Recent', description: 'Latest posts first' },
+    { value: 'popular', label: 'Most Popular', description: 'Most liked posts' }
+  ]
+
   return (
     <div className="community-feed">
       {/* 排序选项 */}
       <div className="explore-filters">
-        <select
-          className="filter-select"
+        <CustomSelect
+          options={sortOptions}
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="recent">Most Recent</option>
-          <option value="popular">Most Popular</option>
-        </select>
+          onChange={setSortBy}
+          placeholder="Sort by..."
+        />
       </div>
 
       {/* 分享内容列表 */}
