@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
 import { getPublicShares, toggleLike } from '../../services/shareService.js'
 import CustomSelect from '../CustomSelect'
+import ShareCardGenerator from './ShareCardGenerator'
 import '../../styles/Explore.css'
 
 function CommunityFeed() {
@@ -14,6 +15,7 @@ function CommunityFeed() {
   const [posts, setPosts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [sortBy, setSortBy] = useState('recent') // 'recent', 'popular'
+  const [sharingPost, setSharingPost] = useState(null) // 当前正在生成分享卡片的帖子
   const postRefs = useRef({})
 
   // 从 Firestore 加载真实的分享内容
@@ -127,8 +129,35 @@ function CommunityFeed() {
   }
 
   const handleShare = (postId) => {
-    // TODO: 实现分享功能
-    console.log('分享内容:', postId)
+    const post = posts.find(p => p.id === postId)
+    if (!post) return
+
+    // 准备分享数据
+    const shareData = {
+      originalText: post.originalText,
+      transformedText: post.transformedText,
+      styleName: post.styleName,
+      authorName: post.authorName,
+      likesCount: post.likes
+    }
+
+    setSharingPost(shareData)
+  }
+
+  // 分享卡片生成完成后的处理
+  const handleCardGenerated = (blob) => {
+    // 创建下载链接
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `ai-disguise-share-${Date.now()}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    // 重置状态
+    setSharingPost(null)
   }
 
   if (isLoading) {
@@ -180,6 +209,14 @@ function CommunityFeed() {
             />
           </div>
         ))
+      )}
+
+      {/* 分享卡片生成器（隐藏） */}
+      {sharingPost && (
+        <ShareCardGenerator
+          post={sharingPost}
+          onGenerated={handleCardGenerated}
+        />
       )}
     </div>
   )
