@@ -25,7 +25,7 @@ export async function exportPersonalReport(historyRecords, userTags, onProgress 
     onProgress(90)
 
     // 3. 下载文件
-    const fileName = `WordShelf-Personal-Report-${new Date().toISOString().split('T')[0]}.pdf`
+    const fileName = `AI-Disguise-Personal-Report-${new Date().toISOString().split('T')[0]}.pdf`
     fileGenerationService.downloadFile(pdfBlob, fileName)
     onProgress(100)
 
@@ -63,7 +63,7 @@ export async function exportFavoriteCollection(historyRecords, onProgress = () =
     onProgress(80)
 
     // 下载文件
-    const fileName = `WordShelf收藏集合-${new Date().toISOString().split('T')[0]}.html`
+    const fileName = `AI-Disguise收藏集合-${new Date().toISOString().split('T')[0]}.html`
     fileGenerationService.downloadFile(htmlBlob, fileName)
     onProgress(100)
 

@@ -10,7 +10,7 @@ const Guide = () => {
         <h1>User Guide</h1>
         <div className="legal-content">
           <CollapsibleSection title="Getting Started">
-            <p>Welcome to WordShelf! Here's how to get the most out of our text transformation tool:</p>
+            <p>Welcome to AI Disguise! Here's how to get the most out of our text transformation tool:</p>
             <ul>
               <li><strong>No Registration Required:</strong> You can start using the tool immediately</li>
               <li><strong>Optional Login:</strong> Sign in with Google or GitHub to save your history</li>

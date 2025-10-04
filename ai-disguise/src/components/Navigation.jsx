@@ -140,7 +140,7 @@ function Navigation() {
         <div className="nav-content">
           <div className="nav-brand">
             <Link to="/" className="brand-link">
-              <img src="/logo.svg" alt="WordShelf" className="brand-logo" />
+              <img src="/logo.svg" alt="AI Disguise" className="brand-logo" />
             </Link>
           </div>
 

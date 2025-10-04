@@ -9,8 +9,8 @@ const Help = () => {
       <div className="legal-container">
         <h1>Help & FAQ</h1>
         <div className="legal-content">
-          <CollapsibleSection title="How to Use WordShelf">
-            <p>WordShelf is simple to use:</p>
+          <CollapsibleSection title="How to Use AI Disguise">
+            <p>AI Disguise is simple to use:</p>
             <ul>
               <li><strong>Enter Your Text:</strong> Type or paste your original text in the input area</li>
               <li><strong>Choose Style Mode:</strong> Select from Chat, Poetry, Social, or Story styles</li>
@@ -49,7 +49,7 @@ const Help = () => {
           </CollapsibleSection>
 
           <CollapsibleSection title="What Languages Are Supported?">
-            <p>WordShelf supports multiple languages:</p>
+            <p>AI Disguise supports multiple languages:</p>
             <ul>
               <li><strong>Input:</strong> Chinese, English, Japanese, German, Spanish</li>
               <li><strong>Auto-Detection:</strong> The system automatically detects your input language</li>

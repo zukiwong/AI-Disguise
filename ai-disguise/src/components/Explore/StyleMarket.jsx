@@ -318,7 +318,7 @@ function StyleMarket() {
       {/* 公共样式区域 */}
       <div className="styles-section">
         <h3 className="section-title">Official Styles</h3>
-        <p className="section-description">High-quality styles created by WordShelf team. Available to all users.</p>
+        <p className="section-description">High-quality styles created by AI Disguise team. Available to all users.</p>
         
         {officialStyles.length === 0 ? (
           <div className="empty-state">
@@ -683,14 +683,14 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
       id: 'default',
       name: 'Default',
       description: style.description,
-      createdBy: style.createdBy === 'system' ? 'WordShelf' : style.createdBy,
+      createdBy: style.createdBy === 'system' ? 'AI Disguise' : style.createdBy,
       usageCount: style.usageCount || 0,
       isDefault: true
     }
     
     const normalVariants = (style.variants || []).map(variant => ({
       ...variant,
-      createdBy: variant.createdBy === 'system' ? 'WordShelf' : variant.createdBy,
+      createdBy: variant.createdBy === 'system' ? 'AI Disguise' : variant.createdBy,
       isDefault: false
     }))
 
@@ -812,7 +812,7 @@ function VariantModal({ style, onClose, onUse, onVariantAdded, requiresAuth = fa
       // 更新当前模态框的变体列表
       const newVariantForModal = {
         ...newVariantData,
-        createdBy: newVariantData.createdBy === 'system' ? 'WordShelf' : newVariantData.createdBy,
+        createdBy: newVariantData.createdBy === 'system' ? 'AI Disguise' : newVariantData.createdBy,
         isDefault: false
       }
       setVariants(prev => [...prev, newVariantForModal])

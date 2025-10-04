@@ -36,7 +36,7 @@ export async function generateUserInsights(processedData, userProfile) {
 function buildAnalysisPrompt(processedData, userProfile) {
   const { basicStats, usagePatterns, styleAnalysis, languageAnalysis, timePatterns } = processedData
 
-  return `Please analyze the following WordShelf usage data and generate personalized insights:
+  return `Please analyze the following AI Disguise usage data and generate personalized insights:
 
 User Statistics:
 - Total transformations: ${basicStats.totalTransformations}
@@ -135,7 +135,7 @@ function parseInsightsResponse(aiResponse) {
     return {
       personalityInsights: aiResponse.slice(0, 200) + '...',
       usageHabits: '根据您的使用数据，展现出独特的使用偏好。',
-      strengths: '您在使用WordShelf方面表现出良好的习惯。',
+      strengths: '您在使用AI Disguise方面表现出良好的习惯。',
       recommendations: ['继续保持当前的使用频率', '尝试探索更多功能', '分享您的使用心得'],
       interestingPatterns: ['发现了您独特的使用模式'],
       achievementLevel: '进阶',
@@ -239,11 +239,11 @@ function generateFallbackInsights(processedData, userProfile) {
 
   return {
     personalityInsights: `You are a ${timePattern} user who prefers ${usagePatterns.preferredMode === 'style' ? 'style-based' : 'purpose-oriented'} expression methods.`,
-    usageHabits: `You have been using WordShelf for ${basicStats.activeDays} days with an average of ${basicStats.averagePerDay} times per day, showing consistent usage patterns.`,
+    usageHabits: `You have been using AI Disguise for ${basicStats.activeDays} days with an average of ${basicStats.averagePerDay} times per day, showing consistent usage patterns.`,
     strengths: `Your favorite rate reaches ${basicStats.favoriteRate}%, demonstrating good content curation skills and ability to identify quality expressions.`,
     recommendations: recommendations.length > 0 ? recommendations : ['Continue your current usage frequency', 'Try new expression styles', 'Share interesting transformations with friends'],
     interestingPatterns: [
-      `You prefer using WordShelf on ${dayName} at ${timePatterns.mostActiveHour}:00`,
+      `You prefer using AI Disguise on ${dayName} at ${timePatterns.mostActiveHour}:00`,
       `${styleAnalysis.mostUsedStyle ? `You particularly favor the "${styleAnalysis.mostUsedStyle}" style` : 'Your style usage is well-balanced'}`
     ],
     achievementLevel,

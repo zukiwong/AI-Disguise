@@ -1,18 +1,18 @@
-# WordShelf
+# AI Disguise
 
 *Find the right words, right away.*
 
-**[Try WordShelf →](https://wordshelf.vercel.app)**
+**[Try AI Disguise →](https://wordshelf.vercel.app)**
 
-## What is WordShelf?
+## What is AI Disguise?
 
-WordShelf is your personal communication assistant. Whether you need to explain something clearly, write a quick message, or handle an awkward moment, just open WordShelf and find the right words.
+AI Disguise is your personal communication assistant. Whether you need to explain something clearly, write a quick message, or handle an awkward moment, just open AI Disguise and find the right words.
 
 ## Screenshots
 
-![Homepage](wordshelf/docs/screenshots/Homepage.png)
-![Text Transformation](wordshelf/docs/screenshots/transformation.png)
-![Variants](wordshelf/docs/screenshots/Variants.png)
+![Homepage](ai-disguise/docs/screenshots/Homepage.png)
+![Text Transformation](ai-disguise/docs/screenshots/transformation.png)
+![Variants](ai-disguise/docs/screenshots/Variants.png)
 
 ## Features
 
@@ -50,7 +50,7 @@ Save and revisit your transformations with smart history management.
 git clone 
 
 # Install dependencies
-cd wordshelf
+cd ai-disguise
 npm install
 
 # Configure environment

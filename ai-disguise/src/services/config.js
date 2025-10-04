@@ -4,7 +4,7 @@
 // 前端配置（现在使用后端 API，不再需要直接的 GEMINI 配置）
 export const APP_CONFIG = {
   // 应用名称
-  APP_NAME: 'WordShelf',
+  APP_NAME: 'AI Disguise',
   // API 端点（后端 API）
   API_ENDPOINT: '/api/disguise',
   // 请求超时时间 (毫秒)

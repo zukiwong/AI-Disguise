@@ -8,7 +8,7 @@ const Footer = () => {
     <footer className="simple-footer">
       <div className="footer-content">
         <p className="footer-main">
-          &copy; {new Date().getFullYear()} WordShelf. Licensed under MIT License.
+          &copy; {new Date().getFullYear()} AI Disguise. Licensed under MIT License.
           Powered by Google Gemini AI |
           <a href="https://github.com/zukiwong/AI-Disguiser" target="_blank" rel="noopener noreferrer" className="github-link">
             GitHub
