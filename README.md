@@ -1,16 +1,23 @@
 # AI Disguise
 
-**[Try AI Disguise →](https://ai-disguiser.vercel.app)**
+**[Try AI Disguise →](https://ai-disguise.vercel.app)** | **[Install Chrome Extension](#chrome-extension)**
+
+> Transform your text with AI-powered style and tone adjustments. Available as a web app and Chrome extension.
 
 ## What is AI Disguise?
 
 AI Disguise is your personal communication assistant. Whether you need to explain something clearly, write a quick message, or handle an awkward moment, just open AI Disguise and find the right words.
 
+## Platforms
+
+-  **Web Application**: Full-featured web app at [ai-disguise.vercel.app](https://ai-disguise.vercel.app)
+-  **Chrome Extension**: Quick access from your browser (coming soon)
+
 ## Screenshots
 
-![Homepage](ai-disguise/docs/screenshots/Homepage.png)
-![Text Transformation](ai-disguise/docs/screenshots/transformation.png)
-![Variants](ai-disguise/docs/screenshots/Variants.png)
+![Homepage](packages/web/docs/screenshots/Homepage.png)
+![Text Transformation](packages/web/docs/screenshots/transformation.png)
+![Variants](packages/web/docs/screenshots/Variants.png)
 
 ## Features
 
@@ -44,19 +51,14 @@ Save and revisit your transformations with smart history management.
 ## Local Development
 
 ```bash
-# Clone the repository
-git clone 
-
 # Install dependencies
-cd ai-disguise
 npm install
 
-# Configure environment
-cp .env.example .env
-# Add your API key to .env
+# Web app development
+npm run dev:web
 
-# Start development server
-npm run dev
+# Chrome extension development
+npm run dev:extension
 ```
 
 ## Security

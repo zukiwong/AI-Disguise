@@ -1,0 +1,194 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  width: 400px;
+  min-height: 500px;
+  background-color: #ffffff;
+}
+
+.popup-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 头部 */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #4CAF50;
+}
+
+.popup-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.website-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.website-btn:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* 风格选择 */
+.style-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.style-selector label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.style-selector select {
+  padding: 10px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #ffffff;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.style-selector select:hover,
+.style-selector select:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+/* 输入区域 */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-section label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.input-section textarea {
+  padding: 10px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.input-section textarea:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+/* 转换按钮 */
+.transform-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.transform-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.transform-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 输出区域 */
+.output-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.output-section label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.output-text {
+  padding: 10px;
+  background-color: white;
+  border: 2px solid #e1e5e9;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 60px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.copy-btn {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.copy-btn:hover {
+  background-color: #1976D2;
+}
+
+/* 底部 */
+.popup-footer {
+  padding-top: 12px;
+  border-top: 1px solid #e1e5e9;
+  text-align: center;
+}
+
+.popup-footer small {
+  font-size: 12px;
+  color: #666;
+}
+
+.popup-footer a {
+  color: #4CAF50;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.popup-footer a:hover {
+  text-decoration: underline;
+}

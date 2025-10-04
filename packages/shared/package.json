@@ -1,0 +1,28 @@
+{
+  "name": "@ai-disguise/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shared code for AI Disguise web and extension",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./hooks": "./src/hooks/index.js",
+    "./services": "./src/services/index.js",
+    "./utils": "./src/utils/index.js",
+    "./components": "./src/components/index.js"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "firebase": "^12.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "eslint": "^9.30.1"
+  }
+}

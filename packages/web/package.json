@@ -1,9 +1,9 @@
 {
-  "name": "ai-disguise",
+  "name": "@ai-disguise/web",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
-  "description": "Transform your text with AI-powered style and tone adjustments. AI Disguise helps you express yourself perfectly for any situation.",
+  "description": "AI Disguise Web Application - Transform your text with AI-powered style and tone adjustments",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

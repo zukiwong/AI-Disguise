@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "AI Disguise",
+  "version": "1.0.0",
+  "description": "Transform your text with AI-powered style and tone adjustments",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://ai-disguiser.vercel.app/*",
+    "https://*.googleapis.com/*",
+    "https://*.openai.com/*",
+    "https://*.anthropic.com/*",
+    "https://*.deepseek.com/*"
+  ],
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "options_page": "src/options/options.html"
+}

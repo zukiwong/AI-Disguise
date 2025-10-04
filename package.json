@@ -1,0 +1,29 @@
+{
+  "name": "ai-disguise-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Disguise - Monorepo for Web App and Chrome Extension",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@ai-disguise/web",
+    "dev:extension": "npm run dev --workspace=@ai-disguise/extension",
+    "build:web": "npm run build --workspace=@ai-disguise/web",
+    "build:extension": "npm run build --workspace=@ai-disguise/extension",
+    "build:all": "npm run build:web && npm run build:extension",
+    "preview:web": "npm run preview --workspace=@ai-disguise/web"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "ai",
+    "text-transformation",
+    "chrome-extension",
+    "react"
+  ],
+  "author": "AI Disguise Team",
+  "license": "MIT"
+}
