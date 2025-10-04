@@ -36,18 +36,34 @@ const apiPlugin = (env = {}) => {
             process.env.MOCK_API = env.MOCK_API
           }
 
-          // 创建模拟的 res 对象
+          // 创建模拟的 res 对象，完整支持 Vercel 的 res API
           const mockRes = {
-            status: (code) => ({
-              json: (data) => {
-                res.statusCode = code
-                res.setHeader('Content-Type', 'application/json')
-                res.end(JSON.stringify(data))
+            statusCode: 200,
+            headers: {},
+            setHeader: (key, value) => {
+              mockRes.headers[key] = value
+              res.setHeader(key, value)
+            },
+            status: (code) => {
+              mockRes.statusCode = code
+              return {
+                json: (data) => {
+                  res.statusCode = code
+                  res.setHeader('Content-Type', 'application/json')
+                  res.end(JSON.stringify(data))
+                },
+                end: () => {
+                  res.statusCode = code
+                  res.end()
+                }
               }
-            }),
+            },
             json: (data) => {
               res.setHeader('Content-Type', 'application/json')
               res.end(JSON.stringify(data))
+            },
+            end: (data) => {
+              res.end(data)
             }
           }
 

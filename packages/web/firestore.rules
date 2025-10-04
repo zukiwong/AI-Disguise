@@ -41,6 +41,10 @@ service cloud.firestore {
       allow update: if request.auth != null &&
                        request.auth.uid == resource.data.createdBy;
 
+      // 允许任何登录用户增加使用次数（只允许修改 usageCount 字段）
+      allow update: if request.auth != null &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usageCount']);
+
       // 用户只能删除自己创建的私有风格
       allow delete: if request.auth != null &&
                        request.auth.uid == resource.data.createdBy &&
