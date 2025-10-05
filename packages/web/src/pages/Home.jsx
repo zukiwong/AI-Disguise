@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useDisguise } from '../hooks/useDisguise.js'
 import { STYLE_CONFIG, TEXT_LIMITS } from '../services/config.js'
 import LanguageSelector from '../components/LanguageSelector.jsx'
 import { StyleSelector } from '../components/StyleManager/index.js'
 import { gsap } from 'gsap'
+import { useAuth } from '../hooks/useAuth.js'
 import '../styles/Explore.css'
+import '../styles/Modal.css'
 import ManageIcon from '../assets/icons/manage.svg'
 
 function Home() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
 
   // 使用自定义 Hook 管理伪装功能
   const {
@@ -35,11 +39,15 @@ function Home() {
     hasOutput,
     isLanguageFeatureEnabled,
     isSharing,
-    shareStatus
+    shareStatus,
+    usageInfo // 使用次数信息
   } = useDisguise()
 
   // 复制状态管理
   const [copyStatus, setCopyStatus] = useState('')
+
+  // 限流弹窗状态
+  const [showLimitModal, setShowLimitModal] = useState(false)
 
   // 进度条动画引用
   const progressBarRef = useRef(null)
@@ -197,10 +205,28 @@ function Home() {
 
       // 延迟一下确保状态更新后再执行转换
       setTimeout(() => {
-        handleDisguise()
+        handleDisguiseWithLimitCheck()
       }, 100)
     }
   }
+
+  // 包装 handleDisguise，检测限流错误并显示弹窗
+  const handleDisguiseWithLimitCheck = async () => {
+    try {
+      await handleDisguise()
+    } catch (err) {
+      if (err.limitReached) {
+        setShowLimitModal(true)
+      }
+    }
+  }
+
+  // 监听错误状态，如果是 LIMIT_REACHED 错误则显示弹窗
+  useEffect(() => {
+    if (error === 'LIMIT_REACHED') {
+      setShowLimitModal(true)
+    }
+  }, [error])
 
   // 进度条动画效果
   useEffect(() => {
@@ -382,7 +408,7 @@ function Home() {
 
               <div className="action-buttons">
                 <button
-                  onClick={handleDisguise}
+                  onClick={handleDisguiseWithLimitCheck}
                   disabled={!inputText.trim() || isLoading}
                   className="primary-button"
                 >
@@ -422,7 +448,7 @@ function Home() {
               </div>
               <div className="quick-actions">
                 <button
-                  onClick={handleDisguise}
+                  onClick={handleDisguiseWithLimitCheck}
                   disabled={!inputText.trim() || isLoading}
                   className="primary-button compact"
                 >
@@ -494,6 +520,14 @@ function Home() {
                     <div className="text-content">
                       {output}
                     </div>
+
+                    {/* 剩余次数显示（仅免费模式） */}
+                    {usageInfo.limit > 0 && (
+                      <div className="usage-info">
+                        {usageInfo.used}/{usageInfo.limit} free uses today
+                      </div>
+                    )}
+
                     <div className="result-actions">
                       <button
                         onClick={() => handleCopy(output, 'Expression')}
@@ -516,6 +550,62 @@ function Home() {
           )}
         </div>
       </div>
+
+      {/* 限流弹窗 */}
+      {showLimitModal && (
+        <div className="modal-overlay" onClick={() => setShowLimitModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Daily Limit Reached</h2>
+              <button className="modal-close" onClick={() => setShowLimitModal(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
+                You've used all {usageInfo.limit} free transformations for today.
+              </p>
+              <p style={{ marginBottom: '24px', color: 'var(--text-secondary)' }}>
+                {isAuthenticated
+                  ? 'Configure your own API key to continue using the service without daily limits.'
+                  : 'Sign in and configure your own API key to continue using the service without daily limits.'
+                }
+              </p>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setShowLimitModal(false)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    background: 'transparent',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLimitModal(false)
+                    navigate('/profile')
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'var(--primary-color)',
+                    color: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isAuthenticated ? 'Go to Settings' : 'Sign In & Settings'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

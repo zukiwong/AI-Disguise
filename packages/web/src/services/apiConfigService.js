@@ -237,14 +237,65 @@ export function decodeApiKey(encodedKey) {
 }
 
 /**
- * 记录免费模式使用次数
- * @param {string} userId - 用户 ID
+ * 获取游客的免费使用数据（localStorage）
+ * @returns {Object} - { count: number, lastReset: string, dailyLimit: number }
+ */
+function getGuestFreeUsage() {
+  try {
+    const stored = localStorage.getItem('guestFreeUsage')
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (error) {
+    console.error('读取游客使用数据失败:', error)
+  }
+
+  // 默认值
+  return {
+    count: 0,
+    lastReset: new Date().toISOString().split('T')[0],
+    dailyLimit: FREE_MODE_CONFIG.dailyLimit
+  }
+}
+
+/**
+ * 保存游客的免费使用数据（localStorage）
+ * @param {Object} usage - 使用数据
+ */
+function setGuestFreeUsage(usage) {
+  try {
+    localStorage.setItem('guestFreeUsage', JSON.stringify(usage))
+  } catch (error) {
+    console.error('保存游客使用数据失败:', error)
+  }
+}
+
+/**
+ * 记录免费模式使用次数（支持游客和登录用户）
+ * @param {string|null} userId - 用户 ID（null 表示游客）
  * @returns {Promise<boolean>} - 是否成功
  */
 export async function recordFreeUsage(userId) {
   try {
-    const currentConfig = await getUserApiConfig(userId)
     const today = new Date().toISOString().split('T')[0]
+
+    // 游客模式：使用 localStorage
+    if (!userId) {
+      const guestUsage = getGuestFreeUsage()
+      const needsReset = guestUsage.lastReset !== today
+
+      const updatedUsage = {
+        count: needsReset ? 1 : guestUsage.count + 1,
+        lastReset: today,
+        dailyLimit: FREE_MODE_CONFIG.dailyLimit
+      }
+
+      setGuestFreeUsage(updatedUsage)
+      return true
+    }
+
+    // 登录用户模式：使用 Firestore
+    const currentConfig = await getUserApiConfig(userId)
 
     // 检查是否需要重置计数
     const needsReset = currentConfig.freeUsage.lastReset !== today
@@ -267,14 +318,31 @@ export async function recordFreeUsage(userId) {
 }
 
 /**
- * 检查免费模式是否还有剩余次数
- * @param {string} userId - 用户 ID
+ * 检查免费模式是否还有剩余次数（支持游客和登录用户）
+ * @param {string|null} userId - 用户 ID（null 表示游客）
  * @returns {Promise<Object>} - { allowed: boolean, remaining: number }
  */
 export async function checkFreeUsageLimit(userId) {
   try {
-    const currentConfig = await getUserApiConfig(userId)
     const today = new Date().toISOString().split('T')[0]
+
+    // 游客模式：使用 localStorage
+    if (!userId) {
+      const guestUsage = getGuestFreeUsage()
+      const needsReset = guestUsage.lastReset !== today
+      const currentCount = needsReset ? 0 : guestUsage.count
+      const remaining = FREE_MODE_CONFIG.dailyLimit - currentCount
+
+      return {
+        allowed: remaining > 0,
+        remaining: Math.max(0, remaining),
+        used: currentCount,
+        limit: FREE_MODE_CONFIG.dailyLimit
+      }
+    }
+
+    // 登录用户模式：使用 Firestore
+    const currentConfig = await getUserApiConfig(userId)
 
     // 如果是新的一天，重置计数
     const needsReset = currentConfig.freeUsage.lastReset !== today

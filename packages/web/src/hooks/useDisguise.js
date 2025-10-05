@@ -11,6 +11,7 @@ import { getPublicStylesWithVariants, incrementUsageCount } from '../services/st
 import { generateVariantPrompt } from '../utils/variantUtils.js'
 import { addHistoryRecord } from '../services/historyService.js'
 import eventBus, { EVENTS } from '../utils/eventBus.js'
+import { checkFreeUsageLimit, recordFreeUsage, getUserApiConfig } from '../services/apiConfigService.js'
 
 /**
  * 伪装功能的自定义 Hook
@@ -48,7 +49,10 @@ export function useDisguise() {
   // 分享相关状态
   const [isSharing, setIsSharing] = useState(false)        // 是否正在分享
   const [shareStatus, setShareStatus] = useState('')       // 分享状态信息
-  
+
+  // 免费使用次数状态
+  const [usageInfo, setUsageInfo] = useState({ used: 0, limit: 20, remaining: 20 }) // 使用次数信息
+
   // 缓存相关（用于样式选择逻辑）
   const lastLoadedStylesRef = useRef('')
 
@@ -202,6 +206,37 @@ export function useDisguise() {
     return unsubscribe
   }, [userId, loadStyles])
 
+  // 更新免费使用次数信息
+  useEffect(() => {
+    const updateUsageInfo = async () => {
+      try {
+        // 首先获取用户的 API 配置
+        let apiConfig = null
+        if (isAuthenticated && userId) {
+          apiConfig = await getUserApiConfig(userId)
+        }
+
+        // 如果是免费模式，获取使用次数
+        const isFreeMode = !apiConfig || apiConfig.mode === 'free'
+        if (isFreeMode) {
+          const usageLimit = await checkFreeUsageLimit(isAuthenticated ? userId : null)
+          setUsageInfo({
+            used: usageLimit.used,
+            limit: usageLimit.limit,
+            remaining: usageLimit.remaining
+          })
+        } else {
+          // 自定义 API 模式，不显示限制
+          setUsageInfo({ used: 0, limit: 0, remaining: 0 })
+        }
+      } catch (error) {
+        console.error('获取使用次数信息失败:', error)
+      }
+    }
+
+    updateUsageInfo()
+  }, [isAuthenticated, userId, output]) // 当用户状态变化或有新输出时更新
+
   /**
    * 执行文本伪装转换
    */
@@ -217,11 +252,31 @@ export function useDisguise() {
 
     // 设置加载状态
     setIsLoading(true)
-    
+
     try {
+      // 检查免费使用限制（对所有用户，包括游客）
+      // 首先获取用户的 API 配置
+      let apiConfig = null
+      if (isAuthenticated && userId) {
+        apiConfig = await getUserApiConfig(userId)
+      }
+
+      // 如果是免费模式（游客或未配置自定义 API 的用户），检查次数限制
+      const isFreeMode = !apiConfig || apiConfig.mode === 'free'
+      if (isFreeMode) {
+        const usageLimit = await checkFreeUsageLimit(isAuthenticated ? userId : null)
+
+        if (!usageLimit.allowed) {
+          // 抛出特殊错误，包含 limitReached 标记
+          const limitError = new Error('LIMIT_REACHED')
+          limitError.limitReached = true
+          throw limitError
+        }
+      }
+
       // 保存原文
       setOriginalText(inputText)
-      
+
       // 检测输入语言（如果启用了多语言功能）
       let inputLang = ''
       if (LANGUAGE_FEATURE.ENABLED) {
@@ -261,6 +316,13 @@ export function useDisguise() {
       // 设置输出结果
       setOutput(result)
 
+      // 记录免费使用次数（仅在免费模式下）
+      if (isFreeMode) {
+        recordFreeUsage(isAuthenticated ? userId : null).catch(err => {
+          console.error('记录免费使用次数失败（不影响主功能）:', err)
+        })
+      }
+
       // 获取风格和变体的显示名称
       let styleDisplayName = null
       let variantDisplayName = null
@@ -274,10 +336,12 @@ export function useDisguise() {
           variantDisplayName = variant?.name || 'Custom Variant'
         }
 
-        // 增加风格使用次数（异步执行，不阻塞主流程）
-        incrementUsageCount(selectedStyle).catch(err => {
-          console.error('增加使用次数失败（不影响主功能）:', err)
-        })
+        // 增加风格使用次数（仅登录用户，游客无 Firestore 写权限）
+        if (isAuthenticated && userId) {
+          incrementUsageCount(selectedStyle).catch(err => {
+            console.error('增加使用次数失败（不影响主功能）:', err)
+          })
+        }
       }
 
       // 准备历史记录数据
@@ -489,6 +553,9 @@ export function useDisguise() {
     // 语言相关状态
     outputLanguage,
     detectedLanguage,
+
+    // 使用次数信息
+    usageInfo,
 
     // 基础方法
     updateInputText,

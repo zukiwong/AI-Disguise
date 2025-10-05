@@ -1,6 +1,62 @@
 // Vercel 无服务器 API 路由
 // 处理文本伪装请求，隐藏 GEMINI API 密钥
 
+// IP 使用次数限制（内存存储，Vercel 无状态函数重启会重置）
+const ipUsageMap = new Map()
+const IP_DAILY_LIMIT = 40 // 每个 IP 每天最多 40 次
+
+/**
+ * 获取客户端 IP 地址
+ * @param {Object} req - 请求对象
+ * @returns {string} - IP 地址
+ */
+function getClientIp(req) {
+  // Vercel 提供的真实 IP
+  return req.headers['x-forwarded-for']?.split(',')[0] ||
+         req.headers['x-real-ip'] ||
+         req.connection?.remoteAddress ||
+         'unknown'
+}
+
+/**
+ * 检查 IP 是否超过每日限制
+ * @param {string} ip - IP 地址
+ * @returns {Object} - { allowed: boolean, remaining: number }
+ */
+function checkIpLimit(ip) {
+  const today = new Date().toISOString().split('T')[0]
+  const key = `${ip}:${today}`
+
+  const usage = ipUsageMap.get(key) || 0
+  const remaining = IP_DAILY_LIMIT - usage
+
+  return {
+    allowed: remaining > 0,
+    remaining: Math.max(0, remaining),
+    used: usage
+  }
+}
+
+/**
+ * 记录 IP 使用次数
+ * @param {string} ip - IP 地址
+ */
+function recordIpUsage(ip) {
+  const today = new Date().toISOString().split('T')[0]
+  const key = `${ip}:${today}`
+
+  const usage = ipUsageMap.get(key) || 0
+  ipUsageMap.set(key, usage + 1)
+
+  // 清理昨天的记录（防止内存泄漏）
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  for (const [k] of ipUsageMap) {
+    if (k.endsWith(yesterday)) {
+      ipUsageMap.delete(k)
+    }
+  }
+}
+
 /**
  * 文本伪装 API 端点
  * @param {Object} req - 请求对象
@@ -69,6 +125,24 @@ export default async function handler(req, res) {
         error: 'Text too long',
         message: `输入文本不能超过 ${MAX_LENGTH} 个字符`
       })
+    }
+
+    // IP 限流检查（适用于免费模式，兜底保护）
+    // 仅当使用免费 API 时才检查 IP 限制
+    const isFreeMode = !apiConfig || apiConfig.mode !== 'custom'
+    if (isFreeMode) {
+      const clientIp = getClientIp(req)
+      const ipLimit = checkIpLimit(clientIp)
+
+      if (!ipLimit.allowed) {
+        return res.status(429).json({
+          error: 'Rate limit exceeded',
+          message: `IP daily limit exceeded (${IP_DAILY_LIMIT} requests/day). Please try again tomorrow or configure your own API key in Settings.`,
+          remaining: 0,
+          limit: IP_DAILY_LIMIT,
+          used: ipLimit.used
+        })
+      }
     }
 
     // 检查是否使用模拟模式（用于开发测试）
@@ -156,6 +230,12 @@ export default async function handler(req, res) {
         break
       default:
         throw new Error(`不支持的 AI 提供商: ${aiProvider}`)
+    }
+
+    // 记录 IP 使用次数（仅免费模式）
+    if (isFreeMode) {
+      const clientIp = getClientIp(req)
+      recordIpUsage(clientIp)
     }
 
     // 返回成功响应
