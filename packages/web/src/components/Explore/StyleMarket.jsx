@@ -644,7 +644,7 @@ function SortableVariantRow({ variant, style, onUse, onClose, isDragDisabled, re
           disabled={!canUse}
           title={!canUse ? 'Login required to use community styles' : ''}
         >
-          {!canUse ? 'Login Required' : 'Use'}
+          Use
         </button>
       </td>
     </tr>
