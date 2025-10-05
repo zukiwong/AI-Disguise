@@ -1,5 +1,5 @@
 // Auth 页面 - 用于插件登录跳转
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
 import AuthModal from '../components/Auth/AuthModal.jsx'
@@ -7,6 +7,7 @@ import AuthModal from '../components/Auth/AuthModal.jsx'
 function Auth() {
   const navigate = useNavigate()
   const { user, isLoading } = useAuth()
+  const [forceShowAuth, setForceShowAuth] = useState(false)
 
   useEffect(() => {
     // 如果用户已登录，直接跳转到 Profile 页面
@@ -15,8 +16,20 @@ function Auth() {
     }
   }, [user, isLoading, navigate])
 
-  // 如果正在加载，显示加载状态
-  if (isLoading) {
+  // 超时保护：如果 5 秒后还在 loading，强制显示登录界面
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.warn('Firebase 初始化超时，强制显示登录界面')
+        setForceShowAuth(true)
+      }
+    }, 5000)
+
+    return () => clearTimeout(timeout)
+  }, [isLoading])
+
+  // 如果正在加载且未超时，显示加载状态
+  if (isLoading && !forceShowAuth) {
     return (
       <div style={{
         display: 'flex',

@@ -22,9 +22,13 @@ const firebaseConfig = {
 // 初始化 Firebase 应用
 const app = initializeApp(firebaseConfig)
 
-// 初始化 Analytics（仅在生产环境中使用）
-if (typeof window !== 'undefined') {
-  getAnalytics(app)
+// 初始化 Analytics（仅在生产环境且浏览器支持时使用）
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
+  try {
+    getAnalytics(app)
+  } catch (error) {
+    console.warn('Analytics 初始化失败:', error)
+  }
 }
 
 // 获取 Firestore 数据库实例
