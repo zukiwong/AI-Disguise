@@ -68,30 +68,27 @@ export function useAuth() {
 
   // 向 Chrome 插件发送登录成功消息
   const notifyExtensionLogin = (firebaseUser) => {
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-      const extensionId = 'YOUR_EXTENSION_ID' // 需要替换为实际的插件 ID
-
-      const userData = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL
-      }
-
-      chrome.runtime.sendMessage(
-        extensionId,
-        { action: 'loginSuccess', user: userData },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error('发送消息到插件失败:', chrome.runtime.lastError)
-          } else {
-            console.log('登录信息已发送到插件:', response)
-            // 关闭当前标签页
-            window.close()
-          }
-        }
-      )
+    const userData = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName,
+      photoURL: firebaseUser.photoURL,
+      timestamp: Date.now()
     }
+
+    console.log('准备发送登录信息到插件:', userData)
+
+    // 使用 LocalStorage 作为桥梁（最可靠的方法）
+    // 插件会监听这个 key 的变化
+    localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
+
+    console.log('用户数据已写入 localStorage，等待插件读取')
+
+    // 显示提示信息并在 2 秒后自动关闭
+    setTimeout(() => {
+      alert('Login successful! You can close this tab now.')
+      window.close()
+    }, 1000)
   }
 
   // Google 登录

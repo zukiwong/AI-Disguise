@@ -10,9 +10,19 @@ function Auth() {
   const [forceShowAuth, setForceShowAuth] = useState(false)
 
   useEffect(() => {
-    // 如果用户已登录，直接跳转到 Profile 页面
+    // 检查是否来自插件
+    const urlParams = new URLSearchParams(window.location.search)
+    const fromExtension = urlParams.get('from') === 'extension'
+
+    // 如果用户已登录
     if (!isLoading && user) {
-      navigate('/profile', { replace: true })
+      if (fromExtension) {
+        // 来自插件：不跳转，等待 useAuth 发送消息并关闭窗口
+        console.log('Auth: 用户已登录，等待发送消息到插件')
+      } else {
+        // 正常访问：跳转到 Profile 页面
+        navigate('/profile', { replace: true })
+      }
     }
   }, [user, isLoading, navigate])
 
@@ -26,7 +36,7 @@ function Auth() {
     }, 5000)
 
     return () => clearTimeout(timeout)
-  }, [isLoading])
+  }, []) // 空依赖数组，只在组件挂载时执行一次
 
   // 如果正在加载且未超时，显示加载状态
   if (isLoading && !forceShowAuth) {
