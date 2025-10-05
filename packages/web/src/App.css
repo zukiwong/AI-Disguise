@@ -319,3 +319,13 @@ body.dark .result-actions button:first-child:hover:not(:disabled) {
   background-color: var(--text-secondary);
 }
 
+/* 黑夜模式下的 manage-icon-button */
+body.dark .manage-icon {
+  filter: invert(1); /* 反白图标 */
+  opacity: 0.9;
+}
+
+body.dark .manage-icon-button:hover:not(:disabled) .manage-icon {
+  opacity: 1;
+}
+

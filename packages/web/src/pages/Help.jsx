@@ -13,10 +13,9 @@ const Help = () => {
             <p>AI Disguise is simple to use:</p>
             <ul>
               <li><strong>Enter Your Text:</strong> Type or paste your original text in the input area</li>
-              <li><strong>Choose Style Mode:</strong> Select from Chat, Poetry, Social, or Story styles</li>
-              <li><strong>Or Choose Purpose Mode:</strong> Select what you want to achieve and who you're talking to</li>
-              <li><strong>Click Transform:</strong> Hit the "Disguise" button to transform your text</li>
-              <li><strong>Use Random:</strong> Try the "Random Transform" for a surprise style</li>
+              <li><strong>Choose a Style:</strong> Select from various styles in the Style Library, or create your own custom styles</li>
+              <li><strong>Click Transform:</strong> Hit the "Transform" button to convert your text</li>
+              <li><strong>Use Random:</strong> Try the "Random" button for a surprise style</li>
             </ul>
           </CollapsibleSection>
 
@@ -29,14 +28,6 @@ const Help = () => {
             </ul>
           </CollapsibleSection>
 
-          <CollapsibleSection title="How Does Purpose + Audience Mode Work?">
-            <p>This mode lets you specify your communication goal and target audience:</p>
-            <ul>
-              <li><strong>Purpose:</strong> What you want to achieve (explain, persuade, comfort, inform, etc.)</li>
-              <li><strong>Audience:</strong> Who you're communicating with (friends, boss, children, etc.)</li>
-              <li><strong>Result:</strong> Text tailored specifically for your situation</li>
-            </ul>
-          </CollapsibleSection>
 
           <CollapsibleSection title="Can I Save My Transformations?">
             <p>Yes! When you log in with Google or GitHub:</p>

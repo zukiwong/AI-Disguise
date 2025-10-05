@@ -2,7 +2,6 @@
 // 提供搜索框、标签筛选、风格筛选等功能
 
 import { useState, useMemo } from 'react'
-import { CONVERSION_MODE } from '../../services/config.js'
 import { useDisguise } from '../../hooks/useDisguise.js'
 import { useStyles } from '../../hooks/useStyles.js'
 import { useAuth } from '../../hooks/useAuth.js'
@@ -305,8 +304,7 @@ function HistoryFilters({
                 <option value="">All Modes</option>
                 {availableOptions.conversionModes.map(mode => (
                   <option key={mode} value={mode}>
-                    {mode === CONVERSION_MODE.STYLE ? 'Style Mode' : 
-                     mode === CONVERSION_MODE.PURPOSE ? 'Purpose Mode' : mode}
+                    {mode === 'style' ? 'Style Mode' : mode}
                   </option>
                 ))}
               </select>

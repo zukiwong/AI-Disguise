@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useDisguise } from '../../hooks/useDisguise.js'
 import { useAuth } from '../../hooks/useAuth.js'
-import { PURPOSE_CONFIG, RECIPIENT_CONFIG } from '../../services/config.js'
 import TagManager from './TagManager.jsx'
 import { gsap } from 'gsap'
 
@@ -66,27 +65,17 @@ function HistoryItem({
 
   // 获取转换模式显示文本
   const getConversionModeText = () => {
-    switch (record.conversionMode) {
-      case 'style':
-        // 查找风格的displayName，添加安全检查
-        if (!stylesWithVariants || stylesWithVariants.length === 0) {
-          return 'Loading...'
-        }
-        
-        const currentStyle = stylesWithVariants.find(style => style.id === record.style)
-        
-        if (currentStyle) {
-          return currentStyle.displayName || currentStyle.name || 'Custom Style'
-        } else {
-          return 'Custom Style'
-        }
-      case 'purpose':
-        // 查找Purpose和Recipient的displayName
-        const purposeDisplayName = PURPOSE_CONFIG[record.purpose]?.displayName || record.purpose
-        const recipientDisplayName = RECIPIENT_CONFIG[record.recipient]?.displayName || record.recipient
-        return `${purposeDisplayName} → ${recipientDisplayName}`
-      default:
-        return 'Unknown Mode'
+    // 添加安全检查
+    if (!stylesWithVariants || stylesWithVariants.length === 0) {
+      return 'Loading...'
+    }
+
+    const currentStyle = stylesWithVariants.find(style => style.id === record.style)
+
+    if (currentStyle) {
+      return currentStyle.displayName || currentStyle.name || 'Custom Style'
+    } else {
+      return 'Custom Style'
     }
   }
 
@@ -457,14 +446,6 @@ function HistoryItem({
             </div>
           )}
           
-          {record.purpose && (
-            <div className="metadata-row">
-              <span className="metadata-label">Purpose:</span>
-              <span className="metadata-value">
-                {PURPOSE_CONFIG[record.purpose]?.displayName || record.purpose} → {RECIPIENT_CONFIG[record.recipient]?.displayName || record.recipient}
-              </span>
-            </div>
-          )}
           
           <div className="metadata-row">
             <span className="metadata-label">Language:</span>

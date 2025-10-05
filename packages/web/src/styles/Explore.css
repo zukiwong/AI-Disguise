@@ -914,14 +914,15 @@ body.dark .style-card-bottom {
 
 /* 变体标签深色模式 */
 body.dark .variant-tag {
-  background-color: #404040;
-  color: var(--text-secondary);
-  border-color: var(--border-color);
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #555;
 }
 
 body.dark .variant-tag:hover {
-  background-color: #555;
-  border-color: #666;
+  background-color: #3d3d3d;
+  border-color: #777;
+  color: #fff;
 }
 
 body.dark .variant-tag.active {

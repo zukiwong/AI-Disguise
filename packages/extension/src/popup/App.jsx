@@ -45,7 +45,7 @@ function App() {
 
       // 调用 API
       console.log('Sending request with config:', config)
-      const response = await fetch('https://ai-disguiser.vercel.app/api/disguise', {
+      const response = await fetch('https://ai-disguise.vercel.app/api/disguise', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -97,7 +97,7 @@ function App() {
   }
 
   const openWebsite = () => {
-    chrome.tabs.create({ url: 'https://ai-disguiser.vercel.app' })
+    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app' })
   }
 
   return (

@@ -24,7 +24,7 @@ function App() {
   }
 
   const openWebsite = () => {
-    chrome.tabs.create({ url: 'https://ai-disguiser.vercel.app' })
+    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app' })
   }
 
   return (

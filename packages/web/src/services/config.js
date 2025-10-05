@@ -61,17 +61,17 @@ export const LANGUAGE_CONFIG = {
     displayName: 'Auto Detect',
     description: 'Automatically select output language based on input text'
   },
-  zh: {
-    code: 'zh',
-    name: 'Chinese',
-    displayName: 'Chinese',
-    description: 'Chinese output'
-  },
   en: {
     code: 'en',
     name: 'English',
     displayName: 'English',
     description: 'English output'
+  },
+  zh: {
+    code: 'zh',
+    name: 'Chinese',
+    displayName: '中文',
+    description: 'Chinese output'
   },
   ja: {
     code: 'ja',
@@ -93,119 +93,6 @@ export const LANGUAGE_CONFIG = {
   }
 }
 
-// 转换模式配置
-export const CONVERSION_MODE = {
-  STYLE: 'style',        // 风格模式
-  PURPOSE: 'purpose'     // 目的+对象模式
-}
-
-// 表达目的配置
-export const PURPOSE_CONFIG = {
-  explain: {
-    name: 'explain',
-    displayName: 'Explain / Clarify',
-    description: 'Make complex concepts clear and understandable'
-  },
-  ask: {
-    name: 'ask', 
-    displayName: 'Ask / Guide',
-    description: 'Pose questions, guide discussion or initiate conversation'
-  },
-  persuade: {
-    name: 'persuade',
-    displayName: 'Persuade / Convince', 
-    description: 'Try to get others to accept viewpoints or suggestions'
-  },
-  comfort: {
-    name: 'comfort',
-    displayName: 'Comfort / Support',
-    description: 'Provide emotional support and ease emotions'
-  },
-  soften: {
-    name: 'soften',
-    displayName: 'Soften Expression',
-    description: 'Want to express something but not too directly'
-  },
-  frustration: {
-    name: 'frustration', 
-    displayName: 'Express Anger / Dissatisfaction',
-    description: 'Have emotions but don\'t want to attack maliciously'
-  },
-  compliment: {
-    name: 'compliment',
-    displayName: 'Praise / Compliment',
-    description: 'Give positive feedback to others'
-  },
-  apologize: {
-    name: 'apologize',
-    displayName: 'Apologize / Admit Fault',
-    description: 'Actively express regret or apology'
-  },
-  announce: {
-    name: 'announce',
-    displayName: 'Announce / State Position',
-    description: 'Express personal or official stance'
-  },
-  probe: {
-    name: 'probe',
-    displayName: 'Probe / Subtle Expression',
-    description: 'Leave room for interpretation, observe reactions'
-  }
-}
-
-// 表达对象配置
-export const RECIPIENT_CONFIG = {
-  child: {
-    name: 'child',
-    displayName: 'Child',
-    description: 'Language should be concrete, vivid, avoid abstraction'
-  },
-  parents: {
-    name: 'parents',
-    displayName: 'Parents',
-    description: 'Respectful tone with patience'
-  },
-  boss: {
-    name: 'boss', 
-    displayName: 'Boss',
-    description: 'Tactful, concise, logically clear'
-  },
-  colleague: {
-    name: 'colleague',
-    displayName: 'Colleague',
-    description: 'Collaborative, professional tone'
-  },
-  friend: {
-    name: 'friend',
-    displayName: 'Friend',
-    description: 'Natural, relaxed, informal'
-  },
-  stranger: {
-    name: 'stranger',
-    displayName: 'Stranger', 
-    description: 'Politely neutral'
-  },
-  ex: {
-    name: 'ex',
-    displayName: 'Ex-partner',
-    description: 'Complex emotions, need careful balance'
-  },
-  partner: {
-    name: 'partner',
-    displayName: 'Partner / Lover',
-    description: 'Emotional, understanding, intimate tone'
-  },
-  public: {
-    name: 'public',
-    displayName: 'Public',
-    description: 'General conversational or public discourse'
-  },
-  ai: {
-    name: 'ai',
-    displayName: 'AI Assistant',
-    description: 'Clear structure with instructional expression'
-  }
-}
 
 // 语言检测正则表达式
 export const LANGUAGE_DETECTION = {

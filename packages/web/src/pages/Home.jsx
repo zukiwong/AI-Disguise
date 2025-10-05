@@ -21,9 +21,6 @@ function Home() {
     error,
     outputLanguage,
     detectedLanguage,
-    conversionMode,
-    selectedPurpose,
-    selectedRecipient,
     stylesWithVariants, // 获取带变体的样式数据
     isLoadingVariants, // 获取变体加载状态
     removePublicStyleFromAccount, // 样式删除方法
@@ -31,9 +28,6 @@ function Home() {
     updateSelectedStyle,
     updateSelectedVariant, // 新增变体更新方法
     updateOutputLanguage,
-    updateConversionMode,
-    updateSelectedPurpose,
-    updateSelectedRecipient,
     handleDisguise,
     handleClear,
     copyToClipboard,
@@ -41,10 +35,7 @@ function Home() {
     hasOutput,
     isLanguageFeatureEnabled,
     isSharing,
-    shareStatus,
-    CONVERSION_MODE,
-    PURPOSE_CONFIG,
-    RECIPIENT_CONFIG
+    shareStatus
   } = useDisguise()
 
   // 复制状态管理
@@ -76,11 +67,8 @@ function Home() {
 
         // 应用预填充数据
         if (data.inputText) updateInputText(data.inputText)
-        if (data.conversionMode) updateConversionMode(data.conversionMode)
         if (data.style) updateSelectedStyle(data.style)
         if (data.variant) updateSelectedVariant(data.variant)
-        if (data.purpose) updateSelectedPurpose(data.purpose)
-        if (data.recipient) updateSelectedRecipient(data.recipient)
         if (data.outputLanguage) updateOutputLanguage(data.outputLanguage)
 
       } catch (error) {
@@ -88,7 +76,7 @@ function Home() {
         localStorage.removeItem('prefillFromHistory')
       }
     }
-  }, [updateInputText, updateConversionMode, updateSelectedStyle, updateSelectedVariant, updateSelectedPurpose, updateSelectedRecipient, updateOutputLanguage])
+  }, [updateInputText, updateSelectedStyle, updateSelectedVariant, updateOutputLanguage])
 
   // 检查并应用来自探索页的风格选择
   useEffect(() => {
@@ -107,7 +95,6 @@ function Home() {
           const styleExists = stylesWithVariants.find(s => s.id === data.styleId)
 
           if (styleExists) {
-            updateConversionMode(CONVERSION_MODE.STYLE) // 切换到风格模式
             updateSelectedStyle(data.styleId) // 应用选择的风格
 
             // 如果有变体ID，也应用变体
@@ -132,7 +119,7 @@ function Home() {
         localStorage.removeItem('selectedStyleFromExplore')
       }
     }
-  }, [stylesWithVariants, updateConversionMode, updateSelectedStyle, updateSelectedVariant, CONVERSION_MODE.STYLE])
+  }, [stylesWithVariants, updateSelectedStyle, updateSelectedVariant])
 
   // 处理预选风格 - 等待styles加载完成
   useEffect(() => {
@@ -144,7 +131,6 @@ function Home() {
 
       if (styleExists) {
         localStorage.removeItem('preselectedStyle') // 清除预选数据，避免重复应用
-        updateConversionMode(CONVERSION_MODE.STYLE) // 切换到风格模式
         updateSelectedStyle(preselectedStyle) // 应用预选风格
 
         // 滚动到输入区域，引导用户输入文本
@@ -157,17 +143,12 @@ function Home() {
         }, 300) // 增加延迟确保UI更新完成
       }
     }
-  }, [stylesWithVariants, updateConversionMode, updateSelectedStyle, CONVERSION_MODE.STYLE])
+  }, [stylesWithVariants, updateSelectedStyle])
 
   // 处理URL参数，自动打开StyleManager
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     if (searchParams.get('openStyleManager') === 'true') {
-      // 确保StyleSelector已经渲染并且为风格模式
-      if (conversionMode !== CONVERSION_MODE.STYLE) {
-        updateConversionMode(CONVERSION_MODE.STYLE)
-      }
-
       // 延迟执行以确保StyleSelector已经挂载
       setTimeout(() => {
         if (styleSelectorRef.current) {
@@ -180,7 +161,7 @@ function Home() {
       newUrl.searchParams.delete('openStyleManager')
       window.history.replaceState({}, '', newUrl)
     }
-  }, [location.search, conversionMode, updateConversionMode])
+  }, [location.search])
 
   // 处理复制操作
   const handleCopy = async (text, type) => {
@@ -209,35 +190,11 @@ function Home() {
 
   // 处理随机变装功能
   const handleRandomDisguise = () => {
-    // 获取可用的风格列表
-    let availableStyles = []
-    
-    if (conversionMode === CONVERSION_MODE.STYLE) {
-      // 风格模式：从STYLE_CONFIG中获取可用风格
-      availableStyles = Object.keys(STYLE_CONFIG)
-    } else {
-      // 目的+对象模式：随机选择目的和对象
-      const purposes = Object.keys(PURPOSE_CONFIG)
-      const recipients = Object.keys(RECIPIENT_CONFIG)
-      
-      // 随机选择目的和对象
-      const randomPurpose = purposes[Math.floor(Math.random() * purposes.length)]
-      const randomRecipient = recipients[Math.floor(Math.random() * recipients.length)]
-      
-      // 更新选择的目的和对象
-      updateSelectedPurpose(randomPurpose)
-      updateSelectedRecipient(randomRecipient)
-      
-      // 直接开始转换
-      handleDisguise()
-      return
-    }
-    
-    // 风格模式：随机选择一个风格
-    if (availableStyles.length > 0) {
-      const randomStyle = availableStyles[Math.floor(Math.random() * availableStyles.length)]
-      updateSelectedStyle(randomStyle)
-      
+    // 从可用风格列表中随机选择
+    if (stylesWithVariants.length > 0) {
+      const randomStyle = stylesWithVariants[Math.floor(Math.random() * stylesWithVariants.length)]
+      updateSelectedStyle(randomStyle.id)
+
       // 延迟一下确保状态更新后再执行转换
       setTimeout(() => {
         handleDisguise()
@@ -342,100 +299,50 @@ function Home() {
       scrollContainer.removeEventListener('scroll', checkScrollState)
       resizeObserver.disconnect()
     }
-  }, [stylesWithVariants, conversionMode]) // 当样式列表或模式变化时重新检测
+  }, [stylesWithVariants]) // 当样式列表变化时重新检测
 
   return (
     <div className="home-container two-column-layout">
       <div className="main-content-wrapper">
         {/* 左侧：样式选择区域 */}
         <div className="left-panel style-panel">
-          {/* 模式切换 - 固定头部 */}
+          {/* 样式管理头部 */}
           <div className="mode-selector fixed-header">
             <div className="explore-tabs">
               <div className="tab-buttons">
-                <button
-                  className={`explore-tab ${conversionMode === CONVERSION_MODE.STYLE ? 'active' : ''}`}
-                  onClick={() => updateConversionMode(CONVERSION_MODE.STYLE)}
-                  disabled={isLoading}
-                >
-                  Style Mode
-                </button>
-                <button
-                  className={`explore-tab ${conversionMode === CONVERSION_MODE.PURPOSE ? 'active' : ''}`}
-                  onClick={() => updateConversionMode(CONVERSION_MODE.PURPOSE)}
-                  disabled={isLoading}
-                >
-                  Purpose Mode
-                </button>
+                <h2>Style Library</h2>
               </div>
-              {conversionMode === CONVERSION_MODE.STYLE && (
-                <button
-                  className="manage-icon-button"
-                  onClick={() => {
-                    // 直接调用StyleSelector内置的管理功能
-                    if (styleSelectorRef.current) {
-                      styleSelectorRef.current.openManager();
-                    }
-                  }}
-                  disabled={isLoading}
-                  title="Manage Styles"
-                >
-                  <img src={ManageIcon} alt="Manage Styles" className="manage-icon" />
-                </button>
-              )}
+              <button
+                className="manage-icon-button"
+                onClick={() => {
+                  // 直接调用StyleSelector内置的管理功能
+                  if (styleSelectorRef.current) {
+                    styleSelectorRef.current.openManager();
+                  }
+                }}
+                disabled={isLoading}
+                title="Manage Styles"
+              >
+                <img src={ManageIcon} alt="Manage Styles" className="manage-icon" />
+              </button>
             </div>
           </div>
 
           {/* 可滚动内容区域 */}
           <div ref={scrollableContentRef} className="scrollable-content">
-            {/* 根据模式显示不同的选择器 */}
-            {conversionMode === CONVERSION_MODE.STYLE ? (
-              <StyleSelector
-                ref={styleSelectorRef}
-                selectedStyle={selectedStyle}
-                selectedVariant={selectedVariant}
-                stylesWithVariants={stylesWithVariants}
-                isLoadingVariants={isLoadingVariants}
-                removePublicStyleFromAccount={removePublicStyleFromAccount}
-                onStyleChange={updateSelectedStyle}
-                onVariantChange={updateSelectedVariant}
-                disabled={isLoading}
-                showManageButton={false}
-                showTitle={false}
-              />
-            ) : (
-              <div className="purpose-recipient-selector">
-                <div className="purpose-selector">
-                  <h3>Expression Purpose:</h3>
-                  <select
-                    value={selectedPurpose}
-                    onChange={(e) => updateSelectedPurpose(e.target.value)}
-                    disabled={isLoading}
-                  >
-                    {Object.entries(PURPOSE_CONFIG).map(([key, purpose]) => (
-                      <option key={key} value={key}>
-                        {purpose.displayName} - {purpose.description}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="recipient-selector">
-                  <h3>Target Recipient:</h3>
-                  <select
-                    value={selectedRecipient}
-                    onChange={(e) => updateSelectedRecipient(e.target.value)}
-                    disabled={isLoading}
-                  >
-                    {Object.entries(RECIPIENT_CONFIG).map(([key, recipient]) => (
-                      <option key={key} value={key}>
-                        {recipient.displayName} - {recipient.description}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
+            <StyleSelector
+              ref={styleSelectorRef}
+              selectedStyle={selectedStyle}
+              selectedVariant={selectedVariant}
+              stylesWithVariants={stylesWithVariants}
+              isLoadingVariants={isLoadingVariants}
+              removePublicStyleFromAccount={removePublicStyleFromAccount}
+              onStyleChange={updateSelectedStyle}
+              onVariantChange={updateSelectedVariant}
+              disabled={isLoading}
+              showManageButton={false}
+              showTitle={false}
+            />
           </div>
         </div>
 

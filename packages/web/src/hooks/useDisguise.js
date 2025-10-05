@@ -3,7 +3,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { disguiseText, detectTextLanguage } from '../services/geminiApi.js'
-import { LANGUAGE_FEATURE, CONVERSION_MODE, PURPOSE_CONFIG, RECIPIENT_CONFIG } from '../services/config.js'
+import { LANGUAGE_FEATURE } from '../services/config.js'
 import { useStyles } from './useStyles.js'
 import { useAuth } from './useAuth.js'
 import { createShare } from '../services/shareService.js'
@@ -33,12 +33,7 @@ export function useDisguise() {
   const [selectedVariant, setSelectedVariant] = useState(null) // 选择的变体
   const [output, setOutput] = useState('')                 // 输出结果
   const [originalText, setOriginalText] = useState('')     // 保存原文用于对比
-  
-  // 转换模式相关状态管理
-  const [conversionMode, setConversionMode] = useState(CONVERSION_MODE.STYLE) // 转换模式：风格 or 目的+对象
-  const [selectedPurpose, setSelectedPurpose] = useState('explain')          // 选择的表达目的
-  const [selectedRecipient, setSelectedRecipient] = useState('friend')       // 选择的表达对象
-  
+
   // 语言相关状态管理
   const [outputLanguage, setOutputLanguage] = useState(LANGUAGE_FEATURE.DEFAULT_OUTPUT_LANGUAGE) // 选择的输出语言
   const [detectedLanguage, setDetectedLanguage] = useState('')  // 检测到的输入语言
@@ -153,7 +148,6 @@ export function useDisguise() {
             // 应用选择
             setSelectedStyle(selectionData.styleId)
             setSelectedVariant(selectionData.variantId || null)
-            setConversionMode(CONVERSION_MODE.STYLE)
             
             // 清除已使用的选择状态
             localStorage.removeItem('selectedStyleFromExplore')
@@ -177,7 +171,7 @@ export function useDisguise() {
     if (styles.length > 0) {
       handleExploreStyleSelection()
     }
-  }, [styles, userId, setConversionMode]) // 依赖 styles，当风格数据加载完成后执行
+  }, [styles, userId]) // 依赖 styles，当风格数据加载完成后执行
   
   // 设置默认选中的风格
   useEffect(() => {
@@ -234,39 +228,34 @@ export function useDisguise() {
         inputLang = detectTextLanguage(inputText)
         setDetectedLanguage(inputLang)
       }
-      
-      // 调用 API 进行转换，根据转换模式传入不同参数
+
+      // 调用 API 进行转换
       let result
-      if (conversionMode === CONVERSION_MODE.STYLE) {
-        // 风格模式：查找选中的风格配置
-        const currentStyle = (stylesWithVariants.length > 0 ? stylesWithVariants : styles).find(style => style.id === selectedStyle)
-        if (currentStyle) {
-          let finalPrompt = currentStyle.promptTemplate || ''
-          
-          // 如果选择了变体，使用变体的prompt
-          if (selectedVariant) {
-            const variant = currentStyle.variants?.find(v => v.id === selectedVariant)
-            if (variant) {
-              finalPrompt = generateVariantPrompt(currentStyle, variant)
-            }
+      // 风格模式：查找选中的风格配置
+      const currentStyle = (stylesWithVariants.length > 0 ? stylesWithVariants : styles).find(style => style.id === selectedStyle)
+      if (currentStyle) {
+        let finalPrompt = currentStyle.promptTemplate || ''
+
+        // 如果选择了变体，使用变体的prompt
+        if (selectedVariant) {
+          const variant = currentStyle.variants?.find(v => v.id === selectedVariant)
+          if (variant) {
+            finalPrompt = generateVariantPrompt(currentStyle, variant)
           }
-          
-          // 传递完整的风格配置对象
-          const styleConfig = {
-            id: currentStyle.id,
-            name: currentStyle.name,
-            displayName: currentStyle.displayName,
-            description: currentStyle.description,
-            promptTemplate: finalPrompt
-          }
-          result = await disguiseText(inputText, styleConfig, outputLanguage)
-        } else {
-          // 如果找不到风格配置，使用风格ID（兼容旧的系统风格）
-          result = await disguiseText(inputText, selectedStyle, outputLanguage)
         }
+
+        // 传递完整的风格配置对象
+        const styleConfig = {
+          id: currentStyle.id,
+          name: currentStyle.name,
+          displayName: currentStyle.displayName,
+          description: currentStyle.description,
+          promptTemplate: finalPrompt
+        }
+        result = await disguiseText(inputText, styleConfig, outputLanguage)
       } else {
-        // 目的+对象模式：传入目的和对象参数
-        result = await disguiseText(inputText, { purpose: selectedPurpose, recipient: selectedRecipient }, outputLanguage)
+        // 如果找不到风格配置，使用风格ID（兼容旧的系统风格）
+        result = await disguiseText(inputText, selectedStyle, outputLanguage)
       }
       
       // 设置输出结果
@@ -276,7 +265,7 @@ export function useDisguise() {
       let styleDisplayName = null
       let variantDisplayName = null
 
-      if (conversionMode === CONVERSION_MODE.STYLE && selectedStyle) {
+      if (selectedStyle) {
         const currentStyle = stylesWithVariants.find(style => style.id === selectedStyle)
         styleDisplayName = currentStyle?.displayName || currentStyle?.name || 'Custom Style'
 
@@ -295,13 +284,13 @@ export function useDisguise() {
       const historyRecordData = {
         original: inputText,
         disguised: result,
-        conversionMode: conversionMode,
-        style: conversionMode === CONVERSION_MODE.STYLE ? selectedStyle : null,
+        conversionMode: 'style',
+        style: selectedStyle,
         styleDisplayName: styleDisplayName, // 保存风格显示名称
-        variant: conversionMode === CONVERSION_MODE.STYLE ? selectedVariant : null,
+        variant: selectedVariant,
         variantDisplayName: variantDisplayName, // 保存变体显示名称
-        purpose: conversionMode === CONVERSION_MODE.PURPOSE ? selectedPurpose : null,
-        recipient: conversionMode === CONVERSION_MODE.PURPOSE ? selectedRecipient : null,
+        purpose: null,
+        recipient: null,
         outputLanguage: outputLanguage,
         detectedLanguage: inputLang
       }
@@ -332,7 +321,7 @@ export function useDisguise() {
       // 取消加载状态
       setIsLoading(false)
     }
-  }, [inputText, selectedStyle, selectedVariant, outputLanguage, conversionMode, selectedPurpose, selectedRecipient, styles, stylesWithVariants])
+  }, [inputText, selectedStyle, selectedVariant, outputLanguage, styles, stylesWithVariants, isAuthenticated, userId])
 
 
   /**
@@ -370,7 +359,7 @@ export function useDisguise() {
       const shareData = {
         originalText,
         transformedText: output,
-        conversionMode,
+        conversionMode: 'style',
         authorId: userId,
         authorName: userName || userEmail.split('@')[0],
         outputLanguage,
@@ -378,31 +367,25 @@ export function useDisguise() {
         isPublic: true
       }
 
-      // 根据转换模式添加具体信息
-      if (conversionMode === CONVERSION_MODE.STYLE) {
-        const currentStyle = (stylesWithVariants.length > 0 ? stylesWithVariants : styles).find(style => style.id === selectedStyle)
-        shareData.styleInfo = {
-          id: selectedStyle,
-          name: currentStyle?.name || selectedStyle,
-          displayName: currentStyle?.displayName || selectedStyle,
-          description: currentStyle?.description || ''
-        }
-        
-        // 如果选择了变体，添加变体信息
-        if (selectedVariant) {
-          const variant = currentStyle?.variants?.find(v => v.id === selectedVariant)
-          if (variant) {
-            shareData.variantInfo = {
-              id: selectedVariant,
-              name: variant.name,
-              description: variant.description
-            }
+      // 添加风格信息
+      const currentStyle = (stylesWithVariants.length > 0 ? stylesWithVariants : styles).find(style => style.id === selectedStyle)
+      shareData.styleInfo = {
+        id: selectedStyle,
+        name: currentStyle?.name || selectedStyle,
+        displayName: currentStyle?.displayName || selectedStyle,
+        description: currentStyle?.description || ''
+      }
+
+      // 如果选择了变体，添加变体信息
+      if (selectedVariant) {
+        const variant = currentStyle?.variants?.find(v => v.id === selectedVariant)
+        if (variant) {
+          shareData.variantInfo = {
+            id: selectedVariant,
+            name: variant.name,
+            description: variant.description
           }
         }
-      } else {
-        // 确保 PURPOSE_CONFIG 和 RECIPIENT_CONFIG 存在且不为 undefined
-        shareData.purposeInfo = PURPOSE_CONFIG[selectedPurpose] || null
-        shareData.recipientInfo = RECIPIENT_CONFIG[selectedRecipient] || null
       }
 
       // 创建分享
@@ -424,8 +407,8 @@ export function useDisguise() {
       setIsSharing(false)
     }
   }, [
-    isAuthenticated, output, originalText, conversionMode, userId, userName, userEmail,
-    outputLanguage, detectedLanguage, selectedStyle, selectedVariant, styles, stylesWithVariants, selectedPurpose, selectedRecipient
+    isAuthenticated, output, originalText, userId, userName, userEmail,
+    outputLanguage, detectedLanguage, selectedStyle, selectedVariant, styles, stylesWithVariants
   ])
 
   /**
@@ -485,27 +468,6 @@ export function useDisguise() {
     setOutputLanguage(language)
   }, [])
 
-  /**
-   * 更新转换模式
-   */
-  const updateConversionMode = useCallback((mode) => {
-    setConversionMode(mode)
-  }, [])
-
-  /**
-   * 更新选择的表达目的
-   */
-  const updateSelectedPurpose = useCallback((purpose) => {
-    setSelectedPurpose(purpose)
-  }, [])
-
-  /**
-   * 更新选择的表达对象
-   */
-  const updateSelectedRecipient = useCallback((recipient) => {
-    setSelectedRecipient(recipient)
-  }, [])
-
   // 返回所有状态和方法
   return {
     // 基础状态
@@ -519,20 +481,15 @@ export function useDisguise() {
     history,
     isSharing,
     shareStatus,
-    
+
     // 变体相关状态
     stylesWithVariants,
     isLoadingVariants,
-    
-    // 转换模式相关状态
-    conversionMode,
-    selectedPurpose,
-    selectedRecipient,
-    
+
     // 语言相关状态
     outputLanguage,
     detectedLanguage,
-    
+
     // 基础方法
     updateInputText,
     updateSelectedStyle,
@@ -541,12 +498,7 @@ export function useDisguise() {
     handleClear,
     copyToClipboard,
     handleShare,
-    
-    // 转换模式相关方法
-    updateConversionMode,
-    updateSelectedPurpose,
-    updateSelectedRecipient,
-    
+
     // 语言相关方法
     updateOutputLanguage,
 
@@ -556,11 +508,6 @@ export function useDisguise() {
     // 计算属性
     hasOutput: Boolean(output),
     hasOriginal: Boolean(originalText),
-    isLanguageFeatureEnabled: LANGUAGE_FEATURE.ENABLED,
-    
-    // 配置常量（供组件使用）
-    CONVERSION_MODE,
-    PURPOSE_CONFIG,
-    RECIPIENT_CONFIG
+    isLanguageFeatureEnabled: LANGUAGE_FEATURE.ENABLED
   }
 }

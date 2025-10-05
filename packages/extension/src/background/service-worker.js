@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     })
 
     // 打开欢迎页面
-    chrome.tabs.create({ url: 'https://ai-disguiser.vercel.app' })
+    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app' })
   }
 })
 

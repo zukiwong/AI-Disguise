@@ -279,3 +279,26 @@ body.dark .user-menu {
   border: 1px solid #555;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
+
+/* 黑夜模式下的登录提示组件 */
+body.dark .login-prompt {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+}
+
+body.dark .login-prompt-title {
+  color: var(--text-primary);
+}
+
+body.dark .login-prompt-message {
+  color: var(--text-secondary);
+}
+
+body.dark .login-prompt-button {
+  background-color: var(--text-primary);
+  color: var(--card-bg);
+}
+
+body.dark .login-prompt-button:hover {
+  background-color: var(--text-secondary);
+}
