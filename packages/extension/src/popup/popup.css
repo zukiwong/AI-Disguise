@@ -21,9 +21,49 @@ body {
 /* 主页面 - 头部区域 */
 .popup-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  min-height: 28px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}
+
+.sign-in-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4CAF50;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1.4;
+}
+
+.sign-in-btn:hover {
+  opacity: 0.7;
+}
+
+.user-info {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-info:hover {
+  color: #4CAF50;
 }
 
 .header-buttons {
@@ -377,33 +417,47 @@ body {
   height: 100%;
 }
 
-/* 搜索页头部 */
+/* 搜索页头部 - 和主页头部保持一致的高度和间距 */
 .search-header {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  min-height: 28px;
+}
+
+.header-right {
+  min-height: 28px;
+  width: 28px;
 }
 
 .back-btn {
   background: none;
   border: none;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #4CAF50;
   cursor: pointer;
   padding: 0;
   text-align: left;
-  width: fit-content;
+  line-height: 1.4;
 }
 
 .back-btn:hover {
   opacity: 0.7;
 }
 
-.search-header h2 {
-  font-size: 18px;
-  font-weight: 600;
+/* 搜索区域（包含标题和搜索框） */
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.search-section h2 {
+  font-size: 14px;
+  font-weight: 500;
   color: #000;
   margin: 0;
 }
@@ -412,25 +466,32 @@ body {
 .search-box {
   display: flex;
   flex-direction: column;
-  margin-bottom: 12px;
 }
 
 .search-box input {
-  padding: 10px 12px;
-  border: 1px solid #E5E5E5;
+  padding: 12px 16px;
+  border: 1px solid #e1e5e9;
   border-radius: 6px;
   font-size: 14px;
+  font-weight: 500;
   background-color: #ffffff;
-  color: #000;
+  color: #2c3e50;
+  min-height: 44px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .search-box input::placeholder {
   color: #C7C7C7;
 }
 
+.search-box input:hover {
+  border-color: #2ecc71;
+}
+
 .search-box input:focus {
   outline: none;
-  border-color: #C7C7C7;
+  border-color: #2ecc71;
 }
 
 /* 搜索结果列表 */

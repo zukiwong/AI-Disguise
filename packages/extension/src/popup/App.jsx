@@ -43,11 +43,21 @@ function App() {
   const [selectedStyle, setSelectedStyle] = useState('chat') // 默认选中 chat
   const [error, setError] = useState('')
   const [usageInfo, setUsageInfo] = useState({ remaining: 20 })
+  const [user, setUser] = useState(null) // 用户登录状态
 
-  // 加载额外添加的风格（如果有）
+  // 加载用户信息和额外风格
   useEffect(() => {
+    loadUserInfo()
     loadAdditionalStyles()
   }, [])
+
+  const loadUserInfo = () => {
+    chrome.storage.local.get(['user'], (result) => {
+      if (result.user) {
+        setUser(result.user)
+      }
+    })
+  }
 
   const loadAdditionalStyles = () => {
     chrome.storage.local.get(['additionalStyles'], (result) => {
@@ -168,6 +178,18 @@ function App() {
     chrome.tabs.create({ url: 'https://ai-disguise.vercel.app/profile' })
   }
 
+  const openLogin = () => {
+    // 打开登录页面，带上回调参数
+    const loginUrl = 'https://ai-disguise.vercel.app/auth?from=extension'
+    chrome.tabs.create({ url: loginUrl })
+  }
+
+  const handleSignOut = () => {
+    chrome.storage.local.remove(['user'], () => {
+      setUser(null)
+    })
+  }
+
   const openSearch = () => {
     setCurrentPage('search')
   }
@@ -205,6 +227,17 @@ function App() {
         <>
           {/* 头部 */}
           <div className="popup-header">
+            <div className="header-left">
+              {user ? (
+                <button className="user-info" onClick={handleSignOut} title="Sign out">
+                  {user.email || 'User'}
+                </button>
+              ) : (
+                <button className="sign-in-btn" onClick={openLogin}>
+                  Sign in
+                </button>
+              )}
+            </div>
             <div className="header-buttons">
               <button className="search-btn" onClick={openSearch} title="Search Styles">
                 <img src={searchIcon} alt="Search" />
@@ -340,18 +373,21 @@ function SearchPage({ onBack, onAddStyle, additionalStyles }) {
         <button className="back-btn" onClick={onBack}>
           Back
         </button>
-        <h2>Search Styles</h2>
+        <div className="header-right"></div>
       </div>
 
-      {/* 搜索框 */}
-      <div className="search-box">
-        <input
-          type="text"
-          placeholder="Search styles..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          autoFocus
-        />
+      {/* 搜索区域（标题 + 搜索框） */}
+      <div className="search-section">
+        <h2>Search Styles</h2>
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Search styles..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            autoFocus
+          />
+        </div>
       </div>
 
       {/* 风格列表 */}

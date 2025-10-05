@@ -29,7 +29,7 @@ export function useAuth() {
       if (firebaseUser) {
         // 用户已登录
         setUser(firebaseUser)
-        
+
         // 获取用户详细信息
         try {
           const profileResult = await getUserProfile(firebaseUser.uid)
@@ -39,17 +39,52 @@ export function useAuth() {
         } catch (err) {
           console.error('获取用户资料失败:', err)
         }
+
+        // 检查是否来自插件登录
+        const urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get('from') === 'extension') {
+          // 向 Chrome 插件发送登录成功消息
+          notifyExtensionLogin(firebaseUser)
+        }
       } else {
         // 用户未登录
         setUser(null)
         setUserProfile(null)
       }
-      
+
       setIsLoading(false)
     })
 
     return () => unsubscribe()
   }, [])
+
+  // 向 Chrome 插件发送登录成功消息
+  const notifyExtensionLogin = (firebaseUser) => {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      const extensionId = 'YOUR_EXTENSION_ID' // 需要替换为实际的插件 ID
+
+      const userData = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL
+      }
+
+      chrome.runtime.sendMessage(
+        extensionId,
+        { action: 'loginSuccess', user: userData },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error('发送消息到插件失败:', chrome.runtime.lastError)
+          } else {
+            console.log('登录信息已发送到插件:', response)
+            // 关闭当前标签页
+            window.close()
+          }
+        }
+      )
+    }
+  }
 
   // Google 登录
   const handleGoogleLogin = useCallback(async () => {

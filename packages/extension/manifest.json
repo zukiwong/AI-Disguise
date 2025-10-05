@@ -31,5 +31,11 @@
   "background": {
     "service_worker": "src/background/service-worker.js"
   },
-  "options_page": "src/options/options.html"
+  "options_page": "src/options/options.html",
+  "externally_connectable": {
+    "matches": [
+      "https://ai-disguise.vercel.app/*",
+      "http://localhost:5173/*"
+    ]
+  }
 }

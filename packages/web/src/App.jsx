@@ -6,6 +6,7 @@ import Explore from './pages/Explore'
 import Share from './pages/Share'
 import History from './pages/History'
 import Profile from './pages/Profile'
+import Auth from './pages/Auth'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import Help from './pages/Help'
@@ -40,6 +41,7 @@ function App() {
             <Route path="/share/:id" element={<Share />} />
             <Route path="/history" element={<History />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/help" element={<Help />} />

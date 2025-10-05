@@ -37,7 +37,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 })
 
-// 监听来自 popup 的消息
+// 监听来自 popup 和网页的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'checkUsageLimit') {
     chrome.storage.local.get(['usageCount', 'apiMode'], (result) => {
@@ -57,6 +57,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const newCount = (result.usageCount || 0) + 1
       chrome.storage.local.set({ usageCount: newCount })
       sendResponse({ success: true, count: newCount })
+    })
+    return true
+  }
+
+  // 接收来自网页的登录信息
+  if (request.action === 'loginSuccess') {
+    console.log('接收到登录成功消息:', request.user)
+    chrome.storage.local.set({
+      user: request.user
+    }, () => {
+      console.log('用户信息已保存')
+      sendResponse({ success: true })
+    })
+    return true
+  }
+})
+
+// 监听来自网页的外部消息（用于登录回调）
+chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+  console.log('接收到外部消息:', request, '来自:', sender)
+
+  if (request.action === 'loginSuccess' && request.user) {
+    chrome.storage.local.set({
+      user: request.user
+    }, () => {
+      console.log('用户信息已保存（外部）')
+      sendResponse({ success: true })
     })
     return true
   }
