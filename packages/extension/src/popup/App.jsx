@@ -1,12 +1,64 @@
 import { useState, useEffect } from 'react'
+import searchIcon from '../assets/images/search-icon.svg'
+import logo from '../assets/images/logo.svg'
+import CustomSelect from './CustomSelect.jsx'
+
+// 默认公共风格（系统内置）
+const DEFAULT_STYLES = [
+  {
+    id: 'chat',
+    displayName: 'Chat',
+    description: 'Casual and friendly conversational tone',
+    promptTemplate: 'Transform the following text into a casual, friendly chat style'
+  },
+  {
+    id: 'poem',
+    displayName: 'Poem',
+    description: 'Poetic and artistic expression',
+    promptTemplate: 'Transform the following text into poetic style'
+  },
+  {
+    id: 'social',
+    displayName: 'Social',
+    description: 'Perfect for social media posts',
+    promptTemplate: 'Transform the following text into social media style'
+  },
+  {
+    id: 'story',
+    displayName: 'Story',
+    description: 'Narrative storytelling approach',
+    promptTemplate: 'Transform the following text into story style'
+  }
+]
 
 function App() {
+  // 页面状态：'main' 或 'search'
+  const [currentPage, setCurrentPage] = useState('main')
+
   const [inputText, setInputText] = useState('')
   const [outputText, setOutputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedStyle, setSelectedStyle] = useState('chat')
+  const [styles, setStyles] = useState(DEFAULT_STYLES) // 使用公共风格
+  const [additionalStyles, setAdditionalStyles] = useState([])
+  const [selectedStyle, setSelectedStyle] = useState('chat') // 默认选中 chat
   const [error, setError] = useState('')
   const [usageInfo, setUsageInfo] = useState({ remaining: 20 })
+
+  // 加载额外添加的风格（如果有）
+  useEffect(() => {
+    loadAdditionalStyles()
+  }, [])
+
+  const loadAdditionalStyles = () => {
+    chrome.storage.local.get(['additionalStyles'], (result) => {
+      const additional = result.additionalStyles || []
+      setAdditionalStyles(additional)
+      if (additional.length > 0) {
+        // 合并默认风格和用户添加的风格
+        setStyles([...DEFAULT_STYLES, ...additional])
+      }
+    })
+  }
 
   // 加载使用信息
   useEffect(() => {
@@ -43,6 +95,12 @@ function App() {
         chrome.storage.local.get(['apiMode', 'apiKey'], resolve)
       })
 
+      // 获取选中的风格配置
+      const currentStyle = styles.find(s => s.id === selectedStyle)
+      if (!currentStyle) {
+        throw new Error('Please select a style')
+      }
+
       // 调用 API
       console.log('Sending request with config:', config)
       const response = await fetch('https://ai-disguise.vercel.app/api/disguise', {
@@ -52,8 +110,14 @@ function App() {
         },
         body: JSON.stringify({
           text: inputText,
-          mode: 'style',
-          style: selectedStyle,
+          mode: 'custom_style',
+          styleConfig: {
+            id: currentStyle.id,
+            name: currentStyle.displayName,
+            displayName: currentStyle.displayName,
+            description: currentStyle.description,
+            promptTemplate: currentStyle.promptTemplate
+          },
           outputLanguage: 'auto',
           apiConfig: config.apiMode === 'custom' ? {
             useCustomKey: true,
@@ -100,74 +164,220 @@ function App() {
     chrome.tabs.create({ url: 'https://ai-disguise.vercel.app' })
   }
 
+  const openSettings = () => {
+    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app/profile' })
+  }
+
+  const openSearch = () => {
+    setCurrentPage('search')
+  }
+
+  const backToMain = () => {
+    setCurrentPage('main')
+    loadAdditionalStyles() // 重新加载风格列表
+  }
+
+  // 添加风格到本地
+  const handleAddStyle = (style) => {
+    const isAdded = additionalStyles.some(s => s.id === style.id)
+    if (isAdded) {
+      alert('This style is already added!')
+      return
+    }
+
+    const newStyles = [...additionalStyles, {
+      id: style.id,
+      displayName: style.displayName,
+      description: style.description,
+      promptTemplate: style.promptTemplate
+    }]
+
+    chrome.storage.local.set({ additionalStyles: newStyles }, () => {
+      setAdditionalStyles(newStyles)
+      setStyles([...DEFAULT_STYLES, ...newStyles])
+    })
+  }
+
   return (
     <div className="popup-container">
-      {/* 头部 */}
-      <div className="popup-header">
-        <h1>AI Disguise</h1>
-        <button className="website-btn" onClick={openWebsite} title="Open Website">
-          🌐
+      {currentPage === 'main' ? (
+        // 主页面
+        <>
+          {/* 头部 */}
+          <div className="popup-header">
+            <div className="header-buttons">
+              <button className="search-btn" onClick={openSearch} title="Search Styles">
+                <img src={searchIcon} alt="Search" />
+              </button>
+              <button className="settings-btn" onClick={openSettings} title="Settings">
+                ⚙️
+              </button>
+              <button className="website-btn" onClick={openWebsite} title="Open Website">
+                🌐
+              </button>
+            </div>
+          </div>
+
+          {/* 风格选择 */}
+          <div className="style-selector">
+            <label>Style</label>
+            <CustomSelect
+              options={styles.map(style => ({
+                value: style.id,
+                label: `${style.displayName} Style`
+              }))}
+              value={selectedStyle}
+              onChange={setSelectedStyle}
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* 输入区域 */}
+          <div className="input-section">
+            <label>What are you trying to say?</label>
+            <textarea
+              value={inputText}
+              onChange={(e) => {
+                const text = e.target.value
+                if (text.length <= 300) {
+                  setInputText(text)
+                }
+              }}
+              placeholder="Describe your situation or what's on your mind.."
+              rows="4"
+              maxLength={300}
+            />
+            <div className="character-count">
+              {inputText.length}/300
+            </div>
+          </div>
+
+          {/* 错误提示 */}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          {/* 转换按钮 */}
+          <button
+            className="transform-btn"
+            onClick={handleTransform}
+            disabled={isLoading || !inputText.trim()}
+          >
+            {isLoading ? 'Transforming...' : 'Transform'}
+          </button>
+
+          {/* 输出区域 */}
+          {outputText && (
+            <div className="output-section">
+              <label>Transformed:</label>
+              <div className="output-text">{outputText}</div>
+              <button
+                className="copy-btn"
+                onClick={() => navigator.clipboard.writeText(outputText)}
+              >
+                Copy
+              </button>
+            </div>
+          )}
+
+          {/* 底部提示 */}
+          <div className="popup-footer">
+            <small>
+              Free: {usageInfo.remaining}/20 remaining | <a href="#" onClick={openWebsite}>Get unlimited</a>
+            </small>
+          </div>
+
+          {/* Logo */}
+          <div className="popup-logo">
+            <img src={logo} alt="AIDisguise" />
+          </div>
+        </>
+      ) : (
+        // 搜索页面
+        <SearchPage
+          onBack={backToMain}
+          onAddStyle={handleAddStyle}
+          additionalStyles={additionalStyles}
+        />
+      )}
+    </div>
+  )
+}
+
+// 搜索页面组件
+function SearchPage({ onBack, onAddStyle, additionalStyles }) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [publicStyles, setPublicStyles] = useState([])
+
+  useEffect(() => {
+    loadPublicStyles()
+  }, [])
+
+  const loadPublicStyles = async () => {
+    try {
+      const response = await fetch('https://ai-disguise.vercel.app/api/styles/public')
+      if (response.ok) {
+        const data = await response.json()
+        setPublicStyles(data.styles || [])
+      }
+    } catch (error) {
+      console.error('加载社区风格失败:', error)
+    }
+  }
+
+  const filteredStyles = publicStyles.filter(style =>
+    !searchTerm ||
+    style.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (style.description && style.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
+
+  return (
+    <div className="search-page">
+      {/* 搜索页头部 */}
+      <div className="search-header">
+        <button className="back-btn" onClick={onBack}>
+          Back
         </button>
+        <h2>Search Styles</h2>
       </div>
 
-      {/* 风格选择 */}
-      <div className="style-selector">
-        <label>Style:</label>
-        <select value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)}>
-          <option value="chat">Chat</option>
-          <option value="poem">Poem</option>
-          <option value="social">Social</option>
-          <option value="story">Story</option>
-        </select>
-      </div>
-
-      {/* 输入区域 */}
-      <div className="input-section">
-        <label>Original Text:</label>
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder="Enter your text here..."
-          rows="4"
+      {/* 搜索框 */}
+      <div className="search-box">
+        <input
+          type="text"
+          placeholder="Search styles..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          autoFocus
         />
       </div>
 
-      {/* 错误提示 */}
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
-      {/* 转换按钮 */}
-      <button
-        className="transform-btn"
-        onClick={handleTransform}
-        disabled={isLoading || !inputText.trim()}
-      >
-        {isLoading ? 'Transforming...' : 'Transform'}
-      </button>
-
-      {/* 输出区域 */}
-      {outputText && (
-        <div className="output-section">
-          <label>Transformed:</label>
-          <div className="output-text">{outputText}</div>
-          <button
-            className="copy-btn"
-            onClick={() => navigator.clipboard.writeText(outputText)}
-          >
-            Copy
-          </button>
-        </div>
-      )}
-
-      {/* 底部提示 */}
-      <div className="popup-footer">
-        <small>
-          Free: {usageInfo.remaining}/20 remaining |
-          <a href="#" onClick={openWebsite}> Get unlimited</a>
-        </small>
+      {/* 风格列表 */}
+      <div className="search-results">
+        {filteredStyles.length === 0 ? (
+          <div className="empty-message">No styles found</div>
+        ) : (
+          filteredStyles.map(style => {
+            const isAdded = additionalStyles.some(s => s.id === style.id)
+            return (
+              <div key={style.id} className="search-item">
+                <div className="search-item-info">
+                  <strong>{style.displayName}</strong>
+                  <p>{style.description}</p>
+                </div>
+                <button
+                  className={`search-add-btn ${isAdded ? 'added' : ''}`}
+                  onClick={() => onAddStyle(style)}
+                  disabled={isAdded}
+                >
+                  {isAdded ? '✓' : '+'}
+                </button>
+              </div>
+            )
+          })
+        )}
       </div>
     </div>
   )

@@ -47,6 +47,14 @@ export default defineConfig({
     crx({ manifest }),
     fixServiceWorker()
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        popup: path.resolve(__dirname, 'src/popup/popup.html'),
+        options: path.resolve(__dirname, 'src/options/options.html')
+      }
+    }
+  },
   resolve: {
     alias: {
       '@shared': new URL('../shared/src', import.meta.url).pathname
