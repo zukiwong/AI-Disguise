@@ -11,6 +11,9 @@
   "host_permissions": [
     "https://ai-disguise.vercel.app/*",
     "https://*.googleapis.com/*",
+    "https://*.firebaseapp.com/*",
+    "https://*.firebaseio.com/*",
+    "https://*.firebasestorage.app/*",
     "https://*.openai.com/*",
     "https://*.anthropic.com/*",
     "https://*.deepseek.com/*"

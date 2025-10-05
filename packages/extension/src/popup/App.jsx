@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import searchIcon from '../assets/images/search-icon.svg'
 import logo from '../assets/images/logo.svg'
 import CustomSelect from './CustomSelect.jsx'
+import { syncUserData } from '../services/userDataService.js'
 
 // 默认公共风格（系统内置）
 const DEFAULT_STYLES = [
@@ -51,10 +52,39 @@ function App() {
     loadAdditionalStyles()
   }, [])
 
-  const loadUserInfo = () => {
-    chrome.storage.local.get(['user'], (result) => {
+  const loadUserInfo = async () => {
+    chrome.storage.local.get(['user'], async (result) => {
       if (result.user) {
         setUser(result.user)
+        // 登录后同步用户数据
+        await syncUserDataFromFirestore(result.user)
+      }
+    })
+  }
+
+  // 从 Firestore 同步用户数据
+  const syncUserDataFromFirestore = async (userData) => {
+    try {
+      console.log('开始同步用户数据...')
+      const result = await syncUserData(userData)
+
+      if (result.success) {
+        // 重新加载用户的 styles
+        loadUserStyles()
+      }
+    } catch (error) {
+      console.error('同步用户数据失败:', error)
+    }
+  }
+
+  // 加载用户的 styles（包括用户自定义的）
+  const loadUserStyles = () => {
+    chrome.storage.local.get(['userStyles'], (result) => {
+      const userStyles = result.userStyles || []
+      if (userStyles.length > 0) {
+        // 合并默认 styles 和用户 styles
+        setStyles([...DEFAULT_STYLES, ...userStyles])
+        console.log('已加载用户 styles:', userStyles.length, '个')
       }
     })
   }
@@ -100,10 +130,18 @@ function App() {
         return
       }
 
-      // 获取 API 配置
-      const config = await new Promise((resolve) => {
-        chrome.storage.local.get(['apiMode', 'apiKey'], resolve)
+      // 获取 API 配置（优先使用用户的配置）
+      const storageData = await new Promise((resolve) => {
+        chrome.storage.local.get(['apiConfig', 'apiMode', 'apiKey'], resolve)
       })
+
+      const apiConfig = storageData.apiConfig || {}
+      const hasCustomKey = apiConfig.hasCustomKey || false
+
+      // 如果用户有自定义 API Key，跳过免费额度检查
+      if (hasCustomKey) {
+        console.log('使用用户自定义 API Key')
+      }
 
       // 获取选中的风格配置
       const currentStyle = styles.find(s => s.id === selectedStyle)
@@ -112,7 +150,7 @@ function App() {
       }
 
       // 调用 API
-      console.log('Sending request with config:', config)
+      console.log('Sending request with API config:', hasCustomKey ? 'custom' : 'free')
       const response = await fetch('https://ai-disguise.vercel.app/api/disguise', {
         method: 'POST',
         headers: {
@@ -129,9 +167,9 @@ function App() {
             promptTemplate: currentStyle.promptTemplate
           },
           outputLanguage: 'auto',
-          apiConfig: config.apiMode === 'custom' ? {
+          apiConfig: hasCustomKey ? {
             useCustomKey: true,
-            customApiKey: config.apiKey
+            customApiKey: apiConfig.apiKey
           } : null
         })
       })
@@ -153,8 +191,8 @@ function App() {
 
       setOutputText(data.transformedText)
 
-      // 增加使用次数（仅免费模式）
-      if (config.apiMode !== 'custom') {
+      // 增加使用次数（仅免费模式，使用自定义 Key 不计数）
+      if (!hasCustomKey) {
         chrome.runtime.sendMessage({ action: 'incrementUsage' }, (response) => {
           if (response && response.success) {
             setUsageInfo({ remaining: 20 - response.count })
