@@ -44,11 +44,16 @@ export function useAuth() {
           console.error('获取用户资料失败:', err)
         }
 
-        // 检查是否来自插件登录
+        // 检查是否来自插件登录（只执行一次）
         const urlParams = new URLSearchParams(window.location.search)
         if (urlParams.get('from') === 'extension') {
-          // 向 Chrome 插件发送登录成功消息
-          notifyExtensionLogin(firebaseUser)
+          // 检查是否已经发送过（避免重复发送）
+          const alreadySent = sessionStorage.getItem('extension-login-sent')
+          if (!alreadySent) {
+            sessionStorage.setItem('extension-login-sent', 'true')
+            // 向 Chrome 插件发送登录成功消息
+            notifyExtensionLogin(firebaseUser)
+          }
         }
       } else {
         // 用户未登录

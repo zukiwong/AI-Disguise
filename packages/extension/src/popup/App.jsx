@@ -220,53 +220,12 @@ function App() {
     // 打开登录页面，带上回调参数
     const loginUrl = 'https://ai-disguise.vercel.app/auth?from=extension'
     chrome.tabs.create({ url: loginUrl }, (tab) => {
-      // 开始轮询检查登录状态（通过 content script 读取 localStorage）
-      startLoginPolling(tab.id)
-    })
-  }
-
-  // 轮询检查登录状态
-  const startLoginPolling = (tabId) => {
-    let pollCount = 0
-    const maxPolls = 60 // 最多轮询 60 次（30 秒）
-
-    const pollInterval = setInterval(() => {
-      pollCount++
-
-      // 通过 scripting API 读取网页的 localStorage
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: () => {
-          const loginData = localStorage.getItem('ai-disguise-extension-login')
-          return loginData
-        }
-      }).then((results) => {
-        if (results && results[0] && results[0].result) {
-          const userData = JSON.parse(results[0].result)
-          console.log('检测到登录成功:', userData)
-
-          // 保存用户数据
-          chrome.storage.local.set({ user: userData }, async () => {
-            setUser(userData)
-            await syncUserDataFromFirestore(userData)
-
-            // 清除轮询
-            clearInterval(pollInterval)
-
-            // 关闭登录标签
-            chrome.tabs.remove(tabId)
-          })
-        }
-      }).catch((error) => {
-        console.log('轮询检查登录状态失败:', error.message)
+      // 通知 background script 开始轮询
+      chrome.runtime.sendMessage({
+        action: 'startLoginPolling',
+        tabId: tab.id
       })
-
-      // 超时停止轮询
-      if (pollCount >= maxPolls) {
-        console.log('登录轮询超时')
-        clearInterval(pollInterval)
-      }
-    }, 500) // 每 500ms 检查一次
+    })
   }
 
   const handleSignOut = () => {

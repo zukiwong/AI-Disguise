@@ -37,6 +37,9 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 })
 
+// 存储活动的轮询
+const activePolls = new Map()
+
 // 监听来自 popup 和网页的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'checkUsageLimit') {
@@ -61,6 +64,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true
   }
 
+  // 开始登录轮询
+  if (request.action === 'startLoginPolling') {
+    console.log('开始登录轮询，tabId:', request.tabId)
+    startLoginPolling(request.tabId)
+    sendResponse({ success: true })
+    return true
+  }
+
   // 接收来自网页的登录信息
   if (request.action === 'loginSuccess') {
     console.log('接收到登录成功消息:', request.user)
@@ -73,6 +84,64 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true
   }
 })
+
+// 登录轮询函数
+function startLoginPolling(tabId) {
+  let pollCount = 0
+  const maxPolls = 60 // 最多轮询 60 次（30 秒）
+
+  const pollInterval = setInterval(() => {
+    pollCount++
+    console.log(`轮询登录状态 #${pollCount}，tabId: ${tabId}`)
+
+    // 通过 scripting API 读取网页的 localStorage
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => {
+        const loginData = localStorage.getItem('ai-disguise-extension-login')
+        return loginData
+      }
+    }).then((results) => {
+      if (results && results[0] && results[0].result) {
+        const userData = JSON.parse(results[0].result)
+        console.log('✅ 检测到登录成功:', userData)
+
+        // 保存用户数据
+        chrome.storage.local.set({ user: userData }, () => {
+          console.log('✅ 用户信息已保存到 Chrome Storage')
+
+          // 清除轮询
+          clearInterval(pollInterval)
+          activePolls.delete(tabId)
+
+          // 关闭登录标签
+          chrome.tabs.remove(tabId, () => {
+            console.log('✅ 登录标签已关闭')
+          })
+        })
+      }
+    }).catch((error) => {
+      console.log('轮询检查失败:', error.message)
+
+      // 如果标签已关闭，停止轮询
+      if (error.message.includes('tab') || error.message.includes('No tab')) {
+        console.log('标签已关闭，停止轮询')
+        clearInterval(pollInterval)
+        activePolls.delete(tabId)
+      }
+    })
+
+    // 超时停止轮询
+    if (pollCount >= maxPolls) {
+      console.log('❌ 登录轮询超时')
+      clearInterval(pollInterval)
+      activePolls.delete(tabId)
+    }
+  }, 500) // 每 500ms 检查一次
+
+  // 保存轮询引用
+  activePolls.set(tabId, pollInterval)
+}
 
 // 监听来自网页的外部消息（用于登录回调）
 chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
