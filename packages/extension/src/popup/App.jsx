@@ -46,18 +46,14 @@ function App() {
   const [usageInfo, setUsageInfo] = useState({ remaining: 20 })
   const [user, setUser] = useState(null) // 用户登录状态
 
-  // 加载用户信息和额外风格
-  useEffect(() => {
-    loadUserInfo()
-    loadAdditionalStyles()
-  }, [])
-
-  const loadUserInfo = async () => {
-    chrome.storage.local.get(['user'], async (result) => {
-      if (result.user) {
-        setUser(result.user)
-        // 登录后同步用户数据
-        await syncUserDataFromFirestore(result.user)
+  // 加载用户的 styles（包括用户自定义的）
+  const loadUserStyles = () => {
+    chrome.storage.local.get(['userStyles'], (result) => {
+      const userStyles = result.userStyles || []
+      if (userStyles.length > 0) {
+        // 合并默认 styles 和用户 styles
+        setStyles([...DEFAULT_STYLES, ...userStyles])
+        console.log('已加载用户 styles:', userStyles.length, '个')
       }
     })
   }
@@ -77,14 +73,38 @@ function App() {
     }
   }
 
-  // 加载用户的 styles（包括用户自定义的）
-  const loadUserStyles = () => {
-    chrome.storage.local.get(['userStyles'], (result) => {
-      const userStyles = result.userStyles || []
-      if (userStyles.length > 0) {
-        // 合并默认 styles 和用户 styles
-        setStyles([...DEFAULT_STYLES, ...userStyles])
-        console.log('已加载用户 styles:', userStyles.length, '个')
+  // 加载用户信息和额外风格
+  useEffect(() => {
+    loadUserInfo()
+    loadAdditionalStyles()
+
+    // 监听 Chrome Storage 变化（当 background worker 保存用户数据时）
+    const storageListener = (changes, areaName) => {
+      if (areaName === 'local' && changes.user) {
+        console.log('检测到用户数据变化:', changes.user.newValue)
+        if (changes.user.newValue) {
+          setUser(changes.user.newValue)
+          // 同步用户数据
+          syncUserDataFromFirestore(changes.user.newValue)
+        } else {
+          setUser(null)
+        }
+      }
+    }
+
+    chrome.storage.onChanged.addListener(storageListener)
+
+    return () => {
+      chrome.storage.onChanged.removeListener(storageListener)
+    }
+  }, [])
+
+  const loadUserInfo = async () => {
+    chrome.storage.local.get(['user'], async (result) => {
+      if (result.user) {
+        setUser(result.user)
+        // 登录后同步用户数据
+        await syncUserDataFromFirestore(result.user)
       }
     })
   }

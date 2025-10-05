@@ -87,13 +87,7 @@ export function useAuth() {
     // 插件会监听这个 key 的变化
     localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
 
-    console.log('用户数据已写入 localStorage，等待插件读取')
-
-    // 显示提示信息并在 2 秒后自动关闭
-    setTimeout(() => {
-      alert('Login successful! You can close this tab now.')
-      window.close()
-    }, 1000)
+    console.log('用户数据已写入 localStorage，插件会自动读取')
   }
 
   // Google 登录
