@@ -25,7 +25,11 @@ export function useAuth() {
 
   // 初始化认证状态监听
   useEffect(() => {
+    console.log('useAuth: 开始监听认证状态')
+
     const unsubscribe = onAuthStateChange(async (firebaseUser) => {
+      console.log('useAuth: 认证状态变化', firebaseUser ? '已登录' : '未登录')
+
       if (firebaseUser) {
         // 用户已登录
         setUser(firebaseUser)
@@ -52,10 +56,14 @@ export function useAuth() {
         setUserProfile(null)
       }
 
+      console.log('useAuth: 设置 isLoading = false')
       setIsLoading(false)
     })
 
-    return () => unsubscribe()
+    return () => {
+      console.log('useAuth: 取消监听认证状态')
+      unsubscribe()
+    }
   }, [])
 
   // 向 Chrome 插件发送登录成功消息

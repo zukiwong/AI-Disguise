@@ -1,4 +1,4 @@
-// Firebase 配置和初始化  
+// Firebase 配置和初始化
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { getAnalytics } from 'firebase/analytics'
@@ -19,8 +19,12 @@ const firebaseConfig = {
   measurementId: "G-JRCV1539TG"
 };
 
+console.log('Firebase: 开始初始化')
+
 // 初始化 Firebase 应用
 const app = initializeApp(firebaseConfig)
+
+console.log('Firebase: 应用初始化完成')
 
 // 初始化 Analytics（仅在生产环境且浏览器支持时使用）
 if (typeof window !== 'undefined' && import.meta.env.PROD) {
@@ -33,9 +37,11 @@ if (typeof window !== 'undefined' && import.meta.env.PROD) {
 
 // 获取 Firestore 数据库实例
 export const db = getFirestore(app)
+console.log('Firebase: Firestore 实例创建完成')
 
 // 获取 Authentication 实例
 export const auth = getAuth(app)
+console.log('Firebase: Auth 实例创建完成', auth)
 
 // 集合名称常量
 export const COLLECTIONS = {
