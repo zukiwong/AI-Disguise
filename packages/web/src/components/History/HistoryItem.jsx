@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useDisguise } from '../../hooks/useDisguise.js'
 import { useAuth } from '../../hooks/useAuth.js'
+import { useToast } from '../../hooks/useToast.js'
 import TagManager from './TagManager.jsx'
 import { gsap } from 'gsap'
 
@@ -33,9 +34,12 @@ function HistoryItem({
   
   // 获取认证信息
   const { isAuthenticated, userId, userName, userEmail } = useAuth()
-  
+
   // 获取伪装功能和风格数据
   const { copyToClipboard, stylesWithVariants } = useDisguise()
+
+  // Toast 提示
+  const { showToast } = useToast()
 
   // 格式化时间显示
   const formatTimestamp = (timestamp) => {
@@ -130,7 +134,9 @@ function HistoryItem({
   const handleCopyOriginal = async () => {
     const success = await copyToClipboard(record.original)
     if (success) {
-      // 可以添加一个临时的成功提示
+      showToast('Copied')
+    } else {
+      showToast('Copy failed')
     }
   }
 
@@ -138,7 +144,9 @@ function HistoryItem({
   const handleCopyResult = async () => {
     const success = await copyToClipboard(record.disguised)
     if (success) {
-      // 可以添加一个临时的成功提示
+      showToast('Copied')
+    } else {
+      showToast('Copy failed')
     }
   }
 

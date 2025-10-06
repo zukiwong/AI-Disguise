@@ -410,8 +410,8 @@ function ProfileSettings() {
                   disabled={isSaving}
                   type="button"
                 >
-                  <div className="mode-name">Free Mode (Default)</div>
-                  <div className="mode-desc">
+                  <div className="api-mode-name">Free Mode (Default)</div>
+                  <div className="api-mode-desc">
                     {apiConfig?.freeUsage.dailyLimit} conversions per day
                   </div>
                 </button>
@@ -423,10 +423,10 @@ function ProfileSettings() {
                     disabled={isSaving}
                     type="button"
                   >
-                    <div className="mode-name">
+                    <div className="api-mode-name">
                       Custom API ({AI_PROVIDERS[apiConfig.activeProvider]?.name || 'Unknown'})
                     </div>
-                    <div className="mode-desc">Unlimited conversions</div>
+                    <div className="api-mode-desc">Unlimited conversions</div>
                   </button>
                 )}
               </div>

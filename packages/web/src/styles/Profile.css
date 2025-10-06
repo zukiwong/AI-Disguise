@@ -369,16 +369,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
 }
 
 .mode-name {
   color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .mode-count {
   color: var(--text-secondary);
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 /* 成就徽章 */
@@ -1889,14 +1891,14 @@ body.dark .storage-info {
   cursor: not-allowed;
 }
 
-.mode-name {
+.api-mode-name {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
 
-.mode-desc {
+.api-mode-desc {
   font-size: 12px;
   color: var(--text-secondary);
 }

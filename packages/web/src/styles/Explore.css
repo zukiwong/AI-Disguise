@@ -726,8 +726,9 @@ body.dark .explore-tab.active::after {
 }
 
 .post-style-tag {
-  font-size: 12px;
-  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 12px;
   border-radius: 12px;
   background-color: #f0f0f0;
   color: #666;
@@ -748,7 +749,7 @@ body.dark .explore-tab.active::after {
   background-color: #f9f9f9;
   padding: 12px;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 16px !important;
   line-height: 1.5;
   margin-bottom: 10px;
 }
@@ -1007,7 +1008,8 @@ body.dark .post-content-label {
 }
 
 body.dark .post-text {
-  background-color: #2d2d2d;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
 }
 
@@ -1016,7 +1018,7 @@ body.dark .post-text.original {
 }
 
 body.dark .post-text.transformed {
-  border-left-color: var(--text-primary);
+  border-left-color: #4caf50;
 }
 
 body.dark .post-action-button {

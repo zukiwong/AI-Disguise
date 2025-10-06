@@ -19,6 +19,7 @@ import ScrollToTop from './components/ScrollToTop'
 import BackToTop from './components/BackToTop'
 // Import theme provider | 导入主题提供者
 import { ThemeProvider } from './contexts/ThemeContext'
+import { ToastProvider } from './contexts/ToastContext'
 
 function App() {
   const location = useLocation()
@@ -26,7 +27,8 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className={`app ${isHomePage ? 'home-page' : ''}`}>
+      <ToastProvider>
+        <div className={`app ${isHomePage ? 'home-page' : ''}`}>
         {/* 页面切换时滚动到顶部 */}
         <ScrollToTop />
 
@@ -52,10 +54,11 @@ function App() {
         
         {/* Footer | 页面底部 */}
         <Footer />
-        
+
         {/* 返回顶部按钮 */}
         <BackToTop />
-      </div>
+        </div>
+      </ToastProvider>
     </ThemeProvider>
   )
 }

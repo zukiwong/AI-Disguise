@@ -20,6 +20,10 @@ import HandshakeIcon from '../../assets/icons/handshake.svg'
 import HomeIcon from '../../assets/icons/home.svg'
 import EditIcon from '../../assets/icons/edit.svg'
 import ExploreIcon from '../../assets/icons/explore.svg'
+import TrophyIcon from '../../assets/icons/trophy.svg'
+import StarActiveIcon from '../../assets/icons/star-active.svg'
+import OrganizerIcon from '../../assets/icons/Organizer.svg'
+import CalendarIcon from '../../assets/icons/calendar.svg'
 
 function ProfileOverview() {
   const navigate = useNavigate()
@@ -147,26 +151,26 @@ function ProfileOverview() {
   // 获取成就徽章
   const getAchievements = (stats) => {
     const achievements = []
-    
+
     if (stats.totalRecords >= 1) {
       achievements.push({ name: 'First Disguise', description: 'Created your first disguise', icon: <img src={MaskIcon} alt="Mask" className="achievement-icon-svg" /> })
     }
     if (stats.totalRecords >= 10) {
-      achievements.push({ name: 'Active User', description: 'Created 10+ disguises', icon: '⭐' })
+      achievements.push({ name: 'Active User', description: 'Created 10+ disguises', icon: <img src={StarActiveIcon} alt="Star" className="achievement-icon-svg" /> })
     }
     if (stats.totalRecords >= 50) {
-      achievements.push({ name: 'Master Disguiser', description: 'Created 50+ disguises', icon: '🏆' })
+      achievements.push({ name: 'Master Disguiser', description: 'Created 50+ disguises', icon: <img src={TrophyIcon} alt="Trophy" className="achievement-icon-svg" /> })
     }
     if (stats.totalShares >= 1) {
       achievements.push({ name: 'Contributor', description: 'Shared content to community', icon: <img src={HandshakeIcon} alt="Handshake" className="achievement-icon-svg" /> })
     }
     if (stats.totalTags >= 5) {
-      achievements.push({ name: 'Organizer', description: 'Created 5+ custom tags', icon: '🏷️' })
+      achievements.push({ name: 'Organizer', description: 'Created 5+ custom tags', icon: <img src={OrganizerIcon} alt="Organizer" className="achievement-icon-svg" /> })
     }
     if (stats.activeDaysCount >= 7) {
-      achievements.push({ name: 'Regular User', description: 'Active for 7+ days this month', icon: '📅' })
+      achievements.push({ name: 'Regular User', description: 'Active for 7+ days this month', icon: <img src={CalendarIcon} alt="Calendar" className="achievement-icon-svg" /> })
     }
-    
+
     return achievements
   }
 

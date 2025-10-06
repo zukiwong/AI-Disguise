@@ -240,10 +240,14 @@ function App() {
     // 打开登录页面，带上回调参数
     const loginUrl = 'https://ai-disguise.vercel.app/auth?from=extension'
     chrome.tabs.create({ url: loginUrl }, (tab) => {
+      console.log('Popup: 打开登录标签，tabId:', tab.id)
+
       // 通知 background script 开始轮询
       chrome.runtime.sendMessage({
         action: 'startLoginPolling',
         tabId: tab.id
+      }, (response) => {
+        console.log('Popup: background 响应:', response)
       })
     })
   }

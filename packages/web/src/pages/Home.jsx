@@ -6,6 +6,7 @@ import LanguageSelector from '../components/LanguageSelector.jsx'
 import { StyleSelector } from '../components/StyleManager/index.js'
 import { gsap } from 'gsap'
 import { useAuth } from '../hooks/useAuth.js'
+import { useToast } from '../hooks/useToast.js'
 import '../styles/Explore.css'
 import '../styles/Modal.css'
 import ManageIcon from '../assets/icons/manage.svg'
@@ -43,8 +44,8 @@ function Home() {
     usageInfo // 使用次数信息
   } = useDisguise()
 
-  // 复制状态管理
-  const [copyStatus, setCopyStatus] = useState('')
+  // Toast 提示
+  const { showToast } = useToast()
 
   // 限流弹窗状态
   const [showLimitModal, setShowLimitModal] = useState(false)
@@ -172,14 +173,12 @@ function Home() {
   }, [location.search])
 
   // 处理复制操作
-  const handleCopy = async (text, type) => {
+  const handleCopy = async (text) => {
     const success = await copyToClipboard(text)
     if (success) {
-      setCopyStatus(`${type} copied`)
-      setTimeout(() => setCopyStatus(''), 2000)
+      showToast('Copied')
     } else {
-      setCopyStatus('Copy failed')
-      setTimeout(() => setCopyStatus(''), 2000)
+      showToast('Copy failed')
     }
   }
 
@@ -472,13 +471,6 @@ function Home() {
             </div>
           )}
 
-          {/* 复制状态提示 */}
-          {copyStatus && (
-            <div className="copy-status">
-              {copyStatus}
-            </div>
-          )}
-
           {/* 分享状态提示 */}
           {shareStatus && (
             <div className="share-status">
@@ -530,7 +522,7 @@ function Home() {
 
                     <div className="result-actions">
                       <button
-                        onClick={() => handleCopy(output, 'Expression')}
+                        onClick={() => handleCopy(output)}
                         disabled={isLoading}
                       >
                         Copy
