@@ -1,17 +1,15 @@
 # AI Disguise
 
-**[Try AI Disguise →](https://ai-disguise.vercel.app)** | **[Install Chrome Extension](#chrome-extension)**
+### Transform your words into any style in seconds
 
-> Transform your text with AI powered style and tone adjustments. Available as a web app and Chrome extension.
+**[Try AI Disguise →](https://ai-disguise.vercel.app)**
+
+> Transform your text with AI powered style and tone adjustments.
 
 ## What is AI Disguise?
 
 AI Disguise is your personal communication assistant. Whether you need to explain something clearly, write a quick message, or handle an awkward moment, just open AI Disguise and find the right words.
 
-## Platforms
-
--  **Web Application**: Full-featured web app at [ai-disguise.vercel.app](https://ai-disguise.vercel.app)
--  **Chrome Extension**: Quick access from your browser (coming soon)
 
 ## Screenshots
 
@@ -54,11 +52,8 @@ Save and revisit your transformations with smart history management.
 # Install dependencies
 npm install
 
-# Web app development
-npm run dev:web
-
-# Chrome extension development
-npm run dev:extension
+# Start development server
+npm run dev
 ```
 
 ## Security
