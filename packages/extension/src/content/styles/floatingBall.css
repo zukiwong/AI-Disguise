@@ -5,9 +5,9 @@
   right: 20px;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #0C8128 0%, #12A034 100%);
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(12, 129, 40, 0.3);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
 
 .floating-ball:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 16px rgba(12, 129, 40, 0.4);
 }
 
 .floating-ball:active {
@@ -39,7 +39,16 @@
 }
 
 .floating-ball-icon {
-  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.floating-ball-icon svg {
+  width: 100%;
+  height: 100%;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 

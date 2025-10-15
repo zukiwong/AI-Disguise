@@ -9,10 +9,35 @@ function Auth() {
   const { user, isLoading } = useAuth()
   const [forceShowAuth, setForceShowAuth] = useState(false)
 
+  // 检查是否来自插件，如果是则保存标记
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('from') === 'extension') {
+      console.log('Auth: 检测到来自插件的登录请求')
+      sessionStorage.setItem('auth-from-extension', 'true')
+    }
+  }, [])
+
   useEffect(() => {
     // 如果用户已登录，跳转到 Profile 页面
     if (!isLoading && user) {
       console.log('Auth: 用户已登录，跳转到 Profile 页面')
+
+      // 如果是从插件来的，通知插件登录成功
+      const isFromExtension = sessionStorage.getItem('auth-from-extension')
+      if (isFromExtension) {
+        const userData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          timestamp: Date.now()
+        }
+        console.log('Auth: 写入用户数据到 localStorage 供插件读取:', userData)
+        localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
+        sessionStorage.removeItem('auth-from-extension') // 清除标记
+      }
+
       navigate('/profile', { replace: true })
     }
   }, [user, isLoading, navigate])
