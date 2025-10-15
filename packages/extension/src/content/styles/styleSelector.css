@@ -17,7 +17,7 @@
 .selector-header {
   padding: 16px;
   border-bottom: 1px solid #f0f0f0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .search-input:focus {
-  border-color: #667eea;
+  border-color: #4CAF50;
 }
 
 /* 风格列表 */
@@ -68,8 +68,8 @@
 }
 
 .style-item.selected {
-  background: #f0f0ff;
-  border-color: #667eea;
+  background: #f0fff0;
+  border-color: #4CAF50;
 }
 
 .style-name {

@@ -16,6 +16,7 @@ AI Disguise is your personal communication assistant. Whether you need to explai
 ![Homepage](packages/web/docs/screenshots/Homepage.png)
 ![Text Transformation](packages/web/docs/screenshots/transformation.png)
 ![Variants](packages/web/docs/screenshots/Variants.png)
+![Error](packages/web/docs/screenshots/error.png)
 
 ## Features
 

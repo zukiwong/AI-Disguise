@@ -2,21 +2,14 @@
 
 /**
  * 转换文本
- * @param {string} text - 原始文本
- * @param {Object} style - 选中的风格配置
- * @returns {Promise<string>} - 转换后的文本
  */
 export async function transformText(text, style) {
   try {
-    // 获取 API 配置
     const apiConfig = await getApiConfig()
 
-    // 调用后端 API
     const response = await fetch('https://ai-disguise.vercel.app/api/disguise', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: text,
         mode: 'custom_style',
@@ -33,32 +26,25 @@ export async function transformText(text, style) {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `API request failed: ${response.status}`)
+      throw new Error(`API request failed: ${response.status}`)
     }
 
     const data = await response.json()
-
     if (!data.success || !data.result) {
-      throw new Error(data.message || 'Invalid API response')
+      throw new Error('Invalid API response')
     }
 
-    // 记录使用次数（仅免费模式）
     if (!apiConfig || apiConfig.mode !== 'custom') {
       incrementUsage()
     }
 
     return data.result
-
   } catch (error) {
-    console.error('Transform text error:', error)
+    console.error('Transform error:', error)
     throw error
   }
 }
 
-/**
- * 获取 API 配置
- */
 async function getApiConfig() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['apiConfig'], (result) => {
@@ -67,16 +53,6 @@ async function getApiConfig() {
   })
 }
 
-/**
- * 增加使用次数
- */
 function incrementUsage() {
-  chrome.runtime.sendMessage(
-    { action: 'incrementUsage' },
-    (response) => {
-      if (response && response.success) {
-        console.log('Usage count updated:', response.count)
-      }
-    }
-  )
+  chrome.runtime.sendMessage({ action: 'incrementUsage' })
 }

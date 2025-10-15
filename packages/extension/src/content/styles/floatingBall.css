@@ -5,9 +5,9 @@
   right: 20px;
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
 
 .floating-ball:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
 }
 
 .floating-ball:active {
@@ -49,7 +49,7 @@
   bottom: -8px;
   right: -8px;
   background: white;
-  color: #667eea;
+  color: #4CAF50;
   font-size: 10px;
   font-weight: 600;
   padding: 4px 8px;
@@ -95,7 +95,7 @@
   bottom: 80px;
   width: 8px;
   height: 80px;
-  background: rgba(102, 126, 234, 0.3);
+  background: rgba(76, 175, 80, 0.3);
   cursor: pointer;
   z-index: 2147483647;
   transition: all 0.3s ease;
@@ -109,5 +109,5 @@
 
 .show-trigger:hover {
   width: 12px;
-  background: rgba(102, 126, 234, 0.6);
+  background: rgba(76, 175, 80, 0.6);
 }

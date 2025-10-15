@@ -51,7 +51,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: path.resolve(__dirname, 'src/popup/popup.html'),
-        options: path.resolve(__dirname, 'src/options/options.html')
+        options: path.resolve(__dirname, 'src/options/options.html'),
+        // 显式添加 content script 入口
+        content: path.resolve(__dirname, 'src/content/index.js')
       }
     }
   },
