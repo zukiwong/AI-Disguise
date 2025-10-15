@@ -17,6 +17,25 @@ export class SelectionHandler {
 
   async handleSelection(event) {
     setTimeout(async () => {
+      // 检查点击是否发生在我们的组件内部（ResultPanel 或 FloatingBall）
+      const target = event.target
+
+      // 检查是否点击在我们的容器元素上
+      if (target.id === 'ai-disguise-result-panel-container' ||
+          target.id === 'ai-disguise-floating-ball-container') {
+        return
+      }
+
+      // 检查父元素链中是否包含我们的容器
+      let element = target
+      while (element && element !== document.body) {
+        if (element.id === 'ai-disguise-result-panel-container' ||
+            element.id === 'ai-disguise-floating-ball-container') {
+          return
+        }
+        element = element.parentElement
+      }
+
       const selectedText = window.getSelection().toString().trim()
 
       if (!selectedText || selectedText.length < 2 || selectedText.length > 300) {
