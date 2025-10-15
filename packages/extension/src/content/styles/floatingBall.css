@@ -1,0 +1,113 @@
+/* 悬浮球主体 */
+.floating-ball {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  z-index: 2147483647; /* 最大 z-index */
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.floating-ball:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.floating-ball:active {
+  transform: scale(0.95);
+}
+
+.floating-ball.dragging {
+  opacity: 0.8;
+  cursor: move;
+  transition: none;
+}
+
+.floating-ball.hidden {
+  transform: translateX(calc(100% + 20px));
+  opacity: 0.3;
+}
+
+.floating-ball-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* 风格标识 */
+.style-badge {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: white;
+  color: #667eea;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 隐藏/显示按钮 */
+.toggle-visibility-btn {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.floating-ball:hover .toggle-visibility-btn {
+  opacity: 1;
+}
+
+.toggle-visibility-btn:hover {
+  background: #f0f0f0;
+}
+
+/* 显示触发条（当悬浮球隐藏时） */
+.show-trigger {
+  position: fixed;
+  right: 0;
+  bottom: 80px;
+  width: 8px;
+  height: 80px;
+  background: rgba(102, 126, 234, 0.3);
+  cursor: pointer;
+  z-index: 2147483647;
+  transition: all 0.3s ease;
+  border-radius: 4px 0 0 4px;
+  display: none;
+}
+
+.show-trigger.visible {
+  display: block;
+}
+
+.show-trigger:hover {
+  width: 12px;
+  background: rgba(102, 126, 234, 0.6);
+}

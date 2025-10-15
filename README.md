@@ -19,25 +19,44 @@ AI Disguise is your personal communication assistant. Whether you need to explai
 
 ## Features
 
-###  Style Transformation
+### Web App
+
+####  Style Transformation
 Transform your text into different writing styles (Chat, Poetry, Social, Story) or tailor it based on purpose and audience.
 
-###  Personal Library
+####  Personal Library
 Save custom writing styles, templates, and frequently used phrases. Build your personal communication toolkit.
 
-###  Community Sharing
+####  Community Sharing
 Browse and share responses with the community. Discover new ways to express yourself.
 
-###  Flexible API Options
+####  Flexible API Options
 - **Free mode**: 20 conversions per day
 - **Custom mode**: Use your own API key (Gemini, OpenAI, Claude, DeepSeek)
 - No usage limits with your own key
 
-###  Multi-language Support
+####  Multi-language Support
  English, Chinese (中文), Japanese (日本語), German (Deutsch), Spanish (Español) with automatic language detection.
 
-###  History & Management
+####  History & Management
 Save and revisit your transformations with smart history management.
+
+### Browser Extension (In Development)
+
+####  Text Selection Transform
+Select any text on any webpage and instantly transform it with your pre-selected style.
+
+####  Floating Ball Interface
+- Draggable floating ball in the corner
+- One-click style switching
+- Show/hide toggle for distraction-free browsing
+
+####  Seamless Integration
+- Works on all websites
+- Syncs with your web account
+- Uses the same AI models and custom styles
+
+> **Note**: The browser extension is currently under development. The codebase uses a monorepo architecture with shared logic between web and extension for easier maintenance.
 
 ## Tech Stack
 
