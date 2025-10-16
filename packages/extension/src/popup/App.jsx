@@ -45,6 +45,7 @@ function App() {
   const [error, setError] = useState('')
   const [usageInfo, setUsageInfo] = useState({ remaining: 20 })
   const [user, setUser] = useState(null) // 用户登录状态
+  const [copied, setCopied] = useState(false) // 复制状态
 
   // 加载用户的 styles（包括用户自定义的）
   const loadUserStyles = () => {
@@ -203,13 +204,17 @@ function App() {
       }
 
       const data = await response.json()
+      console.log('API 返回数据:', data)
 
       // 检查 API 返回的错误
       if (data.error) {
         throw new Error(data.error)
       }
 
-      setOutputText(data.transformedText)
+      const transformedText = data.result || data.transformedText
+      console.log('transformedText:', transformedText)
+      setOutputText(transformedText)
+      console.log('outputText 已设置')
 
       // 增加使用次数（仅免费模式，使用自定义 Key 不计数）
       if (!hasCustomKey) {
@@ -228,24 +233,14 @@ function App() {
     }
   }
 
-  const openWebsite = () => {
-    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app' })
-  }
-
-  const openSettings = () => {
-    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app/profile' })
-  }
-
   const openLogin = () => {
     // 简单打开登录页面，Service Worker 会自动检测并处理登录流程
     const loginUrl = 'https://ai-disguise.vercel.app/auth?from=extension'
     chrome.tabs.create({ url: loginUrl })
   }
 
-  const handleSignOut = () => {
-    chrome.storage.local.remove(['user'], () => {
-      setUser(null)
-    })
+  const openProfile = () => {
+    chrome.tabs.create({ url: 'https://ai-disguise.vercel.app/profile' })
   }
 
   const openSearch = () => {
@@ -278,6 +273,20 @@ function App() {
     })
   }
 
+  // 处理复制功能
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(outputText)
+      setCopied(true)
+      // 2秒后恢复按钮文本
+      setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+    } catch (error) {
+      console.error('复制失败:', error)
+    }
+  }
+
   return (
     <div className="popup-container">
       {currentPage === 'main' ? (
@@ -287,8 +296,8 @@ function App() {
           <div className="popup-header">
             <div className="header-left">
               {user ? (
-                <button className="user-info" onClick={handleSignOut} title="Sign out">
-                  {user.email || 'User'}
+                <button className="sign-in-btn" onClick={openProfile} title="Open Profile">
+                  {user.displayName || user.email || 'User'}
                 </button>
               ) : (
                 <button className="sign-in-btn" onClick={openLogin}>
@@ -299,12 +308,6 @@ function App() {
             <div className="header-buttons">
               <button className="search-btn" onClick={openSearch} title="Search Styles">
                 <img src={searchIcon} alt="Search" />
-              </button>
-              <button className="settings-btn" onClick={openSettings} title="Settings">
-                ⚙️
-              </button>
-              <button className="website-btn" onClick={openWebsite} title="Open Website">
-                🌐
               </button>
             </div>
           </div>
@@ -366,9 +369,9 @@ function App() {
               <div className="output-text">{outputText}</div>
               <button
                 className="copy-btn"
-                onClick={() => navigator.clipboard.writeText(outputText)}
+                onClick={handleCopy}
               >
-                Copy
+                {copied ? 'Copied successfully' : 'Copy'}
               </button>
             </div>
           )}
@@ -376,7 +379,7 @@ function App() {
           {/* 底部提示 */}
           <div className="popup-footer">
             <small>
-              Free: {usageInfo.remaining}/20 remaining | <a href="#" onClick={openWebsite}>Get unlimited</a>
+              Free: {usageInfo.remaining}/20 remaining | <a href="https://ai-disguise.vercel.app" target="_blank" rel="noopener noreferrer">Get unlimited</a>
             </small>
           </div>
 

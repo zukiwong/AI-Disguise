@@ -92,11 +92,6 @@ body {
   opacity: 0.6;
 }
 
-.settings-btn,
-.website-btn {
-  display: none; /* 隐藏设置和网站按钮 */
-}
-
 /* 风格选择区域 */
 .style-selector {
   display: flex;

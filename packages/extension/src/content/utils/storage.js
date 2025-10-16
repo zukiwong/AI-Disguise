@@ -5,15 +5,37 @@
  */
 export async function getSelectedStyle() {
   return new Promise((resolve) => {
-    chrome.storage.local.get(['selectedStyle'], (result) => {
-      resolve(result.selectedStyle || {
+    try {
+      chrome.storage.local.get(['selectedStyle'], (result) => {
+        if (chrome.runtime.lastError) {
+          console.warn('Storage access error:', chrome.runtime.lastError)
+          resolve({
+            id: 'chat',
+            name: 'Chat',
+            displayName: 'Chat',
+            description: 'Casual and friendly conversational tone',
+            promptTemplate: 'Transform the following text into a casual, friendly chat style'
+          })
+          return
+        }
+        resolve(result.selectedStyle || {
+          id: 'chat',
+          name: 'Chat',
+          displayName: 'Chat',
+          description: 'Casual and friendly conversational tone',
+          promptTemplate: 'Transform the following text into a casual, friendly chat style'
+        })
+      })
+    } catch (error) {
+      console.warn('Extension context invalidated, using default style')
+      resolve({
         id: 'chat',
         name: 'Chat',
         displayName: 'Chat',
         description: 'Casual and friendly conversational tone',
         promptTemplate: 'Transform the following text into a casual, friendly chat style'
       })
-    })
+    }
   })
 }
 
