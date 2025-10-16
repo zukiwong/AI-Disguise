@@ -82,45 +82,86 @@ export default async function handler(req, res) {
     const userId = decodedToken.uid
     console.log('获取用户数据，userId:', userId)
 
-    // 2. 获取用户的 styles
-    const stylesRef = db.collection('styles')
-    const stylesQuery = stylesRef.where('userId', '==', userId)
-    const stylesSnapshot = await stylesQuery.get()
-
-    const styles = []
-    stylesSnapshot.forEach(doc => {
-      const data = doc.data()
-      styles.push({
-        id: doc.id,
-        displayName: data.displayName,
-        description: data.description,
-        promptTemplate: data.promptTemplate
-      })
-    })
-
-    console.log('获取到用户 styles:', styles.length, '个')
-
-    // 3. 获取用户的 API 配置
+    // 2. 获取用户文档（包含 addedStyles 和 apiConfig）
     const userRef = db.collection('users').doc(userId)
     const userDoc = await userRef.get()
 
+    let styles = []
     let apiConfig = {
       provider: 'free',
       apiKey: null,
       hasCustomKey: false
     }
 
-    if (userDoc.exists) {
-      const userData = userDoc.data()
-      if (userData.apiConfig) {
-        apiConfig = {
-          provider: userData.apiConfig.provider || 'free',
-          apiKey: userData.apiConfig.apiKey || null,
-          hasCustomKey: !!userData.apiConfig.apiKey
-        }
-      }
+    if (!userDoc.exists) {
+      console.log('用户文档不存在')
+      return res.status(200).json({
+        success: true,
+        data: { styles: [], apiConfig }
+      })
     }
 
+    const userData = userDoc.data()
+
+    // 3. 获取用户的私有 styles（My Styles）
+    const myStylesQuery = db.collection('styles')
+      .where('createdBy', '==', userId)
+      .where('isPublic', '==', false)
+
+    const myStylesSnapshot = await myStylesQuery.get()
+    const myStyles = []
+    myStylesSnapshot.forEach(doc => {
+      const data = doc.data()
+      myStyles.push({
+        id: doc.id,
+        displayName: data.displayName,
+        description: data.description,
+        promptTemplate: data.promptTemplate,
+        isPublic: false,
+        createdBy: userId
+      })
+    })
+    console.log('获取到用户私有 styles:', myStyles.length, '个')
+
+    // 4. 获取用户添加的公共 styles（Added Public Styles）
+    const addedStyleIds = userData.addedStyles || []
+    console.log('用户添加的公共 style IDs:', addedStyleIds.length, '个')
+
+    let addedPublicStyles = []
+    if (addedStyleIds.length > 0) {
+      // 查询所有公共 styles
+      const publicStylesQuery = db.collection('styles').where('isPublic', '==', true)
+      const publicStylesSnapshot = await publicStylesQuery.get()
+
+      publicStylesSnapshot.forEach(doc => {
+        // 只返回用户添加的公共 styles
+        if (addedStyleIds.includes(doc.id)) {
+          const data = doc.data()
+          addedPublicStyles.push({
+            id: doc.id,
+            displayName: data.displayName,
+            description: data.description,
+            promptTemplate: data.promptTemplate,
+            isPublic: true,
+            createdBy: data.createdBy
+          })
+        }
+      })
+      console.log('获取到用户添加的公共 styles:', addedPublicStyles.length, '个')
+    }
+
+    // 5. 合并所有 styles
+    styles = [...myStyles, ...addedPublicStyles]
+    console.log('总共获取到 styles:', styles.length, '个')
+
+    // 6. 获取用户的 API 配置
+    if (userData.apiConfig) {
+      apiConfig = {
+        provider: userData.apiConfig.provider || 'free',
+        apiKey: userData.apiConfig.apiKey || null,
+        hasCustomKey: !!userData.apiConfig.apiKey
+      }
+    }
     console.log('获取到 API 配置，provider:', apiConfig.provider)
 
     // 4. 返回数据
