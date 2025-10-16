@@ -26,16 +26,32 @@ function Auth() {
       // 如果是从插件来的，通知插件登录成功
       const isFromExtension = sessionStorage.getItem('auth-from-extension')
       if (isFromExtension) {
-        const userData = {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          timestamp: Date.now()
-        }
-        console.log('Auth: 写入用户数据到 localStorage 供插件读取:', userData)
-        localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
-        sessionStorage.removeItem('auth-from-extension') // 清除标记
+        // 获取 Firebase Auth Token
+        user.getIdToken().then(token => {
+          const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            authToken: token, // 添加 auth token
+            timestamp: Date.now()
+          }
+          console.log('Auth: 写入用户数据和 token 到 localStorage 供插件读取')
+          localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
+          sessionStorage.removeItem('auth-from-extension') // 清除标记
+        }).catch(error => {
+          console.error('Auth: 获取 token 失败:', error)
+          // 即使获取 token 失败，也保存基本用户信息
+          const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            timestamp: Date.now()
+          }
+          localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
+          sessionStorage.removeItem('auth-from-extension')
+        })
       }
 
       navigate('/profile', { replace: true })

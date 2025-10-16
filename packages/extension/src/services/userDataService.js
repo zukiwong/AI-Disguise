@@ -1,112 +1,88 @@
 // 用户数据同步服务 - Chrome Extension 专用
-import { db, COLLECTIONS } from './firebase.js'
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+// 通过 Vercel API 获取用户数据，避免直接访问 Firestore
 
 /**
- * 获取用户的自定义 styles
- * @param {string} userId - 用户 ID
- * @returns {Promise<Array>} - 用户的 styles 数组
+ * 通过 API 获取用户数据（styles 和 API 配置）
+ * @param {string} authToken - Firebase Auth Token
+ * @returns {Promise<Object>} - 包含 styles 和 apiConfig 的对象
  */
-export async function getUserStyles(userId) {
+export async function fetchUserDataFromAPI(authToken) {
   try {
-    console.log('正在获取用户 styles:', userId)
+    console.log('通过 API 获取用户数据...')
 
-    const stylesRef = collection(db, COLLECTIONS.STYLES)
-    const q = query(stylesRef, where('userId', '==', userId))
-    const querySnapshot = await getDocs(q)
-
-    const styles = []
-    querySnapshot.forEach((doc) => {
-      const data = doc.data()
-      styles.push({
-        id: doc.id,
-        displayName: data.displayName,
-        description: data.description,
-        promptTemplate: data.promptTemplate
-      })
+    const response = await fetch('https://ai-disguise.vercel.app/api/user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      }
     })
 
-    console.log('获取到用户 styles:', styles.length)
-    return styles
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('API 请求失败:', response.status, errorText)
+      throw new Error(`API request failed: ${response.status}`)
+    }
+
+    const result = await response.json()
+
+    if (!result.success) {
+      throw new Error(result.error || 'API returned error')
+    }
+
+    console.log('成功获取用户数据:')
+    console.log('- Styles:', result.data.styles.length, '个')
+    console.log('- API Provider:', result.data.apiConfig.provider)
+
+    return result.data
   } catch (error) {
-    console.error('获取用户 styles 失败:', error)
-    return []
-  }
-}
-
-/**
- * 获取用户的 API 配置
- * @param {string} userId - 用户 ID
- * @returns {Promise<Object>} - API 配置对象
- */
-export async function getUserApiConfig(userId) {
-  try {
-    console.log('正在获取用户 API 配置:', userId)
-
-    const userRef = doc(db, COLLECTIONS.USERS, userId)
-    const userDoc = await getDoc(userRef)
-
-    if (userDoc.exists()) {
-      const userData = userDoc.data()
-      const apiConfig = userData.apiConfig || {}
-
-      console.log('获取到 API 配置:', apiConfig.provider || 'free')
-      return {
-        provider: apiConfig.provider || 'free',
-        apiKey: apiConfig.apiKey || null,
-        hasCustomKey: !!apiConfig.apiKey
+    console.error('获取用户数据失败:', error)
+    return {
+      styles: [],
+      apiConfig: {
+        provider: 'free',
+        apiKey: null,
+        hasCustomKey: false
       }
-    }
-
-    console.log('用户文档不存在，使用默认配置')
-    return {
-      provider: 'free',
-      apiKey: null,
-      hasCustomKey: false
-    }
-  } catch (error) {
-    console.error('获取用户 API 配置失败:', error)
-    return {
-      provider: 'free',
-      apiKey: null,
-      hasCustomKey: false
     }
   }
 }
 
 /**
  * 同步用户数据到 Chrome Storage
- * @param {Object} user - 用户对象
+ * @param {Object} user - 用户对象（必须包含 authToken）
  */
 export async function syncUserData(user) {
   if (!user || !user.uid) {
     console.log('没有用户信息，跳过同步')
-    return
+    return { success: false, error: 'No user info' }
+  }
+
+  if (!user.authToken) {
+    console.log('没有 auth token，跳过同步')
+    return { success: false, error: 'No auth token' }
   }
 
   try {
     console.log('开始同步用户数据:', user.uid)
 
-    // 获取用户 styles
-    const userStyles = await getUserStyles(user.uid)
-
-    // 获取用户 API 配置
-    const apiConfig = await getUserApiConfig(user.uid)
+    // 通过 API 获取用户数据
+    const userData = await fetchUserDataFromAPI(user.authToken)
 
     // 保存到 Chrome Storage
     await chrome.storage.local.set({
-      userStyles: userStyles,
-      apiConfig: apiConfig
+      userStyles: userData.styles,
+      apiConfig: userData.apiConfig
     })
 
     console.log('用户数据同步完成')
-    console.log('- Styles:', userStyles.length, '个')
-    console.log('- API Provider:', apiConfig.provider)
+    console.log('- Styles:', userData.styles.length, '个')
+    console.log('- API Provider:', userData.apiConfig.provider)
 
     return {
       success: true,
-      userStyles,
-      apiConfig
+      userStyles: userData.styles,
+      apiConfig: userData.apiConfig
     }
   } catch (error) {
     console.error('同步用户数据失败:', error)

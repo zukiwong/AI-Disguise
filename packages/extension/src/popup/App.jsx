@@ -237,19 +237,9 @@ function App() {
   }
 
   const openLogin = () => {
-    // 打开登录页面，带上回调参数
+    // 简单打开登录页面，Service Worker 会自动检测并处理登录流程
     const loginUrl = 'https://ai-disguise.vercel.app/auth?from=extension'
-    chrome.tabs.create({ url: loginUrl }, (tab) => {
-      console.log('Popup: 打开登录标签，tabId:', tab.id)
-
-      // 通知 background script 开始轮询
-      chrome.runtime.sendMessage({
-        action: 'startLoginPolling',
-        tabId: tab.id
-      }, (response) => {
-        console.log('Popup: background 响应:', response)
-      })
-    })
+    chrome.tabs.create({ url: loginUrl })
   }
 
   const handleSignOut = () => {
