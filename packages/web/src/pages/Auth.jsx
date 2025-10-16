@@ -25,9 +25,12 @@ function Auth() {
 
       // 如果是从插件来的，通知插件登录成功
       const isFromExtension = sessionStorage.getItem('auth-from-extension')
+      console.log('Auth: isFromExtension =', isFromExtension)
       if (isFromExtension) {
+        console.log('Auth: 开始获取 Firebase Auth Token...')
         // 获取 Firebase Auth Token
         user.getIdToken().then(token => {
+          console.log('Auth: 成功获取 token，长度:', token ? token.length : 0)
           const userData = {
             uid: user.uid,
             email: user.email,
@@ -36,9 +39,13 @@ function Auth() {
             authToken: token, // 添加 auth token
             timestamp: Date.now()
           }
-          console.log('Auth: 写入用户数据和 token 到 localStorage 供插件读取')
+          console.log('Auth: 写入用户数据和 token 到 localStorage 供插件读取:', {
+            ...userData,
+            authToken: token ? `${token.substring(0, 20)}...` : 'missing'
+          })
           localStorage.setItem('ai-disguise-extension-login', JSON.stringify(userData))
           sessionStorage.removeItem('auth-from-extension') // 清除标记
+          console.log('Auth: localStorage 已更新')
         }).catch(error => {
           console.error('Auth: 获取 token 失败:', error)
           // 即使获取 token 失败，也保存基本用户信息

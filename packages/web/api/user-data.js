@@ -4,16 +4,27 @@ import admin from 'firebase-admin'
 // 初始化 Firebase Admin SDK
 if (!admin.apps.length) {
   try {
+    // 检查环境变量
+    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+      console.error('缺少 Firebase Admin 环境变量')
+      console.error('FIREBASE_PROJECT_ID:', !!process.env.FIREBASE_PROJECT_ID)
+      console.error('FIREBASE_CLIENT_EMAIL:', !!process.env.FIREBASE_CLIENT_EMAIL)
+      console.error('FIREBASE_PRIVATE_KEY:', !!process.env.FIREBASE_PRIVATE_KEY)
+      throw new Error('Missing Firebase Admin environment variables')
+    }
+
     // 使用 Vercel 环境变量中的 Firebase Admin 配置
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
       })
     })
+    console.log('Firebase Admin 初始化成功')
   } catch (error) {
     console.error('Firebase Admin 初始化失败:', error)
+    throw error
   }
 }
 
@@ -39,6 +50,15 @@ export default async function handler(req, res) {
   // 只允许 POST 请求
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  // 检查 Firebase Admin 是否已初始化
+  if (!admin.apps.length) {
+    console.error('Firebase Admin 未初始化')
+    return res.status(500).json({
+      error: 'Firebase Admin not initialized',
+      message: 'Missing Firebase Admin environment variables'
+    })
   }
 
   try {
