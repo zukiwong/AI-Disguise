@@ -65,7 +65,7 @@ export function createFloatingBall() {
   ball.addEventListener('click', (e) => {
     // 如果点击的是隐藏按钮，不展开选择器
     if (e.target === toggleBtn) return
-    toggleStyleSelector(shadow, container, badge)
+    toggleStyleSelector(shadow, badge)
   })
 
   // 隐藏按钮点击事件
@@ -80,7 +80,7 @@ export function createFloatingBall() {
   })
 
   // 添加拖拽功能
-  makeDraggable(ball, container)
+  makeDraggable(ball)
 
   return container
 }
@@ -134,12 +134,13 @@ async function showBall(ball, showTrigger) {
 /**
  * 切换风格选择器
  */
-function toggleStyleSelector(shadow, container, badge) {
+function toggleStyleSelector(shadow, badge) {
   const existingSelector = shadow.querySelector('.style-selector-panel')
 
   if (existingSelector) {
     existingSelector.remove()
   } else {
+    const ball = shadow.querySelector('.floating-ball')
     const selector = createStyleSelector(async (selectedStyle) => {
       // 保存选中的风格
       await setSelectedStyle(selectedStyle)
@@ -152,14 +153,57 @@ function toggleStyleSelector(shadow, container, badge) {
       if (panel) panel.remove()
     })
 
+    // 计算选择器应该显示的位置（相对于悬浮球）
+    positionSelector(selector, ball)
+
     shadow.appendChild(selector)
+  }
+}
+
+/**
+ * 根据悬浮球位置定位选择器面板
+ */
+function positionSelector(selector, ball) {
+  const ballRect = ball.getBoundingClientRect()
+
+  // 选择器宽度为 380px，高度最大 460px
+  const selectorWidth = 380
+  const selectorMaxHeight = 460
+
+  // 默认显示在悬浮球上方居中
+  const ballCenterX = ballRect.left + ballRect.width / 2
+
+  // 计算 left 位置，确保不超出屏幕
+  let left = ballCenterX - selectorWidth / 2
+
+  // 边界检查 - 左侧
+  if (left < 10) {
+    left = 10
+  }
+
+  // 边界检查 - 右侧
+  if (left + selectorWidth > window.innerWidth - 10) {
+    left = window.innerWidth - selectorWidth - 10
+  }
+
+  // 应用位置
+  selector.style.position = 'fixed'
+  selector.style.left = `${left}px`
+
+  // 如果上方空间不够，显示在下方
+  if (ballRect.top < selectorMaxHeight + 20) {
+    // 显示在下方
+    selector.style.top = `${ballRect.bottom + 12}px`
+  } else {
+    // 显示在上方
+    selector.style.bottom = `${window.innerHeight - ballRect.top + 12}px`
   }
 }
 
 /**
  * 使悬浮球可拖拽
  */
-function makeDraggable(ball, container) {
+function makeDraggable(ball) {
   let isDragging = false
   let hasMoved = false
   let startX, startY, startRight, startBottom
