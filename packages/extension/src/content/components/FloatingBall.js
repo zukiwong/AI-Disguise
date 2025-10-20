@@ -1,7 +1,7 @@
 // 悬浮球组件 - 可拖动，可隐藏/显示，点击展开风格选择器
 // 参考沉浸式翻译的交互设计
 
-import { getSelectedStyle, setSelectedStyle, getBallPosition, saveBallPosition, getBallVisibility, setBallVisibility } from '../utils/storage.js'
+import { getSelectedStyle, setSelectedStyle, getBallPosition, saveBallPosition, getBallVisibility, setBallVisibility, addDisabledSite } from '../utils/storage.js'
 import { createStyleSelector } from './StyleSelector.js'
 import floatingBallCSS from '../styles/floatingBall.css?inline'
 
@@ -39,39 +39,65 @@ export function createFloatingBall() {
   badge.className = 'style-badge'
   badge.textContent = 'Chat'
 
-  const toggleBtn = document.createElement('div')
-  toggleBtn.className = 'toggle-visibility-btn'
-  toggleBtn.textContent = '✕'
-  toggleBtn.title = '隐藏悬浮球'
+  // 关闭按钮
+  const closeBtn = document.createElement('div')
+  closeBtn.className = 'close-btn'
+  closeBtn.textContent = '✕'
+  closeBtn.title = '关闭悬浮球'
 
-  ball.appendChild(toggleBtn)
+  ball.appendChild(closeBtn)
   ball.appendChild(icon)
   ball.appendChild(badge)
-  shadow.appendChild(ball)
 
-  // 创建显示触发条（隐藏时显示）
-  const showTrigger = document.createElement('div')
-  showTrigger.className = 'show-trigger'
-  showTrigger.title = '显示 AI Disguise'
-  shadow.appendChild(showTrigger)
+  // 创建容器包裹悬浮球和触发条
+  const ballContainer = document.createElement('div')
+  ballContainer.className = 'ball-container'
 
-  // 加载保存的位置和可见性
-  loadBallState(ball, showTrigger)
+  // 创建触发条（鼠标悬停时展开悬浮球）
+  const trigger = document.createElement('div')
+  trigger.className = 'ball-trigger'
+
+  ballContainer.appendChild(trigger)
+  ballContainer.appendChild(ball)
+  shadow.appendChild(ballContainer)
+
+  // 加载保存的位置和状态
+  loadBallState(ballContainer, ball, trigger)
 
   // 加载当前选中的风格
   loadCurrentStyle(badge)
 
+  // 鼠标悬停交互 - 自动展开/收起
+  let expandTimeout = null
+  let collapseTimeout = null
+
+  ballContainer.addEventListener('mouseenter', () => {
+    clearTimeout(collapseTimeout)
+    expandTimeout = setTimeout(() => {
+      ball.classList.add('expanded')
+      trigger.classList.add('hidden')
+    }, 100) // 100ms 延迟展开
+  })
+
+  ballContainer.addEventListener('mouseleave', () => {
+    clearTimeout(expandTimeout)
+    collapseTimeout = setTimeout(() => {
+      ball.classList.remove('expanded')
+      trigger.classList.remove('hidden')
+    }, 300) // 300ms 延迟收起
+  })
+
   // 点击悬浮球 - 展开风格选择器
   ball.addEventListener('click', (e) => {
-    // 如果点击的是隐藏按钮，不展开选择器
-    if (e.target === toggleBtn) return
+    // 如果点击的是关闭按钮，不展开选择器
+    if (e.target === closeBtn) return
     toggleStyleSelector(shadow, badge)
   })
 
-  // 隐藏按钮点击事件
-  toggleBtn.addEventListener('click', (e) => {
+  // 关闭按钮点击事件 - 显示关闭确认对话框
+  closeBtn.addEventListener('click', (e) => {
     e.stopPropagation()
-    hideBall(ball, showTrigger)
+    showCloseDialog(shadow, ball, showTrigger)
   })
 
   // 显示触发条点击事件
@@ -86,21 +112,31 @@ export function createFloatingBall() {
 }
 
 /**
- * 加载悬浮球的位置和可见性状态
+ * 加载悬浮球的位置和状态
  */
 async function loadBallState(ball, showTrigger) {
   const position = await getBallPosition()
-  const isVisible = await getBallVisibility()
+  const visibility = await getBallVisibility()
 
   if (position) {
     ball.style.right = `${position.right}px`
     ball.style.bottom = `${position.bottom}px`
   }
 
-  if (!isVisible) {
-    ball.classList.add('hidden')
+  // visibility 可能是: 'visible', 'minimized', 'hidden'
+  // 'visible' 或未设置: 显示悬浮球
+  // 'minimized': 最小化为绿色长条
+  // 'hidden': 完全隐藏（之前的版本兼容）
+  if (visibility === 'minimized' || visibility === false) {
+    // 最小化状态：显示绿色长条
+    ball.classList.add('minimized')
     showTrigger.classList.add('visible')
+  } else if (visibility === 'hidden') {
+    // 完全隐藏状态
+    ball.classList.add('hidden')
+    showTrigger.classList.remove('visible')
   }
+  // 否则保持默认的完全展开状态
 }
 
 /**
@@ -114,21 +150,115 @@ async function loadCurrentStyle(badge) {
 }
 
 /**
- * 隐藏悬浮球
- */
-async function hideBall(ball, showTrigger) {
-  ball.classList.add('hidden')
-  showTrigger.classList.add('visible')
-  await setBallVisibility(false)
-}
-
-/**
- * 显示悬浮球
+ * 显示悬浮球（从最小化或隐藏状态恢复）
  */
 async function showBall(ball, showTrigger) {
   ball.classList.remove('hidden')
+  ball.classList.remove('minimized')
   showTrigger.classList.remove('visible')
-  await setBallVisibility(true)
+  await setBallVisibility('visible')
+}
+
+/**
+ * 显示关闭确认对话框
+ */
+function showCloseDialog(shadow, ball, showTrigger) {
+  // 如果对话框已存在，先移除
+  const existingDialog = shadow.querySelector('.close-dialog')
+  if (existingDialog) {
+    existingDialog.remove()
+    return
+  }
+
+  // 创建对话框容器
+  const dialog = document.createElement('div')
+  dialog.className = 'close-dialog'
+
+  // 对话框内容
+  dialog.innerHTML = `
+    <div class="dialog-overlay"></div>
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3>关闭悬浮球</h3>
+        <button class="dialog-close-btn">✕</button>
+      </div>
+      <div class="dialog-body">
+        <label class="radio-option selected" data-mode="temporary">
+          <input type="radio" name="close-mode" value="temporary" checked>
+          <span class="radio-label">本次关闭直到下次访问</span>
+        </label>
+        <label class="radio-option" data-mode="site">
+          <input type="radio" name="close-mode" value="site">
+          <span class="radio-label">当前网站禁用 <span class="hint">(可在设置页开启)</span></span>
+        </label>
+        <label class="radio-option" data-mode="permanent">
+          <input type="radio" name="close-mode" value="permanent">
+          <span class="radio-label">永久禁用 <span class="hint">(可在设置页开启)</span></span>
+        </label>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn-cancel">取消</button>
+        <button class="btn-confirm">确定</button>
+      </div>
+    </div>
+  `
+
+  shadow.appendChild(dialog)
+
+  // 绑定事件
+  const overlay = dialog.querySelector('.dialog-overlay')
+  const closeBtn = dialog.querySelector('.dialog-close-btn')
+  const cancelBtn = dialog.querySelector('.btn-cancel')
+  const confirmBtn = dialog.querySelector('.btn-confirm')
+  const radioOptions = dialog.querySelectorAll('.radio-option')
+
+  // 单选框样式切换
+  radioOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      radioOptions.forEach(opt => opt.classList.remove('selected'))
+      option.classList.add('selected')
+      option.querySelector('input').checked = true
+    })
+  })
+
+  // 关闭对话框
+  const closeDialog = () => dialog.remove()
+
+  overlay.addEventListener('click', closeDialog)
+  closeBtn.addEventListener('click', closeDialog)
+  cancelBtn.addEventListener('click', closeDialog)
+
+  // 确定按钮
+  confirmBtn.addEventListener('click', async () => {
+    const selectedMode = dialog.querySelector('input[name="close-mode"]:checked').value
+
+    switch (selectedMode) {
+      case 'temporary':
+        // 本次关闭：最小化为长条
+        ball.classList.add('minimized')
+        showTrigger.classList.add('visible')
+        await setBallVisibility('minimized')
+        break
+
+      case 'site':
+        // 当前网站禁用
+        const currentDomain = window.location.hostname
+        await addDisabledSite(currentDomain)
+        ball.classList.add('hidden')
+        showTrigger.classList.remove('visible')
+        await setBallVisibility('hidden')
+        break
+
+      case 'permanent':
+        // 永久禁用
+        await setBallVisibility('hidden')
+        ball.classList.add('hidden')
+        showTrigger.classList.remove('visible')
+        break
+    }
+
+    closeDialog()
+  })
 }
 
 /**
@@ -209,8 +339,8 @@ function makeDraggable(ball) {
   let startX, startY, startRight, startBottom
 
   ball.addEventListener('mousedown', (e) => {
-    // 如果点击的是隐藏按钮，不触发拖拽
-    if (e.target.className === 'toggle-visibility-btn') return
+    // 如果点击的是关闭按钮，不触发拖拽
+    if (e.target.className === 'close-btn') return
 
     isDragging = true
     hasMoved = false

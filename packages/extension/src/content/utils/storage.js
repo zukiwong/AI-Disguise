@@ -112,22 +112,81 @@ export async function saveBallPosition(position) {
 }
 
 /**
- * 获取悬浮球可见性
+ * 获取悬浮球可见性状态
+ * @returns {Promise<string>} 'visible' | 'minimized' | 'hidden'
  */
 export async function getBallVisibility() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['ballVisible'], (result) => {
-      // 默认为可见
-      resolve(result.ballVisible !== false)
+      // 默认为可见状态
+      // 兼容旧版本：false -> 'minimized', true -> 'visible'
+      if (result.ballVisible === false) {
+        resolve('minimized')
+      } else if (result.ballVisible === true || result.ballVisible === 'visible') {
+        resolve('visible')
+      } else if (result.ballVisible === 'minimized' || result.ballVisible === 'hidden') {
+        resolve(result.ballVisible)
+      } else {
+        resolve('visible')
+      }
     })
   })
 }
 
 /**
- * 设置悬浮球可见性
+ * 设置悬浮球可见性状态
+ * @param {string} state - 'visible' | 'minimized' | 'hidden'
  */
-export async function setBallVisibility(visible) {
+export async function setBallVisibility(state) {
   return new Promise((resolve) => {
-    chrome.storage.local.set({ ballVisible: visible }, resolve)
+    chrome.storage.local.set({ ballVisible: state }, resolve)
   })
+}
+
+/**
+ * 获取禁用网站列表
+ * @returns {Promise<string[]>}
+ */
+export async function getDisabledSites() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['disabledSites'], (result) => {
+      resolve(result.disabledSites || [])
+    })
+  })
+}
+
+/**
+ * 添加禁用网站
+ * @param {string} domain - 网站域名
+ */
+export async function addDisabledSite(domain) {
+  const disabledSites = await getDisabledSites()
+  if (!disabledSites.includes(domain)) {
+    disabledSites.push(domain)
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ disabledSites }, resolve)
+    })
+  }
+}
+
+/**
+ * 移除禁用网站
+ * @param {string} domain - 网站域名
+ */
+export async function removeDisabledSite(domain) {
+  const disabledSites = await getDisabledSites()
+  const filtered = disabledSites.filter(site => site !== domain)
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ disabledSites: filtered }, resolve)
+  })
+}
+
+/**
+ * 检查当前网站是否被禁用
+ * @param {string} domain - 网站域名
+ * @returns {Promise<boolean>}
+ */
+export async function isSiteDisabled(domain) {
+  const disabledSites = await getDisabledSites()
+  return disabledSites.includes(domain)
 }

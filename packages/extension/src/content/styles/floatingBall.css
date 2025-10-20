@@ -33,9 +33,16 @@
   transition: none;
 }
 
-.floating-ball.hidden {
+/* 最小化状态：向右收起（但保留绿色长条提示） */
+.floating-ball.minimized {
   transform: translateX(calc(100% + 20px));
-  opacity: 0.3;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 完全隐藏（关闭状态） */
+.floating-ball.hidden {
+  display: none;
 }
 
 .floating-ball-icon {
@@ -70,43 +77,47 @@
   white-space: nowrap;
 }
 
-/* 隐藏/显示按钮 */
-.toggle-visibility-btn {
+/* 关闭按钮 */
+.close-btn {
   position: absolute;
-  top: -4px;
-  left: -4px;
-  width: 20px;
-  height: 20px;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
   background: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
+  z-index: 10;
+  color: #666;
 }
 
-.floating-ball:hover .toggle-visibility-btn {
+.floating-ball:hover .close-btn {
   opacity: 1;
 }
 
-.toggle-visibility-btn:hover {
-  background: #f0f0f0;
+.close-btn:hover {
+  background: #f5f5f5;
+  transform: scale(1.1);
 }
 
-/* 显示触发条（当悬浮球隐藏时） */
+/* 显示触发条（最小化时显示） */
 .show-trigger {
   position: fixed;
   right: 0;
   bottom: 80px;
-  width: 8px;
-  height: 80px;
-  background: rgba(76, 175, 80, 0.3);
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(12, 129, 40, 0.25) 0%, rgba(18, 160, 52, 0.25) 100%);
   cursor: pointer;
-  z-index: 2147483647;
+  z-index: 2147483646; /* 比悬浮球低一级 */
   transition: all 0.3s ease;
   border-radius: 4px 0 0 4px;
   display: none;
@@ -117,6 +128,211 @@
 }
 
 .show-trigger:hover {
-  width: 12px;
-  background: rgba(76, 175, 80, 0.6);
+  width: 8px;
+  background: linear-gradient(135deg, rgba(12, 129, 40, 0.5) 0%, rgba(18, 160, 52, 0.5) 100%);
+  box-shadow: -2px 0 8px rgba(12, 129, 40, 0.2);
+}
+
+/* 添加一个提示点 */
+.show-trigger::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 1px;
+}
+
+/* 关闭确认对话框 */
+.close-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2147483648; /* 比悬浮球更高 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* 遮罩层 */
+.dialog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 对话框内容 */
+.dialog-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 420px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* 对话框头部 */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dialog-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dialog-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #999;
+  transition: all 0.2s;
+}
+
+.dialog-close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* 对话框主体 */
+.dialog-body {
+  padding: 24px;
+}
+
+/* 单选项 */
+.radio-option {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.radio-option:last-child {
+  margin-bottom: 0;
+}
+
+.radio-option:hover {
+  border-color: #c0c0c0;
+  background: #fafafa;
+}
+
+.radio-option.selected {
+  border-color: #0C8128;
+  background: #f0f9f3;
+}
+
+.radio-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  margin-right: 12px;
+  cursor: pointer;
+  accent-color: #0C8128;
+}
+
+.radio-label {
+  flex: 1;
+  font-size: 15px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.radio-option.selected .radio-label {
+  color: #0C8128;
+  font-weight: 500;
+}
+
+.hint {
+  font-size: 13px;
+  color: #999;
+  font-weight: normal;
+}
+
+/* 对话框底部 */
+.dialog-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.dialog-footer button {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #0C8128 0%, #12A034 100%);
+  color: white;
+}
+
+.btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(12, 129, 40, 0.3);
 }
