@@ -8,11 +8,12 @@ export class SelectionHandler {
   constructor() {
     this.currentPanel = null
     this.isProcessing = false
+    this.handleSelectionBound = null
   }
 
   init() {
-    document.addEventListener('mouseup', (e) => this.handleSelection(e))
-    console.log('✅ Selection Handler initialized')
+    this.handleSelectionBound = (e) => this.handleSelection(e)
+    document.addEventListener('mouseup', this.handleSelectionBound)
   }
 
   async handleSelection(event) {
@@ -86,5 +87,15 @@ export class SelectionHandler {
       this.currentPanel.remove()
       this.currentPanel = null
     }
+  }
+
+  destroy() {
+    // 移除事件监听器
+    if (this.handleSelectionBound) {
+      document.removeEventListener('mouseup', this.handleSelectionBound)
+      this.handleSelectionBound = null
+    }
+    // 关闭当前面板
+    this.closePanel()
   }
 }

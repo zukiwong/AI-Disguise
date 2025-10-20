@@ -5,8 +5,6 @@ import { createFloatingBall } from './components/FloatingBall.js'
 import { SelectionHandler } from './utils/SelectionHandler.js'
 import { checkIfEnabled } from './utils/settings.js'
 
-console.log('🎨 AI Disguise Content Script 已加载')
-
 // 检查扩展上下文是否有效
 function isExtensionContextValid() {
   try {
@@ -15,6 +13,25 @@ function isExtensionContextValid() {
   } catch (error) {
     console.warn('扩展上下文已失效，content script 将不执行')
     return false
+  }
+}
+
+// 全局引用，用于清理
+let floatingBallElement = null
+let selectionHandler = null
+
+// 清理所有 content script 元素
+function cleanup() {
+  // 移除悬浮球
+  if (floatingBallElement && floatingBallElement.parentNode) {
+    floatingBallElement.remove()
+    floatingBallElement = null
+  }
+
+  // 销毁选择处理器
+  if (selectionHandler) {
+    selectionHandler.destroy()
+    selectionHandler = null
   }
 }
 
@@ -29,19 +46,18 @@ async function initContentScript() {
   const isEnabled = await checkIfEnabled()
 
   if (!isEnabled) {
-    console.log('⏸️  当前网站已禁用 AI Disguise')
     return
   }
 
-  // 创建悬浮球
-  const floatingBall = createFloatingBall()
-  document.body.appendChild(floatingBall)
+  // 创建悬浮球，传入关闭回调
+  floatingBallElement = createFloatingBall(() => {
+    cleanup()
+  })
+  document.body.appendChild(floatingBallElement)
 
   // 初始化文字选中处理器
-  const selectionHandler = new SelectionHandler()
+  selectionHandler = new SelectionHandler()
   selectionHandler.init()
-
-  console.log('✅ AI Disguise 初始化完成')
 }
 
 // 页面加载完成后初始化

@@ -7,8 +7,9 @@ import floatingBallCSS from '../styles/floatingBall.css?inline'
 
 /**
  * 创建悬浮球
+ * @param {Function} onClose - 关闭回调，用于清理整个 content script
  */
-export function createFloatingBall() {
+export function createFloatingBall(onClose) {
   // 创建 Shadow DOM 容器，避免样式冲突
   const container = document.createElement('div')
   container.id = 'ai-disguise-floating-ball-container'
@@ -43,7 +44,7 @@ export function createFloatingBall() {
   const closeBtn = document.createElement('div')
   closeBtn.className = 'close-btn'
   closeBtn.textContent = '✕'
-  closeBtn.title = '关闭悬浮球'
+  closeBtn.title = 'Close'
 
   ball.appendChild(closeBtn)
   ball.appendChild(icon)
@@ -151,7 +152,7 @@ export function createFloatingBall() {
   // 关闭按钮点击事件 - 显示关闭确认对话框
   closeBtn.addEventListener('click', (e) => {
     e.stopPropagation()
-    showCloseDialog(shadow, ballContainer, triggerContainer, ball, trigger)
+    showCloseDialog(shadow, onClose)
   })
 
   // 添加拖拽功能
@@ -194,8 +195,10 @@ async function loadCurrentStyle(badge) {
 
 /**
  * 显示关闭确认对话框
+ * @param {ShadowRoot} shadow - Shadow DOM
+ * @param {Function} onCloseCallback - 关闭回调函数
  */
-function showCloseDialog(shadow, ballContainer, triggerContainer, ball, trigger) {
+function showCloseDialog(shadow, onCloseCallback) {
   // 如果对话框已存在，先移除
   const existingDialog = shadow.querySelector('.close-dialog')
   if (existingDialog) {
@@ -212,26 +215,26 @@ function showCloseDialog(shadow, ballContainer, triggerContainer, ball, trigger)
     <div class="dialog-overlay"></div>
     <div class="dialog-content">
       <div class="dialog-header">
-        <h3>关闭悬浮球</h3>
+        <h3>Close Floating Ball</h3>
         <button class="dialog-close-btn">✕</button>
       </div>
       <div class="dialog-body">
         <label class="radio-option selected" data-mode="temporary">
           <input type="radio" name="close-mode" value="temporary" checked>
-          <span class="radio-label">本次关闭直到下次访问</span>
+          <span class="radio-label">Until next page visit</span>
         </label>
         <label class="radio-option" data-mode="site">
           <input type="radio" name="close-mode" value="site">
-          <span class="radio-label">当前网站禁用 <span class="hint">(可在设置页开启)</span></span>
+          <span class="radio-label">On this website <span class="hint">(Re-enable in extension settings)</span></span>
         </label>
         <label class="radio-option" data-mode="permanent">
           <input type="radio" name="close-mode" value="permanent">
-          <span class="radio-label">永久禁用 <span class="hint">(可在设置页开启)</span></span>
+          <span class="radio-label">On all websites <span class="hint">(Re-enable in extension settings)</span></span>
         </label>
       </div>
       <div class="dialog-footer">
-        <button class="btn-cancel">取消</button>
-        <button class="btn-confirm">确定</button>
+        <button class="btn-cancel">Cancel</button>
+        <button class="btn-confirm">Confirm</button>
       </div>
     </div>
   `
@@ -267,26 +270,29 @@ function showCloseDialog(shadow, ballContainer, triggerContainer, ball, trigger)
 
     switch (selectedMode) {
       case 'temporary':
-        // 本次关闭：收起为触发条（刷新页面后恢复）
-        ball.classList.remove('expanded')
-        trigger.classList.remove('hidden')
-        // 不保存状态，刷新后恢复
+        // 本次关闭：完全隐藏，刷新页面后恢复
+        // 不保存状态到 storage，只是临时隐藏
+        if (onCloseCallback) {
+          onCloseCallback('temporary')
+        }
         break
 
       case 'site':
         // 当前网站禁用
         const currentDomain = window.location.hostname
         await addDisabledSite(currentDomain)
-        ballContainer.classList.add('hidden')
-        triggerContainer.classList.add('hidden')
         await setBallVisibility('hidden')
+        if (onCloseCallback) {
+          onCloseCallback('site')
+        }
         break
 
       case 'permanent':
-        // 永久禁用
-        ballContainer.classList.add('hidden')
-        triggerContainer.classList.add('hidden')
+        // 永久禁用（所有网站）
         await setBallVisibility('hidden')
+        if (onCloseCallback) {
+          onCloseCallback('permanent')
+        }
         break
     }
 
