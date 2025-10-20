@@ -94,32 +94,22 @@ export function createFloatingBall() {
     clearTimeout(expandTimeout)
     clearTimeout(collapseTimeout)
 
-    console.log('[FloatingBall] collapseBall called, immediate:', immediate, 'isSelectorOpen:', isSelectorOpen)
-
     // 如果风格选择器正在打开，不收起
     if (isSelectorOpen) {
-      console.log('[FloatingBall] Selector is open, not collapsing')
       return
     }
 
     // 如果鼠标还在悬浮球或触发条上，不收起（除非是立即模式）
     if (!immediate && (isMouseOverBall || isMouseOverTrigger)) {
-      console.log('[FloatingBall] Mouse is over component, not collapsing')
       return
     }
 
-    console.log('[FloatingBall] Starting 2s collapse timeout')
     // 延迟 2 秒收起，给用户足够时间移动鼠标
     collapseTimeout = setTimeout(() => {
-      console.log('[FloatingBall] 2s elapsed, checking conditions...')
-      console.log('[FloatingBall] isMouseOverBall:', isMouseOverBall, 'isMouseOverTrigger:', isMouseOverTrigger, 'isSelectorOpen:', isSelectorOpen)
       // 再次检查鼠标是否在组件上，以及选择器是否打开
       if (!isMouseOverBall && !isMouseOverTrigger && !isSelectorOpen) {
-        console.log('[FloatingBall] Collapsing ball now')
         ball.classList.remove('expanded')
         trigger.classList.remove('hidden')
-      } else {
-        console.log('[FloatingBall] Conditions not met, not collapsing')
       }
     }, 2000) // 2秒延迟收起
   }
@@ -149,12 +139,9 @@ export function createFloatingBall() {
     // 如果点击的是关闭按钮，不展开选择器
     if (e.target === closeBtn) return
     toggleStyleSelector(shadow, badge, (isOpen) => {
-      console.log('[FloatingBall] Selector toggled, isOpen:', isOpen)
       isSelectorOpen = isOpen
       // 如果选择器关闭了，立即启动收起倒计时
       if (!isOpen) {
-        console.log('[FloatingBall] Selector closed, calling collapseBall(true)')
-        console.log('[FloatingBall] Current state - isMouseOverBall:', isMouseOverBall, 'isMouseOverTrigger:', isMouseOverTrigger)
         // 使用立即模式，忽略鼠标位置检查，直接启动倒计时
         collapseBall(true)
       }
@@ -323,7 +310,6 @@ function toggleStyleSelector(shadow, badge, onToggle) {
   } else {
     const ball = shadow.querySelector('.floating-ball')
     const selector = createStyleSelector(async (selectedStyle) => {
-      console.log('[FloatingBall] Style selected:', selectedStyle.name)
       // 保存选中的风格
       await setSelectedStyle(selectedStyle)
 
@@ -332,14 +318,12 @@ function toggleStyleSelector(shadow, badge, onToggle) {
 
       // 关闭选择器
       const panel = shadow.querySelector('.style-selector-panel')
-      console.log('[FloatingBall] Looking for panel to close, found:', !!panel)
       if (panel) {
         panel.remove()
       }
 
       // 无论面板是否存在，都通知选择器已关闭
       // （面板可能已经被其他逻辑移除了，比如点击外部关闭）
-      console.log('[FloatingBall] Calling onToggle(false)')
       if (onToggle) onToggle(false)
     })
 
