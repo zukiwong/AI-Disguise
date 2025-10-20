@@ -1,8 +1,71 @@
-/* 悬浮球主体 */
-.floating-ball {
+/* 悬浮球容器（可拖动） */
+.ball-container {
   position: fixed;
   bottom: 80px;
-  right: 20px;
+  right: 0;
+  z-index: 2147483647; /* 最大 z-index */
+  user-select: none;
+}
+
+.ball-container.hidden {
+  display: none;
+}
+
+.ball-container.dragging {
+  cursor: move;
+}
+
+/* 触发条容器（固定在右下角，不可拖动） */
+.trigger-container {
+  position: fixed;
+  bottom: 80px;
+  right: 0;
+  z-index: 2147483646; /* 比悬浮球低一级 */
+  user-select: none;
+  pointer-events: auto; /* 确保可以接收鼠标事件 */
+}
+
+.trigger-container.hidden {
+  display: none;
+}
+
+/* 触发条（默认显示，鼠标悬停时隐藏） */
+.ball-trigger {
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(12, 129, 40, 0.3) 0%, rgba(18, 160, 52, 0.3) 100%);
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ball-trigger:hover {
+  width: 6px;
+  background: linear-gradient(135deg, rgba(12, 129, 40, 0.5) 0%, rgba(18, 160, 52, 0.5) 100%);
+}
+
+.ball-trigger.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 触发条中间的提示点 */
+.ball-trigger::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 1px;
+}
+
+/* 悬浮球主体 */
+.floating-ball {
+  position: relative;
+  right: 12px; /* 展开时距离右边 12px */
   width: 56px;
   height: 56px;
   background: linear-gradient(135deg, #0C8128 0%, #12A034 100%);
@@ -13,36 +76,29 @@
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  z-index: 2147483647; /* 最大 z-index */
-  transition: all 0.3s ease;
   user-select: none;
+  /* 默认收起状态：缩小并隐藏 */
+  transform: scale(0);
+  opacity: 0;
+  transform-origin: right center; /* 从右侧展开 */
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
 }
 
-.floating-ball:hover {
-  transform: scale(1.1);
+/* 展开状态 */
+.floating-ball.expanded {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* 展开时的悬停效果 */
+.floating-ball.expanded:hover {
+  transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(12, 129, 40, 0.4);
 }
 
-.floating-ball:active {
+.floating-ball.expanded:active {
   transform: scale(0.95);
-}
-
-.floating-ball.dragging {
-  opacity: 0.8;
-  cursor: move;
-  transition: none;
-}
-
-/* 最小化状态：向右收起（但保留绿色长条提示） */
-.floating-ball.minimized {
-  transform: translateX(calc(100% + 20px));
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* 完全隐藏（关闭状态） */
-.floating-ball.hidden {
-  display: none;
 }
 
 .floating-ball-icon {
@@ -108,43 +164,6 @@
   transform: scale(1.1);
 }
 
-/* 显示触发条（最小化时显示） */
-.show-trigger {
-  position: fixed;
-  right: 0;
-  bottom: 80px;
-  width: 4px;
-  height: 60px;
-  background: linear-gradient(135deg, rgba(12, 129, 40, 0.25) 0%, rgba(18, 160, 52, 0.25) 100%);
-  cursor: pointer;
-  z-index: 2147483646; /* 比悬浮球低一级 */
-  transition: all 0.3s ease;
-  border-radius: 4px 0 0 4px;
-  display: none;
-}
-
-.show-trigger.visible {
-  display: block;
-}
-
-.show-trigger:hover {
-  width: 8px;
-  background: linear-gradient(135deg, rgba(12, 129, 40, 0.5) 0%, rgba(18, 160, 52, 0.5) 100%);
-  box-shadow: -2px 0 8px rgba(12, 129, 40, 0.2);
-}
-
-/* 添加一个提示点 */
-.show-trigger::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 2px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 1px;
-}
 
 /* 关闭确认对话框 */
 .close-dialog {

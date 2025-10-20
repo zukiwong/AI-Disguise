@@ -49,20 +49,25 @@ export function createFloatingBall() {
   ball.appendChild(icon)
   ball.appendChild(badge)
 
-  // 创建容器包裹悬浮球和触发条
+  // 创建悬浮球容器（可拖动）
   const ballContainer = document.createElement('div')
   ballContainer.className = 'ball-container'
+  ballContainer.appendChild(ball)
+
+  // 创建触发条容器（固定位置，不可拖动）
+  const triggerContainer = document.createElement('div')
+  triggerContainer.className = 'trigger-container'
 
   // 创建触发条（鼠标悬停时展开悬浮球）
   const trigger = document.createElement('div')
   trigger.className = 'ball-trigger'
+  triggerContainer.appendChild(trigger)
 
-  ballContainer.appendChild(trigger)
-  ballContainer.appendChild(ball)
   shadow.appendChild(ballContainer)
+  shadow.appendChild(triggerContainer)
 
   // 加载保存的位置和状态
-  loadBallState(ballContainer, ball, trigger)
+  loadBallState(ballContainer)
 
   // 加载当前选中的风格
   loadCurrentStyle(badge)
@@ -70,43 +75,100 @@ export function createFloatingBall() {
   // 鼠标悬停交互 - 自动展开/收起
   let expandTimeout = null
   let collapseTimeout = null
+  let isMouseOverBall = false
+  let isMouseOverTrigger = false
+  let isSelectorOpen = false // 风格选择器是否打开
 
-  ballContainer.addEventListener('mouseenter', () => {
+  // 展开悬浮球的函数
+  const expandBall = () => {
     clearTimeout(collapseTimeout)
+    clearTimeout(expandTimeout)
     expandTimeout = setTimeout(() => {
       ball.classList.add('expanded')
       trigger.classList.add('hidden')
     }, 100) // 100ms 延迟展开
+  }
+
+  // 收起悬浮球的函数（检查是否真的应该收起）
+  const collapseBall = (immediate = false) => {
+    clearTimeout(expandTimeout)
+    clearTimeout(collapseTimeout)
+
+    console.log('[FloatingBall] collapseBall called, immediate:', immediate, 'isSelectorOpen:', isSelectorOpen)
+
+    // 如果风格选择器正在打开，不收起
+    if (isSelectorOpen) {
+      console.log('[FloatingBall] Selector is open, not collapsing')
+      return
+    }
+
+    // 如果鼠标还在悬浮球或触发条上，不收起（除非是立即模式）
+    if (!immediate && (isMouseOverBall || isMouseOverTrigger)) {
+      console.log('[FloatingBall] Mouse is over component, not collapsing')
+      return
+    }
+
+    console.log('[FloatingBall] Starting 2s collapse timeout')
+    // 延迟 2 秒收起，给用户足够时间移动鼠标
+    collapseTimeout = setTimeout(() => {
+      console.log('[FloatingBall] 2s elapsed, checking conditions...')
+      console.log('[FloatingBall] isMouseOverBall:', isMouseOverBall, 'isMouseOverTrigger:', isMouseOverTrigger, 'isSelectorOpen:', isSelectorOpen)
+      // 再次检查鼠标是否在组件上，以及选择器是否打开
+      if (!isMouseOverBall && !isMouseOverTrigger && !isSelectorOpen) {
+        console.log('[FloatingBall] Collapsing ball now')
+        ball.classList.remove('expanded')
+        trigger.classList.remove('hidden')
+      } else {
+        console.log('[FloatingBall] Conditions not met, not collapsing')
+      }
+    }, 2000) // 2秒延迟收起
+  }
+
+  // 悬浮球容器的悬停事件
+  ballContainer.addEventListener('mouseenter', () => {
+    isMouseOverBall = true
+    expandBall()
+  })
+  ballContainer.addEventListener('mouseleave', () => {
+    isMouseOverBall = false
+    collapseBall()
   })
 
-  ballContainer.addEventListener('mouseleave', () => {
-    clearTimeout(expandTimeout)
-    collapseTimeout = setTimeout(() => {
-      ball.classList.remove('expanded')
-      trigger.classList.remove('hidden')
-    }, 300) // 300ms 延迟收起
+  // 触发条容器的悬停事件
+  triggerContainer.addEventListener('mouseenter', () => {
+    isMouseOverTrigger = true
+    expandBall()
+  })
+  triggerContainer.addEventListener('mouseleave', () => {
+    isMouseOverTrigger = false
+    collapseBall()
   })
 
   // 点击悬浮球 - 展开风格选择器
   ball.addEventListener('click', (e) => {
     // 如果点击的是关闭按钮，不展开选择器
     if (e.target === closeBtn) return
-    toggleStyleSelector(shadow, badge)
+    toggleStyleSelector(shadow, badge, (isOpen) => {
+      console.log('[FloatingBall] Selector toggled, isOpen:', isOpen)
+      isSelectorOpen = isOpen
+      // 如果选择器关闭了，立即启动收起倒计时
+      if (!isOpen) {
+        console.log('[FloatingBall] Selector closed, calling collapseBall(true)')
+        console.log('[FloatingBall] Current state - isMouseOverBall:', isMouseOverBall, 'isMouseOverTrigger:', isMouseOverTrigger)
+        // 使用立即模式，忽略鼠标位置检查，直接启动倒计时
+        collapseBall(true)
+      }
+    })
   })
 
   // 关闭按钮点击事件 - 显示关闭确认对话框
   closeBtn.addEventListener('click', (e) => {
     e.stopPropagation()
-    showCloseDialog(shadow, ball, showTrigger)
-  })
-
-  // 显示触发条点击事件
-  showTrigger.addEventListener('click', () => {
-    showBall(ball, showTrigger)
+    showCloseDialog(shadow, ballContainer, triggerContainer, ball, trigger)
   })
 
   // 添加拖拽功能
-  makeDraggable(ball)
+  makeDraggable(ballContainer, ball)
 
   return container
 }
@@ -114,29 +176,23 @@ export function createFloatingBall() {
 /**
  * 加载悬浮球的位置和状态
  */
-async function loadBallState(ball, showTrigger) {
+async function loadBallState(ballContainer) {
   const position = await getBallPosition()
   const visibility = await getBallVisibility()
 
   if (position) {
-    ball.style.right = `${position.right}px`
-    ball.style.bottom = `${position.bottom}px`
+    ballContainer.style.right = `${position.right}px`
+    ballContainer.style.bottom = `${position.bottom}px`
   }
 
-  // visibility 可能是: 'visible', 'minimized', 'hidden'
-  // 'visible' 或未设置: 显示悬浮球
-  // 'minimized': 最小化为绿色长条
-  // 'hidden': 完全隐藏（之前的版本兼容）
-  if (visibility === 'minimized' || visibility === false) {
-    // 最小化状态：显示绿色长条
-    ball.classList.add('minimized')
-    showTrigger.classList.add('visible')
-  } else if (visibility === 'hidden') {
+  // visibility 可能是: 'visible', 'hidden'
+  // 'visible' 或未设置: 显示触发条（默认收起状态）
+  // 'hidden': 完全隐藏
+  if (visibility === 'hidden') {
     // 完全隐藏状态
-    ball.classList.add('hidden')
-    showTrigger.classList.remove('visible')
+    ballContainer.classList.add('hidden')
   }
-  // 否则保持默认的完全展开状态
+  // 否则保持默认状态：显示触发条，悬浮球收起
 }
 
 /**
@@ -150,19 +206,9 @@ async function loadCurrentStyle(badge) {
 }
 
 /**
- * 显示悬浮球（从最小化或隐藏状态恢复）
- */
-async function showBall(ball, showTrigger) {
-  ball.classList.remove('hidden')
-  ball.classList.remove('minimized')
-  showTrigger.classList.remove('visible')
-  await setBallVisibility('visible')
-}
-
-/**
  * 显示关闭确认对话框
  */
-function showCloseDialog(shadow, ball, showTrigger) {
+function showCloseDialog(shadow, ballContainer, triggerContainer, ball, trigger) {
   // 如果对话框已存在，先移除
   const existingDialog = shadow.querySelector('.close-dialog')
   if (existingDialog) {
@@ -234,26 +280,26 @@ function showCloseDialog(shadow, ball, showTrigger) {
 
     switch (selectedMode) {
       case 'temporary':
-        // 本次关闭：最小化为长条
-        ball.classList.add('minimized')
-        showTrigger.classList.add('visible')
-        await setBallVisibility('minimized')
+        // 本次关闭：收起为触发条（刷新页面后恢复）
+        ball.classList.remove('expanded')
+        trigger.classList.remove('hidden')
+        // 不保存状态，刷新后恢复
         break
 
       case 'site':
         // 当前网站禁用
         const currentDomain = window.location.hostname
         await addDisabledSite(currentDomain)
-        ball.classList.add('hidden')
-        showTrigger.classList.remove('visible')
+        ballContainer.classList.add('hidden')
+        triggerContainer.classList.add('hidden')
         await setBallVisibility('hidden')
         break
 
       case 'permanent':
         // 永久禁用
+        ballContainer.classList.add('hidden')
+        triggerContainer.classList.add('hidden')
         await setBallVisibility('hidden')
-        ball.classList.add('hidden')
-        showTrigger.classList.remove('visible')
         break
     }
 
@@ -263,15 +309,21 @@ function showCloseDialog(shadow, ball, showTrigger) {
 
 /**
  * 切换风格选择器
+ * @param {ShadowRoot} shadow - Shadow DOM
+ * @param {HTMLElement} badge - 风格标识元素
+ * @param {Function} onToggle - 状态改变回调，参数为 isOpen
  */
-function toggleStyleSelector(shadow, badge) {
+function toggleStyleSelector(shadow, badge, onToggle) {
   const existingSelector = shadow.querySelector('.style-selector-panel')
 
   if (existingSelector) {
     existingSelector.remove()
+    // 通知选择器已关闭
+    if (onToggle) onToggle(false)
   } else {
     const ball = shadow.querySelector('.floating-ball')
     const selector = createStyleSelector(async (selectedStyle) => {
+      console.log('[FloatingBall] Style selected:', selectedStyle.name)
       // 保存选中的风格
       await setSelectedStyle(selectedStyle)
 
@@ -280,13 +332,24 @@ function toggleStyleSelector(shadow, badge) {
 
       // 关闭选择器
       const panel = shadow.querySelector('.style-selector-panel')
-      if (panel) panel.remove()
+      console.log('[FloatingBall] Looking for panel to close, found:', !!panel)
+      if (panel) {
+        panel.remove()
+      }
+
+      // 无论面板是否存在，都通知选择器已关闭
+      // （面板可能已经被其他逻辑移除了，比如点击外部关闭）
+      console.log('[FloatingBall] Calling onToggle(false)')
+      if (onToggle) onToggle(false)
     })
 
     // 计算选择器应该显示的位置（相对于悬浮球）
     positionSelector(selector, ball)
 
     shadow.appendChild(selector)
+
+    // 通知选择器已打开
+    if (onToggle) onToggle(true)
   }
 }
 
@@ -331,9 +394,9 @@ function positionSelector(selector, ball) {
 }
 
 /**
- * 使悬浮球可拖拽
+ * 使悬浮球容器可拖拽
  */
-function makeDraggable(ball) {
+function makeDraggable(ballContainer, ball) {
   let isDragging = false
   let hasMoved = false
   let startX, startY, startRight, startBottom
@@ -344,12 +407,12 @@ function makeDraggable(ball) {
 
     isDragging = true
     hasMoved = false
-    ball.classList.add('dragging')
+    ballContainer.classList.add('dragging')
 
     startX = e.clientX
     startY = e.clientY
 
-    const rect = ball.getBoundingClientRect()
+    const rect = ballContainer.getBoundingClientRect()
     startRight = window.innerWidth - rect.right
     startBottom = window.innerHeight - rect.bottom
 
@@ -367,22 +430,22 @@ function makeDraggable(ball) {
       hasMoved = true
     }
 
-    const newRight = Math.max(0, Math.min(window.innerWidth - 56, startRight - deltaX))
-    const newBottom = Math.max(0, Math.min(window.innerHeight - 56, startBottom - deltaY))
+    const newRight = Math.max(0, Math.min(window.innerWidth - 80, startRight - deltaX))
+    const newBottom = Math.max(0, Math.min(window.innerHeight - 80, startBottom - deltaY))
 
-    ball.style.right = `${newRight}px`
-    ball.style.bottom = `${newBottom}px`
+    ballContainer.style.right = `${newRight}px`
+    ballContainer.style.bottom = `${newBottom}px`
   })
 
   document.addEventListener('mouseup', async () => {
     if (isDragging) {
       isDragging = false
-      ball.classList.remove('dragging')
+      ballContainer.classList.remove('dragging')
 
       // 如果拖拽过，保存新位置
       if (hasMoved) {
-        const right = parseInt(ball.style.right) || 20
-        const bottom = parseInt(ball.style.bottom) || 80
+        const right = parseInt(ballContainer.style.right) || 0
+        const bottom = parseInt(ballContainer.style.bottom) || 80
         await saveBallPosition({ right, bottom })
       }
     }
