@@ -142,7 +142,10 @@ export async function saveCustomApiKey(userId, provider, apiKey, model) {
     const currentConfig = await getUserApiConfig(userId)
 
     // Base64 编码（仅为防止意外泄露，不是加密）
-    const encodedKey = btoa(apiKey)
+    // 使用 UTF-8 兼容的编码方式，确保与后端 Buffer.from().toString('utf-8') 一致
+    const utf8Bytes = new TextEncoder().encode(apiKey)
+    const binaryString = String.fromCharCode(...utf8Bytes)
+    const encodedKey = btoa(binaryString)
 
     const updatedConfig = {
       ...currentConfig,
