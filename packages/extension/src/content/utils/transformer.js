@@ -5,7 +5,24 @@
  */
 export async function transformText(text, style) {
   try {
-    const apiConfig = await getApiConfig()
+    const userApiConfig = await getApiConfig()
+    const hasCustomKey = userApiConfig && userApiConfig.hasCustomKey
+
+    // 构建传递给后端的 apiConfig
+    // 后端期望的格式：{ mode: 'custom', activeProvider: 'gemini', customApis: { gemini: { apiKey: 'xxx' } } }
+    let apiConfigForBackend = null
+    if (hasCustomKey && userApiConfig.provider && userApiConfig.apiKey) {
+      apiConfigForBackend = {
+        mode: 'custom',
+        activeProvider: userApiConfig.provider,
+        customApis: {
+          [userApiConfig.provider]: {
+            apiKey: userApiConfig.apiKey
+          }
+        }
+      }
+      console.log('Content Script: 使用用户自定义 API Key:', userApiConfig.provider)
+    }
 
     const requestBody = {
       text: text,
@@ -18,7 +35,7 @@ export async function transformText(text, style) {
         promptTemplate: style.promptTemplate
       },
       outputLanguage: 'auto',
-      apiConfig: apiConfig
+      apiConfig: apiConfigForBackend
     }
 
     const response = await fetch('https://ai-disguise.vercel.app/api/disguise', {
@@ -50,7 +67,8 @@ export async function transformText(text, style) {
       throw new Error(data.error || data.message || 'Invalid API response')
     }
 
-    if (!apiConfig || apiConfig.mode !== 'custom') {
+    // 只有免费模式才增加使用次数
+    if (!hasCustomKey) {
       incrementUsage()
     }
 
@@ -69,5 +87,10 @@ async function getApiConfig() {
 }
 
 function incrementUsage() {
-  chrome.runtime.sendMessage({ action: 'incrementUsage' })
+  chrome.runtime.sendMessage({ action: 'incrementUsage' }, () => {
+    // 接收来自 service worker 的响应，防止 "message channel closed" 错误
+    if (chrome.runtime.lastError) {
+      console.error('增加使用次数失败:', chrome.runtime.lastError)
+    }
+  })
 }

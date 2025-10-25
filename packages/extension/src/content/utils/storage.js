@@ -49,7 +49,8 @@ export async function setSelectedStyle(style) {
 }
 
 /**
- * 获取所有可用风格
+ * 获取所有可用风格（默认风格 + 用户自定义风格）
+ * 每次调用都会从 Chrome Storage 获取最新的 userStyles
  */
 export async function getAllStyles() {
   return new Promise((resolve) => {
@@ -86,6 +87,10 @@ export async function getAllStyles() {
       ]
 
       const userStyles = result.userStyles || []
+
+      // 合并默认风格和用户自定义风格
+      // 注意：每次调用都会获取最新的 userStyles，确保登录后能立即看到用户的风格
+      console.log(`getAllStyles: 加载了 ${userStyles.length} 个用户风格`)
       resolve([...defaultStyles, ...userStyles])
     })
   })

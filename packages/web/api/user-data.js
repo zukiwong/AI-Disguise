@@ -156,13 +156,36 @@ export default async function handler(req, res) {
 
     // 6. 获取用户的 API 配置
     if (userData.apiConfig) {
-      apiConfig = {
-        provider: userData.apiConfig.provider || 'free',
-        apiKey: userData.apiConfig.apiKey || null,
-        hasCustomKey: !!userData.apiConfig.apiKey
+      const mode = userData.apiConfig.mode || 'free'
+      const activeProvider = userData.apiConfig.activeProvider
+      let decodedApiKey = null
+
+      // 如果用户设置了自定义 API
+      if (mode === 'custom' && activeProvider && userData.apiConfig.customApis?.[activeProvider]) {
+        const customApi = userData.apiConfig.customApis[activeProvider]
+        // 解码 Base64 编码的 API Key
+        try {
+          decodedApiKey = Buffer.from(customApi.apiKey, 'base64').toString('utf-8')
+        } catch (error) {
+          console.error('解码 API Key 失败:', error)
+        }
+
+        apiConfig = {
+          provider: activeProvider,
+          apiKey: decodedApiKey,
+          hasCustomKey: true,
+          model: customApi.model
+        }
+      } else {
+        // 免费模式
+        apiConfig = {
+          provider: 'free',
+          apiKey: null,
+          hasCustomKey: false
+        }
       }
     }
-    console.log('获取到 API 配置，provider:', apiConfig.provider)
+    console.log('获取到 API 配置，provider:', apiConfig.provider, 'hasCustomKey:', apiConfig.hasCustomKey)
 
     // 4. 返回数据
     return res.status(200).json({

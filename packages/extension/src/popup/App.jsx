@@ -39,56 +39,95 @@ function App() {
   const [inputText, setInputText] = useState('')
   const [outputText, setOutputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [styles, setStyles] = useState(DEFAULT_STYLES) // 使用公共风格
-  const [additionalStyles, setAdditionalStyles] = useState([])
+  const [styles, setStyles] = useState(DEFAULT_STYLES) // 所有可用风格（默认 + 用户自定义 + 社区添加）
   const [selectedStyle, setSelectedStyle] = useState('chat') // 默认选中 chat
   const [error, setError] = useState('')
   const [usageInfo, setUsageInfo] = useState({ remaining: 20 })
   const [user, setUser] = useState(null) // 用户登录状态
   const [copied, setCopied] = useState(false) // 复制状态
+  const [apiConfig, setApiConfig] = useState(null) // API 配置状态
 
-  // 加载用户的 styles（包括用户自定义的）
-  const loadUserStyles = () => {
-    chrome.storage.local.get(['userStyles'], (result) => {
-      const userStyles = result.userStyles || []
-      if (userStyles.length > 0) {
-        // 合并默认 styles 和用户 styles
-        setStyles([...DEFAULT_STYLES, ...userStyles])
-        console.log('已加载用户 styles:', userStyles.length, '个')
-      }
+  // 加载所有风格（用户自定义 + 社区添加的）
+  const loadAllStyles = () => {
+    console.log('📋 Popup: 开始加载所有风格...')
+    chrome.storage.local.get(['userStyles', 'additionalStyles'], (result) => {
+      const userStyles = result.userStyles || [] // 用户在网站创建的风格
+      const additionalStyles = result.additionalStyles || [] // 从社区搜索添加的风格
+
+      // 合并所有风格：默认 + 用户自定义 + 社区添加
+      const allStyles = [...DEFAULT_STYLES, ...userStyles, ...additionalStyles]
+      setStyles(allStyles)
+      console.log('✅ Popup: 已加载风格:', {
+        default: DEFAULT_STYLES.length,
+        user: userStyles.length,
+        additional: additionalStyles.length,
+        total: allStyles.length
+      })
+      console.log('📝 Popup: 用户风格详情:', userStyles)
     })
   }
 
   // 从 Firestore 同步用户数据
   const syncUserDataFromFirestore = async (userData) => {
     try {
-      console.log('开始同步用户数据...')
+      console.log('🔄 Popup: 开始同步用户数据...')
       const result = await syncUserData(userData)
 
       if (result.success) {
-        // 重新加载用户的 styles
-        loadUserStyles()
+        console.log('✅ Popup: 用户数据同步成功，重新加载风格')
+        // 重新加载所有风格
+        loadAllStyles()
+      } else {
+        console.warn('⚠️ Popup: 用户数据同步失败:', result.error)
       }
     } catch (error) {
-      console.error('同步用户数据失败:', error)
+      console.error('❌ Popup: 同步用户数据失败:', error)
     }
   }
 
-  // 加载用户信息和额外风格
+  // 加载 API 配置
+  const loadApiConfig = () => {
+    chrome.storage.local.get(['apiConfig'], (result) => {
+      if (result.apiConfig) {
+        setApiConfig(result.apiConfig)
+        console.log('📡 Popup: 已加载 API 配置:', result.apiConfig.provider || 'free')
+      } else {
+        setApiConfig(null)
+      }
+    })
+  }
+
+  // 加载用户信息和所有风格
   useEffect(() => {
     loadUserInfo()
-    loadAdditionalStyles()
+    loadAllStyles()
+    loadApiConfig()
 
     // 监听 Chrome Storage 变化（当 background worker 保存用户数据时）
     const storageListener = (changes, areaName) => {
-      if (areaName === 'local' && changes.user) {
-        console.log('检测到用户数据变化:', changes.user.newValue)
-        if (changes.user.newValue) {
-          setUser(changes.user.newValue)
-          // 同步用户数据
-          syncUserDataFromFirestore(changes.user.newValue)
-        } else {
-          setUser(null)
+      if (areaName === 'local') {
+        // 监听用户登录状态变化
+        if (changes.user) {
+          console.log('检测到用户数据变化:', changes.user.newValue)
+          if (changes.user.newValue) {
+            setUser(changes.user.newValue)
+            // 同步用户数据
+            syncUserDataFromFirestore(changes.user.newValue)
+          } else {
+            setUser(null)
+          }
+        }
+
+        // 监听 userStyles 或 additionalStyles 变化
+        if (changes.userStyles || changes.additionalStyles) {
+          console.log('检测到风格变化，重新加载')
+          loadAllStyles() // 重新加载所有风格
+        }
+
+        // 监听 apiConfig 变化
+        if (changes.apiConfig) {
+          console.log('检测到 API 配置变化，重新加载')
+          loadApiConfig()
         }
       }
     }
@@ -106,17 +145,6 @@ function App() {
         setUser(result.user)
         // 登录后同步用户数据
         await syncUserDataFromFirestore(result.user)
-      }
-    })
-  }
-
-  const loadAdditionalStyles = () => {
-    chrome.storage.local.get(['additionalStyles'], (result) => {
-      const additional = result.additionalStyles || []
-      setAdditionalStyles(additional)
-      if (additional.length > 0) {
-        // 合并默认风格和用户添加的风格
-        setStyles([...DEFAULT_STYLES, ...additional])
       }
     })
   }
@@ -153,15 +181,15 @@ function App() {
 
       // 获取 API 配置（优先使用用户的配置）
       const storageData = await new Promise((resolve) => {
-        chrome.storage.local.get(['apiConfig', 'apiMode', 'apiKey'], resolve)
+        chrome.storage.local.get(['apiConfig'], resolve)
       })
 
-      const apiConfig = storageData.apiConfig || {}
-      const hasCustomKey = apiConfig.hasCustomKey || false
+      const userApiConfig = storageData.apiConfig || {}
+      const hasCustomKey = userApiConfig.hasCustomKey || false
 
       // 如果用户有自定义 API Key，跳过免费额度检查
       if (hasCustomKey) {
-        console.log('使用用户自定义 API Key')
+        console.log('使用用户自定义 API Key:', userApiConfig.provider)
       }
 
       // 获取选中的风格配置
@@ -170,8 +198,23 @@ function App() {
         throw new Error('Please select a style')
       }
 
+      // 构建传递给后端的 apiConfig
+      // 后端期望的格式：{ mode: 'custom', activeProvider: 'gemini', customApis: { gemini: { apiKey: 'xxx' } } }
+      let apiConfigForBackend = null
+      if (hasCustomKey && userApiConfig.provider && userApiConfig.apiKey) {
+        apiConfigForBackend = {
+          mode: 'custom',
+          activeProvider: userApiConfig.provider,
+          customApis: {
+            [userApiConfig.provider]: {
+              apiKey: userApiConfig.apiKey
+            }
+          }
+        }
+      }
+
       // 调用 API
-      console.log('Sending request with API config:', hasCustomKey ? 'custom' : 'free')
+      console.log('Sending request with API config:', hasCustomKey ? `custom (${userApiConfig.provider})` : 'free')
       const response = await fetch('https://ai-disguise.vercel.app/api/disguise', {
         method: 'POST',
         headers: {
@@ -188,10 +231,7 @@ function App() {
             promptTemplate: currentStyle.promptTemplate
           },
           outputLanguage: 'auto',
-          apiConfig: hasCustomKey ? {
-            useCustomKey: true,
-            customApiKey: apiConfig.apiKey
-          } : null
+          apiConfig: apiConfigForBackend
         })
       })
 
@@ -249,27 +289,32 @@ function App() {
 
   const backToMain = () => {
     setCurrentPage('main')
-    loadAdditionalStyles() // 重新加载风格列表
+    loadAllStyles() // 重新加载风格列表
   }
 
-  // 添加风格到本地
+  // 添加风格到本地（从社区搜索添加）
   const handleAddStyle = (style) => {
-    const isAdded = additionalStyles.some(s => s.id === style.id)
-    if (isAdded) {
-      alert('This style is already added!')
-      return
-    }
+    // 先从 storage 读取当前的 additionalStyles
+    chrome.storage.local.get(['additionalStyles'], (result) => {
+      const currentAdditional = result.additionalStyles || []
 
-    const newStyles = [...additionalStyles, {
-      id: style.id,
-      displayName: style.displayName,
-      description: style.description,
-      promptTemplate: style.promptTemplate
-    }]
+      const isAdded = currentAdditional.some(s => s.id === style.id)
+      if (isAdded) {
+        alert('This style is already added!')
+        return
+      }
 
-    chrome.storage.local.set({ additionalStyles: newStyles }, () => {
-      setAdditionalStyles(newStyles)
-      setStyles([...DEFAULT_STYLES, ...newStyles])
+      const newAdditionalStyles = [...currentAdditional, {
+        id: style.id,
+        displayName: style.displayName,
+        description: style.description,
+        promptTemplate: style.promptTemplate
+      }]
+
+      chrome.storage.local.set({ additionalStyles: newAdditionalStyles }, () => {
+        // storage 变化会自动触发 loadAllStyles()
+        console.log('已添加新风格:', style.displayName)
+      })
     })
   }
 
@@ -379,7 +424,15 @@ function App() {
           {/* 底部提示 */}
           <div className="popup-footer">
             <small>
-              Free: {usageInfo.remaining}/20 remaining | <a href="https://ai-disguise.vercel.app" target="_blank" rel="noopener noreferrer">Get unlimited</a>
+              {apiConfig && apiConfig.hasCustomKey ? (
+                <>
+                  Using: {apiConfig.provider.charAt(0).toUpperCase() + apiConfig.provider.slice(1)} API (Unlimited) | <a href="#" onClick={(e) => { e.preventDefault(); openProfile(); }}>Manage</a>
+                </>
+              ) : (
+                <>
+                  Free: {usageInfo.remaining}/20 remaining | <a href="#" onClick={(e) => { e.preventDefault(); openProfile(); }}>Get unlimited</a>
+                </>
+              )}
             </small>
           </div>
 
@@ -393,7 +446,6 @@ function App() {
         <SearchPage
           onBack={backToMain}
           onAddStyle={handleAddStyle}
-          additionalStyles={additionalStyles}
         />
       )}
     </div>
@@ -401,12 +453,14 @@ function App() {
 }
 
 // 搜索页面组件
-function SearchPage({ onBack, onAddStyle, additionalStyles }) {
+function SearchPage({ onBack, onAddStyle }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [publicStyles, setPublicStyles] = useState([])
+  const [additionalStyles, setAdditionalStyles] = useState([])
 
   useEffect(() => {
     loadPublicStyles()
+    loadAdditionalStyles()
   }, [])
 
   const loadPublicStyles = async () => {
@@ -419,6 +473,12 @@ function SearchPage({ onBack, onAddStyle, additionalStyles }) {
     } catch (error) {
       console.error('加载社区风格失败:', error)
     }
+  }
+
+  const loadAdditionalStyles = () => {
+    chrome.storage.local.get(['additionalStyles'], (result) => {
+      setAdditionalStyles(result.additionalStyles || [])
+    })
   }
 
   const filteredStyles = publicStyles.filter(style =>
@@ -466,7 +526,11 @@ function SearchPage({ onBack, onAddStyle, additionalStyles }) {
                 </div>
                 <button
                   className={`search-add-btn ${isAdded ? 'added' : ''}`}
-                  onClick={() => onAddStyle(style)}
+                  onClick={() => {
+                    onAddStyle(style)
+                    // 添加后重新加载列表以更新按钮状态
+                    setTimeout(loadAdditionalStyles, 100)
+                  }}
                   disabled={isAdded}
                 >
                   {isAdded ? '✓' : '+'}
