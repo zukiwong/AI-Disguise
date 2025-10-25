@@ -155,19 +155,31 @@ export default async function handler(req, res) {
     console.log('总共获取到 styles:', styles.length, '个')
 
     // 6. 获取用户的 API 配置
+    console.log('🔍 开始处理 API 配置，userData.apiConfig 存在:', !!userData.apiConfig)
+
     if (userData.apiConfig) {
       const mode = userData.apiConfig.mode || 'free'
       const activeProvider = userData.apiConfig.activeProvider
+      console.log('📋 API 配置详情:', {
+        mode,
+        activeProvider,
+        hasCustomApis: !!userData.apiConfig.customApis,
+        customApisKeys: userData.apiConfig.customApis ? Object.keys(userData.apiConfig.customApis) : []
+      })
+
       let decodedApiKey = null
 
       // 如果用户设置了自定义 API
       if (mode === 'custom' && activeProvider && userData.apiConfig.customApis?.[activeProvider]) {
         const customApi = userData.apiConfig.customApis[activeProvider]
+        console.log('✅ 找到自定义 API 配置:', activeProvider, '模型:', customApi.model)
+
         // 解码 Base64 编码的 API Key
         try {
           decodedApiKey = Buffer.from(customApi.apiKey, 'base64').toString('utf-8')
+          console.log('✅ API Key 解码成功，长度:', decodedApiKey.length)
         } catch (error) {
-          console.error('解码 API Key 失败:', error)
+          console.error('❌ 解码 API Key 失败:', error)
         }
 
         apiConfig = {
@@ -178,14 +190,21 @@ export default async function handler(req, res) {
         }
       } else {
         // 免费模式
+        console.log('ℹ️ 使用免费模式，原因:',
+          !mode || mode !== 'custom' ? 'mode 不是 custom' :
+          !activeProvider ? '没有 activeProvider' :
+          !userData.apiConfig.customApis?.[activeProvider] ? '找不到对应的 customApis' : '未知')
+
         apiConfig = {
           provider: 'free',
           apiKey: null,
           hasCustomKey: false
         }
       }
+    } else {
+      console.log('⚠️ userData.apiConfig 不存在，使用默认配置')
     }
-    console.log('获取到 API 配置，provider:', apiConfig.provider, 'hasCustomKey:', apiConfig.hasCustomKey)
+    console.log('📤 最终返回的 API 配置，provider:', apiConfig.provider, 'hasCustomKey:', apiConfig.hasCustomKey)
 
     // 4. 返回数据
     return res.status(200).json({

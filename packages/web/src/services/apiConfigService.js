@@ -208,10 +208,27 @@ export async function switchApiMode(userId, mode, provider = null) {
   try {
     const currentConfig = await getUserApiConfig(userId)
 
+    let activeProvider = null
+
+    if (mode === 'custom') {
+      // 如果切换到 custom 模式
+      if (provider) {
+        // 如果指定了 provider，使用指定的
+        activeProvider = provider
+      } else {
+        // 如果没有指定，自动选择第一个已配置的 API
+        const configuredApis = Object.keys(currentConfig.customApis || {})
+        if (configuredApis.length > 0) {
+          activeProvider = configuredApis[0]
+          console.log('自动选择第一个已配置的 API:', activeProvider)
+        }
+      }
+    }
+
     const updatedConfig = {
       ...currentConfig,
       mode: mode,
-      activeProvider: mode === 'custom' ? provider : null
+      activeProvider: activeProvider
     }
 
     await updateUserApiConfig(userId, updatedConfig)
