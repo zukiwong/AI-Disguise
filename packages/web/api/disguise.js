@@ -186,8 +186,10 @@ export default async function handler(req, res) {
       // 解码 Base64 编码的 API Key
       try {
         console.log('🔑 开始解码 API Key，编码长度:', customApi.apiKey.length)
-        userApiKey = Buffer.from(customApi.apiKey, 'base64').toString('ascii')
+        userApiKey = Buffer.from(customApi.apiKey, 'base64').toString('ascii').trim()
         console.log('✅ API Key 解码成功，解码后长度:', userApiKey.length)
+        console.log('🔍 API Key 前缀:', userApiKey.substring(0, 10) + '...')
+        console.log('🔍 API Key 后缀:', '...' + userApiKey.substring(userApiKey.length - 4))
       } catch (error) {
         console.error('❌ API Key 解码失败:', error)
         return res.status(400).json({
@@ -642,6 +644,10 @@ async function callDeepSeekAPI(prompt, apiKey) {
   const baseUrl = 'https://api.deepseek.com/v1'
   const model = 'deepseek-chat'
 
+  console.log('🚀 开始调用 DeepSeek API')
+  console.log('🔑 API Key 长度:', apiKey.length)
+  console.log('📝 Prompt 长度:', prompt.length)
+
   const requestData = {
     model: model,
     messages: [{
@@ -652,29 +658,42 @@ async function callDeepSeekAPI(prompt, apiKey) {
     max_tokens: 1024
   }
 
-  const response = await fetch(
-    `${baseUrl}/chat/completions`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(requestData),
+  console.log('📤 发送请求到:', `${baseUrl}/chat/completions`)
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/chat/completions`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(requestData),
+      }
+    )
+
+    console.log('📥 收到响应，状态码:', response.status)
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      console.error('❌ DeepSeek API 错误:', errorData)
+      throw new Error(`DeepSeek API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
     }
-  )
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(`DeepSeek API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`)
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content
+
+    if (!generatedText) {
+      console.error('❌ DeepSeek 响应数据异常:', JSON.stringify(data))
+      throw new Error('DeepSeek API 返回的数据格式异常')
+    }
+
+    console.log('✅ DeepSeek API 调用成功，返回文本长度:', generatedText.length)
+    return cleanGeneratedText(generatedText.trim())
+  } catch (error) {
+    console.error('❌ DeepSeek API 调用失败:', error.message)
+    console.error('❌ 错误详情:', error)
+    throw error
   }
-
-  const data = await response.json()
-  const generatedText = data.choices?.[0]?.message?.content
-
-  if (!generatedText) {
-    throw new Error('DeepSeek API 返回的数据格式异常')
-  }
-
-  return cleanGeneratedText(generatedText.trim())
 }

@@ -176,8 +176,9 @@ export default async function handler(req, res) {
 
         // 解码 Base64 编码的 API Key
         try {
-          decodedApiKey = Buffer.from(customApi.apiKey, 'base64').toString('ascii')
+          decodedApiKey = Buffer.from(customApi.apiKey, 'base64').toString('ascii').trim()
           console.log('✅ API Key 解码成功，长度:', decodedApiKey.length)
+          console.log('🔍 API Key 前缀:', decodedApiKey.substring(0, 10) + '...')
         } catch (error) {
           console.error('❌ 解码 API Key 失败:', error)
         }
