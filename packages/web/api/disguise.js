@@ -185,8 +185,20 @@ export default async function handler(req, res) {
 
       // 解码 Base64 编码的 API Key
       try {
+        console.log('🔑 开始解码 API Key，编码长度:', customApi.apiKey.length)
         userApiKey = Buffer.from(customApi.apiKey, 'base64').toString('utf-8')
+        console.log('✅ API Key 解码成功，解码后长度:', userApiKey.length)
+
+        // 验证解码后的 API Key 不包含异常字符
+        if (userApiKey.includes('\ufffd')) {
+          console.error('❌ API Key 包含替换字符 (U+FFFD)，可能解码失败')
+          return res.status(400).json({
+            error: 'Invalid API Key format',
+            message: 'API Key 解码失败，请重新配置'
+          })
+        }
       } catch (error) {
+        console.error('❌ API Key 解码失败:', error)
         return res.status(400).json({
           error: 'Invalid API Key format',
           message: 'API Key 格式错误'
